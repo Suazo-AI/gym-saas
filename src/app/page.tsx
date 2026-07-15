@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./page.module.css";
 
 const benefits = [
@@ -88,6 +89,38 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.story} aria-labelledby="story-title">
+        <div className={styles.storyImageMain}>
+          <Image
+            src="/images/gym-interior.png"
+            alt="Interior cálido de un gimnasio independiente con área de pesas y recepción"
+            fill
+            sizes="(max-width: 900px) 100vw, 62vw"
+          />
+          <span className={styles.imageNote}>Hecho para gimnasios reales</span>
+        </div>
+        <div className={styles.storyContent}>
+          <span className={styles.storyEyebrow}>TU NEGOCIO, MÁS CLARO</span>
+          <h2 id="story-title">Menos tiempo en hojas.<br /><em>Más tiempo en el gimnasio.</em></h2>
+          <p>
+            Fit Manager reúne la operación diaria en un lugar simple. Tú ves lo
+            importante y tu equipo sabe exactamente qué hacer.
+          </p>
+          <div className={styles.storyImageSmall}>
+            <Image
+              src="/images/gym-owner.png"
+              alt="Dueño de gimnasio administrando su negocio desde una computadora"
+              fill
+              sizes="(max-width: 900px) 100vw, 32vw"
+            />
+          </div>
+          <div className={styles.storyQuote}>
+            <strong>“Cada mañana debería empezar con claridad.”</strong>
+            <span>La idea detrás de Fit Manager</span>
           </div>
         </div>
       </section>
