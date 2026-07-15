@@ -8,9 +8,10 @@
 - Tasa inicial: C$36.50 por US$1; cada gimnasio puede cambiarla.
 - Los cambios de tasa afectan solamente transacciones nuevas y quedan auditados.
 - Roles iniciales: Dueño, Gerente, Recepcionista y Administrador de plataforma.
-- Tecnología propuesta: ASP.NET Core MVC, Supabase/PostgreSQL y Bootstrap.
+- Tecnología propuesta: Next.js, TypeScript, Supabase/PostgreSQL y CSS Modules.
 - Supabase será la plataforma principal para base de datos, autenticación y almacenamiento de imágenes.
-- La aplicación ASP.NET Core se desplegará en un hosting separado.
+- La aplicación Next.js se desplegará en un hosting compatible.
+- La primera versión de la landing y el panel utiliza datos ficticios, sin conexión externa.
 - El Full-Stack aprueba seguridad, permisos, dinero, base de datos y despliegues.
 
 ## Etiquetas
@@ -204,23 +205,24 @@
 
 ## Lista: 03 — Base técnica Full-Stack
 
-### Crear solución ASP.NET Core MVC
+### Crear aplicación Next.js
 
 - Responsable: Full-Stack
 - Etiquetas: `FULLSTACK`, `MVP`
 - Checklist:
-  - Estructura por capas o módulos.
+  - App Router y TypeScript.
+  - Estructura por módulos.
   - Configuración por ambiente.
   - Manejo central de errores.
   - Logging sin datos sensibles.
-  - Bootstrap y diseño adaptable.
+  - CSS Modules y diseño adaptable.
 
 ### Configurar Supabase/PostgreSQL y migraciones
 
 - Responsable: Full-Stack
 - Etiquetas: `FULLSTACK`, `MVP`
 - Checklist:
-  - Entity Framework Core con proveedor PostgreSQL.
+  - Cliente Supabase para TypeScript.
   - Proyecto de Supabase separado para desarrollo.
   - Migraciones versionadas.
   - Datos semilla para desarrollo.
@@ -388,7 +390,7 @@
 
 - Responsable: Full-Stack
 - Etiquetas: `FULLSTACK`, `MVP`
-- Requisitos: Supabase de desarrollo y hosting temporal para ASP.NET Core, sin datos reales sensibles.
+- Requisitos: Supabase de desarrollo y hosting temporal para Next.js, sin datos reales sensibles.
 
 ### Preparar ambiente piloto
 
