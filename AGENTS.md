@@ -1,5 +1,4 @@
 # AGENTS.md - FitManager / Gym SaaS
-
 ## Preflight obligatorio
 
 Antes de analizar, planificar, editar archivos, ejecutar migraciones o escribir código, el agente debe:
@@ -34,6 +33,7 @@ Este `AGENTS.md` gobierna:
 Si una tarjeta de Trello contradice este archivo, el trabajo debe detenerse y la discrepancia debe informarse antes de continuar.
 
 El archivo utilizado originalmente para preparar el tablero de Trello es solamente una referencia de planificación. No representa automáticamente el estado actual de las tarjetas ni debe utilizarse como sustituto del tablero real.
+
 
 ## Objetivo del producto
 
@@ -967,7 +967,6 @@ Antes de desarrollar todo el sistema:
 12. Confirmar que ningún usuario puede acceder a los datos del otro gimnasio.
 
 El reconocimiento facial debe implementarse después de que el flujo básico de miembros, membresías, pagos y entradas funcione correctamente.
-
 ## Referencia de planificación
 
 El tablero real de Trello es la fuente de verdad para el trabajo operativo del equipo.
