@@ -1,188 +1,133 @@
-# AGENTS.md — Gym SaaS
+# AGENTS.md — Fit Manager
 
-## Preflight obligatorio — antes de hacer cualquier cosa
+## Preflight obligatorio
 
-Estas instrucciones aplican a todo el proyecto y a todos los agentes.
-
-Antes de analizar, planificar, editar archivos, instalar paquetes, ejecutar migraciones o escribir código, el agente debe:
+Estas instrucciones aplican a todo el repositorio. Antes de analizar, planificar, instalar, editar o ejecutar código, cada agente debe:
 
 1. Leer completamente este `AGENTS.md`.
-2. Leer `TRELLO.md` para conocer el backlog y las decisiones pendientes.
-3. Identificar la tarjeta o resultado concreto que trabajará.
-4. Confirmar que la tarea está dentro del MVP y no contradice una decisión existente.
-5. Revisar el estado actual del repositorio y preservar cambios ajenos.
-6. No comenzar implementación si falta una decisión que afecte dinero, seguridad, permisos, multi-tenancy o alcance.
+2. Leer `TRELLO.md`.
+3. Identificar la tarea concreta y confirmar que pertenece al MVP.
+4. Revisar el estado del repositorio y preservar cambios ajenos.
+5. Detenerse si falta una decisión sobre dinero, permisos, seguridad, multi-tenancy o alcance.
 
-Si `AGENTS.md` y `TRELLO.md` se contradicen, `AGENTS.md` gobierna las reglas y decisiones del producto; la discrepancia debe informarse y corregirse antes de continuar.
+Si existe contradicción, `AGENTS.md` gobierna las reglas y decisiones; la discrepancia debe corregirse antes de continuar. Este preflight no puede omitirse.
 
-Este preflight es obligatorio. No puede omitirse para ahorrar tiempo.
+## Regla técnica de Next.js
 
-## Objetivo del producto
+La versión instalada de Next.js puede contener cambios recientes en APIs, convenciones y estructura. Antes de usar una API dudosa, leer la guía correspondiente en `node_modules/next/dist/docs/` y respetar avisos de deprecación.
 
-Construir un SaaS multi-tenant para administrar gimnasios pequeños de Nicaragua. La primera versión debe resolver el trabajo diario de recepción y darle al dueño control claro sobre miembros, membresías, pagos, morosidad y entradas.
+## Producto
 
-El producto comenzará con gimnasios de aproximadamente 25–100 miembros y luego podrá evolucionar para negocios mayores.
+Fit Manager es un SaaS multi-tenant para administrar gimnasios pequeños de Nicaragua, inicialmente de 25–100 miembros. Debe simplificar el trabajo de recepción y darle al dueño control sobre miembros, membresías, pagos, morosidad y entradas.
 
-## Usuario y problema principal
+Hipótesis por validar con al menos 10 dueños: el problema principal es controlar pagos, vencimientos y miembros activos cuando trabajan con papel, Excel y WhatsApp. No tratarla como confirmada antes de las entrevistas.
 
-Usuarios iniciales:
+La interfaz será únicamente en español.
 
-- Dueño del gimnasio.
+## Usuarios iniciales
+
+- Dueño.
 - Gerente.
 - Recepcionista.
-- Administrador interno de la plataforma SaaS.
+- Administrador interno de la plataforma.
 
-Hipótesis principal por validar con al menos 10 dueños: los gimnasios pierden tiempo y control al manejar pagos, vencimientos y miembros activos mediante papel, Excel y WhatsApp.
+El acceso para entrenadores y el portal del miembro quedan fuera hasta recibir aprobación explícita.
 
-No tratar esta hipótesis como confirmada hasta completar las entrevistas.
+## MVP
 
-## Alcance del MVP
+Incluye:
 
-Incluir:
-
-- Registro y configuración de gimnasios.
-- Separación estricta de datos entre gimnasios.
+- Gimnasios y separación estricta de datos.
 - Usuarios, roles y permisos.
-- Registro y búsqueda de miembros.
-- Planes y membresías.
-- Estados de membresía y vencimientos.
+- Miembros, planes y membresías.
 - Pagos, recibos y morosidad.
-- Entradas al gimnasio.
-- Apertura y cierre básico de caja.
+- Entradas.
+- Caja básica.
 - Reportes esenciales.
-- Operación en USD y NIO.
-- Tasa inicial de referencia: C$36.50 por US$1.
-- Tasa editable por cada gimnasio.
-- Auditoría de cambios importantes.
+- USD y NIO.
+- Tasa inicial de referencia C$36.50 por US$1, editable por gimnasio.
+- Auditoría de operaciones críticas.
 
 Fuera del MVP:
 
 - Aplicación móvil nativa.
-- Rutinas y nutrición.
-- Portal o acceso del entrenador.
+- Rutinas, nutrición y acceso de entrenadores.
 - Nómina y contabilidad completa.
 - Inventario avanzado.
 - Control físico de puertas.
 - Funciones para grandes cadenas.
 
-El portal del miembro todavía requiere decisión del dueño del producto. No implementarlo sin aprobación explícita.
+## Estado inicial autorizado
 
-## Reglas monetarias
+La primera versión contiene solamente:
 
-- Soportar USD y NIO.
-- Guardar monto, moneda y tasa aplicada en cada transacción.
-- Nunca usar `float` o `double` para dinero; usar tipos decimales apropiados.
-- Cambiar la tasa afecta solamente transacciones nuevas.
-- Una transacción histórica nunca se recalcula con una tasa nueva.
-- Los pagos no se eliminan: se anulan o corrigen mediante operaciones auditadas.
-- Cada gimnasio controla su propia tasa.
+- Landing page de Fit Manager.
+- Panel administrativo básico.
+- Navegación visual.
+- Datos ficticios.
+
+No conectar Supabase, autenticación, APIs, pagos ni servicios externos hasta recibir autorización posterior.
 
 ## Tecnología decidida
 
-- Aplicación: ASP.NET Core MVC.
-- Interfaz: Razor Views y Bootstrap.
-- Base de datos: PostgreSQL administrado por Supabase.
-- Acceso a datos: Entity Framework Core con proveedor PostgreSQL.
-- Autenticación: Supabase Auth, integrada y validada desde ASP.NET Core.
-- Imágenes y archivos: Supabase Storage.
-- Idioma de la interfaz: español.
-- Hosting de ASP.NET Core: pendiente de seleccionar; será separado de Supabase.
+- Next.js con App Router.
+- React y TypeScript.
+- CSS Modules.
+- Supabase PostgreSQL para datos futuros.
+- Supabase Auth para autenticación futura.
+- Supabase Storage para imágenes futuras.
+- Hosting de Next.js pendiente de seleccionar.
 
-SQL Server y Somee ya no son la arquitectura principal. No introducirlos sin una nueva decisión explícita.
+ASP.NET, SQL Server y Somee ya no forman parte de la arquitectura principal.
 
-## Arquitectura obligatoria
+## Estrategia obligatoria de ramas
 
-- El sistema es multi-tenant desde el comienzo.
-- Toda entidad comercial debe pertenecer a un gimnasio mediante `GymId` o equivalente.
-- Toda consulta y operación debe validar el gimnasio activo en el servidor.
-- Ocultar botones no sustituye autorización.
-- Ningún usuario de un gimnasio puede consultar o modificar datos de otro.
+- `main`: producción; solo código estable y aprobado.
+- `develop`: integración y pruebas.
+- Todo cambio comienza en una rama aislada creada desde `develop`.
+- Usar nombres como `codex/descripcion`, `feature/descripcion` o `fix/descripcion`.
+- Nunca desarrollar directamente en `main` o `develop`.
+- Flujo: rama de trabajo → revisión → `develop` → validación → `main`.
+
+## Multi-tenancy y seguridad futura
+
+- Toda entidad comercial pertenecerá a un gimnasio mediante `gymId` o equivalente.
+- Cada operación validará el gimnasio activo en el servidor.
+- Ocultar controles no sustituye autorización.
+- Ningún gimnasio podrá consultar o modificar datos de otro.
 - El administrador de plataforma tendrá acceso especial, limitado y auditado.
-- Separar reglas del negocio, persistencia y presentación para permitir pruebas.
-- Mantener migraciones de base de datos versionadas en el repositorio.
+- No guardar secretos, credenciales ni cadenas de conexión en Git.
+- Validar permisos en el servidor y proteger archivos, formularios y rutas.
 
-## Roles iniciales
+## Reglas monetarias futuras
 
-- Dueño: control total de su gimnasio, configuración, personal y reportes.
-- Gerente: operaciones y reportes permitidos, sin propiedad de la cuenta.
-- Recepcionista: miembros, membresías, cobros y entradas; acceso financiero limitado.
-- Administrador de plataforma: gestión del SaaS, soporte y auditoría.
+- Guardar monto, moneda y tasa aplicada por transacción.
+- No usar tipos binarios de coma flotante para dinero.
+- Un cambio de tasa solo afecta transacciones nuevas.
+- No recalcular transacciones históricas.
+- No borrar pagos: anular o corregir con auditoría.
 
-Crear una matriz explícita de permisos antes de implementar autorización.
+## Responsabilidades
 
-## Seguridad mínima
+Producto/Vibe Coder diseña flujos, pantallas, estados y textos; prueba facilidad de uso con datos falsos. No decide por sí solo seguridad, permisos, dinero o modelo de datos.
 
-- Validar autorización en cada operación del servidor.
-- Proteger contra CSRF, XSS, inyección y carga de archivos peligrosos.
-- No guardar secretos, contraseñas ni cadenas de conexión en Git.
-- Usar variables de entorno o un administrador de secretos.
-- Registrar acciones críticas sin almacenar contraseñas ni datos sensibles innecesarios.
-- Usar HTTPS en cualquier ambiente con datos reales.
-- Preparar y probar respaldo y restauración antes del piloto.
+Full-Stack revisa arquitectura, datos, reglas, seguridad, migraciones, pruebas, despliegues y aislamiento entre gimnasios.
 
-## Forma de trabajo
+## Reglas de ejecución
 
-El trabajo alterna dos funciones:
-
-### Producto y Vibe Coder
-
-- Diseñar flujos, pantallas, estados y textos en español.
-- Crear prototipos rápidos con datos falsos.
-- Probar facilidad de uso con dueños y recepcionistas.
-- No decidir por sí solo seguridad, permisos, dinero o estructura de datos.
-
-### Full-Stack Developer
-
-- Aprobar arquitectura y modelo de datos.
-- Implementar reglas, seguridad, permisos, migraciones y pruebas.
-- Revisar toda operación relacionada con dinero o aislamiento multi-tenant.
-- Preparar despliegues, monitoreo, respaldo y restauración.
-
-Orden normal:
-
-1. Producto define y valida el flujo.
-2. Vibe Coder crea el prototipo.
-3. Full-Stack revisa riesgos y contratos de datos.
-4. Full-Stack implementa y prueba.
-5. Producto prueba con usuarios.
-6. Se corrige antes de mover la tarea a terminado.
-
-## Reglas para agentes Codex
-
-- Leer este archivo y `TRELLO.md` antes de proponer o implementar trabajo.
 - Trabajar una tarjeta claramente definida a la vez.
 - No ampliar el MVP silenciosamente.
-- Pedir una sola decisión a la vez cuando falte información del producto.
-- Usar español simple y respuestas concisas con el dueño del producto.
-- No afirmar que algo fue probado si no se ejecutó una verificación concreta.
-- No cambiar decisiones técnicas establecidas sin explicar el motivo y recibir aprobación.
-- No incluir credenciales en mensajes, archivos versionados, ejemplos ni logs.
-- Agregar pruebas proporcionales al riesgo de cada cambio.
-- Preservar cambios existentes que no pertenezcan a la tarea actual.
+- Pedir una sola decisión a la vez cuando sea indispensable.
+- Hablar con el dueño en español simple y conciso.
+- No decir que algo fue probado sin ejecutar una verificación concreta.
+- No cambiar decisiones técnicas sin explicar el motivo y recibir aprobación.
+- Agregar pruebas proporcionales al riesgo.
+- Mantener diseños adaptables a móvil y escritorio.
 
-## Criterio general de terminado
+## Terminado
 
-Una función está terminada cuando:
+Una tarea está terminada cuando cumple su alcance, maneja estados relevantes, respeta aislamiento y permisos, tiene verificación proporcional al riesgo, no expone secretos y deja actualizada la documentación afectada.
 
-- Cumple criterios funcionales claros.
-- Respeta separación entre gimnasios y permisos.
-- Maneja estados de éxito, vacío, validación y error.
-- Tiene pruebas para reglas críticas.
-- Fue verificada en un recorrido realista.
-- No expone secretos ni datos de otro gimnasio.
-- La documentación afectada fue actualizada.
+## Referencia
 
-## Prioridad inmediata
-
-Antes de desarrollar todo el sistema:
-
-1. Entrevistar al menos 10 dueños o gerentes.
-2. Confirmar el dolor principal.
-3. Cerrar reglas de membresías, pagos y entradas.
-4. Decidir si el miembro tendrá acceso propio en el MVP.
-5. Elegir hosting para ASP.NET Core.
-6. Crear el primer flujo vertical: registrar miembro, cobrar membresía y registrar entrada.
-
-## Referencia de planificación
-
-El backlog detallado está en `TRELLO.md`. Este archivo gobierna el propósito, las decisiones técnicas y las reglas de ejecución; `TRELLO.md` gobierna las tareas y su orden.
+`TRELLO.md` contiene el backlog. Este archivo gobierna el producto, la arquitectura y la ejecución; `TRELLO.md` gobierna tareas y orden.
