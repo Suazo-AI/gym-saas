@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
 import { requireUser } from "@/features/auth/services/auth.service";
+import { FaceAccessModal } from "@/features/entries/components/face-access-modal";
 import { listRecentEntryEvents } from "@/features/entries/services/entry.repository";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 
@@ -14,7 +15,12 @@ export default async function EntriesPage() {
 
   return (
     <AppShell activeGym={activeGym} currentPath="/entries" userEmail={user.email}>
-      <ModuleHeader eyebrow="Entradas" title="Recepcion rapida" description="Modulo protegido para consultar estado de acceso y registrar visitas del gimnasio activo." />
+      <ModuleHeader
+        action={<FaceAccessModal />}
+        eyebrow="Entradas"
+        title="Recepcion rapida"
+        description="Verificacion facial automatica con camara, matching biometrico y validacion de suscripcion activa."
+      />
       <section className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-5">
           <h2 className="text-xl font-black text-[#083f88]">Eventos recientes</h2>

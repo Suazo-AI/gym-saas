@@ -3194,6 +3194,23 @@ export type Database = {
         }
         Returns: string
       }
+      enroll_member_face: {
+        Args: {
+          p_consent_version?: string
+          p_embedding?: string
+          p_gym_id: string
+          p_gym_member_id: string
+          p_height_pixels?: number
+          p_mime_type: string
+          p_model_code?: string
+          p_object_path: string
+          p_quality_score?: number
+          p_sha256_hex?: string
+          p_size_bytes: number
+          p_width_pixels?: number
+        }
+        Returns: Json
+      }
       fail_storage_deletion_job: {
         Args: {
           p_error: string
@@ -3206,6 +3223,8 @@ export type Database = {
         Args: { p_gym_id: string; p_through_date?: string }
         Returns: number
       }
+      get_platform_dashboard: { Args: never; Returns: Json }
+      get_platform_gym_detail: { Args: { p_gym_id: string }; Returns: Json }
       list_deleted_entities: {
         Args: {
           p_entity?: string
@@ -3315,6 +3334,18 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      verify_face_access: {
+        Args: {
+          p_branch_id?: string
+          p_device_id?: string
+          p_embedding: string
+          p_gym_id: string
+          p_model_code?: string
+          p_processing_ms?: number
+          p_similarity_threshold?: number
+        }
+        Returns: Json
       }
     }
     Enums: {
