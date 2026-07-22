@@ -11,6 +11,10 @@ export default async function DashboardPage() {
   const activeGym = await getActiveGym();
 
   if (!activeGym) {
+    if (user.app_metadata?.platform_role === "admin") {
+      redirect("/platform");
+    }
+
     redirect("/login");
   }
 
