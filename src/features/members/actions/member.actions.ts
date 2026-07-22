@@ -10,10 +10,13 @@ import {
   restoreMember,
   updateMember,
 } from "../services/member.repository";
+import { enrollMemberFaceFromForm } from "../services/member-face-enrollment.service";
 
 type MemberActionState = {
   ok: boolean;
   message?: string;
+  memberId?: string;
+  warning?: string;
 };
 
 function text(formData: FormData, key: string) {
@@ -21,12 +24,32 @@ function text(formData: FormData, key: string) {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
 }
 
+function numberOrNull(formData: FormData, key: string) {
+  const value = text(formData, key);
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export async function createMemberAction(
   _state: MemberActionState,
   formData: FormData,
 ): Promise<MemberActionState> {
   try {
-    await createMember({
+    const faceImageBase64 = text(formData, "faceImageBase64");
+    const biometricConsentGranted = formData.get("biometricConsentGranted") === "on";
+
+    if (faceImageBase64 && !biometricConsentGranted) {
+      return {
+        ok: false,
+        message: "Para enrolar rostro debes confirmar el consentimiento biometrico.",
+      };
+    }
+
+    const memberId = await createMember({
       gymId: text(formData, "gymId") ?? "",
       firstName: text(formData, "firstName") ?? "",
       lastName: text(formData, "lastName") ?? "",
@@ -42,8 +65,31 @@ export async function createMemberAction(
       paymentPaidAt: text(formData, "paymentPaidAt") ?? null,
       paymentNotes: text(formData, "paymentNotes") ?? null,
     });
+
+    if (faceImageBase64) {
+      try {
+        await enrollMemberFaceFromForm({
+          gymId: text(formData, "gymId") ?? "",
+          gymMemberId: memberId,
+          imageBase64: faceImageBase64,
+          biometricConsentGranted,
+          widthPixels: numberOrNull(formData, "faceImageWidth"),
+          heightPixels: numberOrNull(formData, "faceImageHeight"),
+        });
+      } catch (error) {
+        revalidatePath("/dashboard");
+        revalidatePath("/members");
+        return {
+          ok: true,
+          memberId,
+          warning: `Miembro creado, pero no se pudo enrolar el rostro: ${publicMessage(error)}`,
+        };
+      }
+    }
+
     revalidatePath("/dashboard");
-    return { ok: true, message: "Miembro creado." };
+    revalidatePath("/members");
+    return { ok: true, memberId, message: "Miembro creado." };
   } catch (error) {
     return { ok: false, message: publicMessage(error) };
   }
