@@ -1,67 +1,82 @@
 import Link from "next/link";
-import styles from "./admin.module.css";
 
-const nav = ["Resumen", "Miembros", "Membresías", "Pagos", "Entradas", "Reportes"];
+const nav = ["Resumen", "Miembros", "Membresias", "Pagos", "Entradas", "Reportes"];
 const members = [
-  { initials: "AM", name: "Ana Martínez", plan: "Mensual", status: "Activo", date: "14 ago 2026" },
-  { initials: "JR", name: "Jorge Ramírez", plan: "Mensual", status: "Por vencer", date: "16 jul 2026" },
-  { initials: "LC", name: "Lucía Castillo", plan: "Trimestral", status: "Activo", date: "02 oct 2026" },
-  { initials: "DS", name: "Diego Sánchez", plan: "Mensual", status: "Vencido", date: "10 jul 2026" },
+  { initials: "AM", name: "Ana Martinez", plan: "Mensual", status: "Activo", date: "14 ago 2026" },
+  { initials: "JR", name: "Jorge Ramirez", plan: "Mensual", status: "Por vencer", date: "16 jul 2026" },
+  { initials: "LC", name: "Lucia Castillo", plan: "Trimestral", status: "Activo", date: "02 oct 2026" },
+  { initials: "DS", name: "Diego Sanchez", plan: "Mensual", status: "Vencido", date: "10 jul 2026" },
 ];
 
 export default function AdminPage() {
   return (
-    <main className={styles.shell}>
-      <aside className={styles.sidebar}>
-        <Link className={styles.brand} href="/"><span>F</span>Fit Manager</Link>
-        <div className={styles.gym}><small>GIMNASIO ACTUAL</small><strong>Impulso Fitness</strong><span>Managua, Nicaragua</span></div>
-        <nav>
-          {nav.map((item, index) => <a className={index === 0 ? styles.active : ""} href="#" key={item}><i>{["⌂","♙","▣","$","✓","↗"][index]}</i>{item}</a>)}
+    <main className="grid min-h-screen bg-[#f6f9fc] text-slate-950 lg:grid-cols-[280px_1fr]">
+      <aside className="border-r border-slate-200 bg-white p-5">
+        <Link className="flex items-center gap-3 text-lg font-bold text-[#083f88]" href="/">
+          <span className="grid h-10 w-10 place-items-center rounded-md bg-[#083f88] text-white">F</span>
+          Fit Manager
+        </Link>
+        <div className="mt-8 rounded-lg bg-[#f6f9fc] p-4">
+          <small className="font-bold uppercase text-slate-500">Gimnasio actual</small>
+          <strong className="mt-1 block">Impulso Fitness</strong>
+          <span className="text-sm text-slate-500">Managua, Nicaragua</span>
+        </div>
+        <nav className="mt-8 space-y-1">
+          {nav.map((item, index) => (
+            <a
+              className={`block rounded-md px-3 py-3 text-sm font-semibold ${
+                index === 0 ? "bg-[#083f88] text-white" : "text-slate-600 hover:bg-slate-100"
+              }`}
+              href="#"
+              key={item}
+            >
+              {item}
+            </a>
+          ))}
         </nav>
-        <div className={styles.sideBottom}>
-          <a href="#"><i>⚙</i>Configuración</a>
-          <div className={styles.user}><span>JS</span><div><strong>Jason Suazo</strong><small>Propietario</small></div><b>⋯</b></div>
-        </div>
       </aside>
-
-      <section className={styles.content}>
-        <header>
-          <div><small>MARTES, 14 DE JULIO</small><h1>Buenos días, Jason.</h1><p>Esto es lo que está pasando en tu gimnasio hoy.</p></div>
-          <div className={styles.headerActions}><button aria-label="Notificaciones">◦</button><button className={styles.add}>＋ Nuevo miembro</button></div>
+      <section className="p-5 sm:p-8">
+        <header className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div>
+            <small className="font-bold uppercase tracking-[0.18em] text-[#ff7a1a]">Demo visual</small>
+            <h1 className="mt-2 text-3xl font-bold">Buenos dias, Jason.</h1>
+            <p className="mt-1 text-slate-600">Datos ficticios para validar estructura visual.</p>
+          </div>
+          <button className="rounded-md bg-[#ff7a1a] px-4 py-3 text-sm font-bold text-white">Nuevo miembro</button>
         </header>
-
-        <div className={styles.stats}>
-          <article><span>MIEMBROS ACTIVOS <i>↗</i></span><strong>84</strong><small><b>↑ 6</b> desde el mes pasado</small></article>
-          <article><span>ENTRADAS HOY <i>✓</i></span><strong>27</strong><small>32% de miembros activos</small></article>
-          <article><span>INGRESOS DEL MES <i>$</i></span><strong>C$ 91,250</strong><small><b>↑ 8.4%</b> vs. mes pasado</small></article>
-          <article><span>POR VENCER <i>!</i></span><strong>9</strong><small><em>Próximos 7 días</em></small></article>
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            ["Miembros activos", "84", "6 mas este mes"],
+            ["Entradas hoy", "27", "32% de activos"],
+            ["Ingresos del mes", "C$ 91,250", "8.4% vs mes pasado"],
+            ["Por vencer", "9", "Proximos 7 dias"],
+          ].map(([label, value, note]) => (
+            <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm" key={label}>
+              <span className="text-xs font-bold uppercase text-slate-500">{label}</span>
+              <strong className="mt-2 block text-3xl">{value}</strong>
+              <small className="mt-2 block text-slate-500">{note}</small>
+            </article>
+          ))}
         </div>
-
-        <div className={styles.grid}>
-          <article className={styles.chartCard}>
-            <div className={styles.cardTitle}><div><small>INGRESOS</small><h2>Rendimiento mensual</h2></div><select aria-label="Periodo"><option>Últimos 6 meses</option></select></div>
-            <div className={styles.chart}>
-              <div className={styles.yAxis}><span>100k</span><span>75k</span><span>50k</span><span>25k</span><span>0</span></div>
-              {[48,62,57,75,69,91].map((height,index)=><div className={styles.barCol} key={index}><div><span style={{height:`${height}%`}} /></div><small>{["FEB","MAR","ABR","MAY","JUN","JUL"][index]}</small></div>)}
-            </div>
-          </article>
-
-          <article className={styles.quickCard}>
-            <div className={styles.cardTitle}><div><small>ACCESOS RÁPIDOS</small><h2>¿Qué quieres hacer?</h2></div></div>
-            <button><span>＋</span><div><strong>Registrar miembro</strong><small>Agrega una nueva persona</small></div><b>→</b></button>
-            <button><span>$</span><div><strong>Registrar pago</strong><small>Cobra una membresía</small></div><b>→</b></button>
-            <button><span>✓</span><div><strong>Registrar entrada</strong><small>Confirma una visita</small></div><b>→</b></button>
-          </article>
-        </div>
-
-        <article className={styles.tableCard}>
-          <div className={styles.cardTitle}><div><small>MIEMBROS</small><h2>Actividad reciente</h2></div><button>Ver todos →</button></div>
-          <div className={styles.table}>
-            <div className={styles.tableHead}><span>MIEMBRO</span><span>PLAN</span><span>ESTADO</span><span>PRÓXIMO VENCIMIENTO</span><span /></div>
-            {members.map(member=><div className={styles.tableRow} key={member.name}><div><span>{member.initials}</span><strong>{member.name}</strong></div><span>{member.plan}</span><span><i className={styles[member.status.replace(" ","").toLowerCase()]}>{member.status}</i></span><span>{member.date}</span><button>•••</button></div>)}
+        <article className="mt-8 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 p-5">
+            <small className="font-bold uppercase text-[#ff7a1a]">Miembros</small>
+            <h2 className="mt-1 text-xl font-bold">Actividad reciente</h2>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {members.map((member) => (
+              <div className="grid gap-3 p-4 sm:grid-cols-[1.4fr_1fr_1fr_1fr] sm:items-center" key={member.name}>
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-[#083f88] text-sm font-bold text-white">{member.initials}</span>
+                  <strong>{member.name}</strong>
+                </div>
+                <span className="text-slate-600">{member.plan}</span>
+                <span className="text-slate-600">{member.status}</span>
+                <span className="text-slate-600">{member.date}</span>
+              </div>
+            ))}
           </div>
         </article>
-        <p className={styles.demo}>Vista de demostración · Los datos mostrados son ficticios</p>
       </section>
     </main>
   );
