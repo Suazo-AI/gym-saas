@@ -8,7 +8,7 @@ import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { listMembers } from "@/features/members/services/member.repository";
 
 type MembersPageProps = {
-  searchParams: Promise<{ page?: string; search?: string }>;
+  searchParams: Promise<{ notice?: string; page?: string; search?: string }>;
 };
 
 export default async function MembersPage({ searchParams }: MembersPageProps) {
@@ -41,6 +41,11 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
           </Link>
         }
       />
+      {params.notice ? (
+        <div className="mt-6 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-bold text-orange-900">
+          {params.notice}
+        </div>
+      ) : null}
       <section className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm">
         <form className="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row">
           <input

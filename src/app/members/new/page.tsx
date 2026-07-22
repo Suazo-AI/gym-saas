@@ -5,6 +5,7 @@ import { ModuleHeader } from "@/features/app/components/module-header";
 import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { createMemberAction } from "@/features/members/actions/member.actions";
+import { MemberFaceEnrollmentField } from "@/features/members/components/member-face-enrollment-field";
 import { listMembershipPlans } from "@/features/memberships/services/membership.repository";
 import { listPaymentMethods } from "@/features/payments/services/payment.repository";
 import { listBranches } from "@/features/settings/services/branch.repository";
@@ -58,6 +59,8 @@ export default async function NewMemberPage({ searchParams }: NewMemberPageProps
             ))}
           </SelectField>
         </section>
+
+        <MemberFaceEnrollmentField />
 
         <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
           <h2 className="md:col-span-2 text-xl font-black text-[#061f46]">
@@ -177,5 +180,6 @@ async function createMemberFormAction(formData: FormData) {
     redirect(`/members/new?error=${encodeURIComponent(result.message ?? "No pudimos crear el miembro.")}`);
   }
 
-  redirect("/members");
+  const warning = result.warning ? `?notice=${encodeURIComponent(result.warning)}` : "";
+  redirect(`/members${warning}`);
 }
