@@ -26,10 +26,14 @@ export async function loginAction(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error) {
     return { type: "error", message: "Correo o contraseña incorrectos." };
+  }
+
+  if (data.user?.app_metadata?.platform_role === "admin") {
+    redirect("/platform");
   }
 
   redirect("/dashboard");
