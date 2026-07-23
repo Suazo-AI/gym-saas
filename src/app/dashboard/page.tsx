@@ -26,7 +26,7 @@ export default async function DashboardPage() {
         description={`Sesion activa para ${user.email}. Las metricas se conectaran a vistas y RPC bajo RLS.`}
         action={
           <Link
-            className="rounded-md bg-[#ff7a1a] px-5 py-3 text-center text-sm font-black text-white hover:bg-[#e86305]"
+            className="rounded-md bg-[#ff7a1a] px-6 py-4 text-center text-sm font-black text-white hover:bg-[#e86305]"
             href="/dev/supabase-check"
           >
             Revisar Supabase
