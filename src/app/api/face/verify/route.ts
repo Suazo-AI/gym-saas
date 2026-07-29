@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { ApiError } from "@/lib/api/api-error";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
-import { requireUser } from "@/features/auth/services/auth.service";
+import { requireApiUser } from "@/features/auth/services/auth.service";
 import { generateFaceEmbedding } from "@/features/entries/services/face-embedding.service";
 import { verifyFaceAccessWithEmbedding } from "@/features/entries/services/face-verification.repository";
 
@@ -15,7 +15,7 @@ const verifyFaceRequestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    await requireUser();
+    await requireApiUser();
     const activeGym = await getActiveGym();
 
     if (!activeGym) {

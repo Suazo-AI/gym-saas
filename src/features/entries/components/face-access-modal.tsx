@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 type VerificationResult = {
   decision: "allowed" | "denied" | "manual_review" | "no_match";
@@ -9,30 +15,130 @@ type VerificationResult = {
   similarity: number | null;
 };
 
-export function FaceAccessModal() {
+const FOCUSABLE_SELECTOR = [
+  "button:not([disabled])",
+  "[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
+
+type DialogKeyboardEvent = Pick<
+  ReactKeyboardEvent<HTMLElement>,
+  "currentTarget" | "key" | "preventDefault" | "shiftKey"
+>;
+
+export function handleDialogKeyDown(event: DialogKeyboardEvent, closeDialog: () => void) {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeDialog();
+    return;
+  }
+
+  if (event.key !== "Tab") {
+    return;
+  }
+
+  const focusable = Array.from(
+    event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+  ).filter((element) => !element.hasAttribute("disabled") && element.getAttribute("aria-hidden") !== "true");
+
+  if (focusable.length === 0) {
+    event.preventDefault();
+    return;
+  }
+
+  const currentIndex = focusable.indexOf(
+    event.currentTarget.ownerDocument.activeElement as HTMLElement,
+  );
+  const movingBeforeFirst = event.shiftKey && currentIndex <= 0;
+  const movingAfterLast = !event.shiftKey && currentIndex === focusable.length - 1;
+
+  if (movingBeforeFirst || movingAfterLast) {
+    event.preventDefault();
+    focusable[movingBeforeFirst ? focusable.length - 1 : 0]?.focus();
+  }
+}
+
+export function stopMediaStream(stream: MediaStream | null) {
+  stream?.getTracks().forEach((track) => track.stop());
+}
+
+export function clearVideoStream(video: HTMLVideoElement | null) {
+  if (video) {
+    video.srcObject = null;
+  }
+}
+
+export async function acquireMediaStream(
+  requestStream: () => Promise<MediaStream>,
+  isCancelled: () => boolean,
+) {
+  const stream = await requestStream();
+
+  if (isCancelled()) {
+    stopMediaStream(stream);
+    return null;
+  }
+
+  return stream;
+}
+
+export function focusFirstDialogControl(dialog: HTMLElement | null) {
+  const first = dialog
+    ? Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).find(
+        (element) => !element.hasAttribute("disabled") && element.getAttribute("aria-hidden") !== "true",
+      )
+    : null;
+
+  first?.focus();
+}
+
+export function restoreDialogTriggerFocus(trigger: HTMLElement | null) {
+  trigger?.focus();
+}
+
+export function FaceAccessModal({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const [open, setOpen] = useState(false);
+  const cameraRequestRef = useRef(0);
+  const [open, setOpen] = useState(initiallyOpen);
   const [status, setStatus] = useState<"idle" | "camera" | "verifying" | "error" | "done">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [result, setResult] = useState<VerificationResult | null>(null);
 
   const stopCamera = useCallback(() => {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
+    cameraRequestRef.current += 1;
+    stopMediaStream(streamRef.current);
     streamRef.current = null;
+    clearVideoStream(videoRef.current);
   }, []);
 
   const startCamera = useCallback(async () => {
+    const requestId = cameraRequestRef.current + 1;
+    cameraRequestRef.current = requestId;
     setStatus("camera");
     setMessage(null);
     setResult(null);
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      });
+      const stream = await acquireMediaStream(
+        () =>
+          navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false,
+          }),
+        () => cameraRequestRef.current !== requestId,
+      );
+
+      if (!stream) {
+        return;
+      }
+
       streamRef.current = stream;
 
       if (videoRef.current) {
@@ -40,6 +146,10 @@ export function FaceAccessModal() {
         await videoRef.current.play();
       }
     } catch {
+      if (cameraRequestRef.current !== requestId) {
+        return;
+      }
+
       setStatus("error");
       setMessage("No pudimos abrir la camara. Revisa permisos del navegador.");
     }
@@ -48,6 +158,17 @@ export function FaceAccessModal() {
   useEffect(() => {
     return () => stopCamera();
   }, [stopCamera]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const trigger = triggerRef.current;
+    focusFirstDialogControl(dialogRef.current);
+
+    return () => restoreDialogTriggerFocus(trigger);
+  }, [open]);
 
   function openModal() {
     setOpen(true);
@@ -98,19 +219,29 @@ export function FaceAccessModal() {
   return (
     <>
       <button
-        className="rounded-md bg-[#ff7a1a] px-5 py-3 text-sm font-black text-white hover:bg-[#e86305]"
+        className="rounded-md bg-brand-orange px-5 py-3 text-sm font-black text-ink hover:bg-brand-red hover:text-paper"
         onClick={openModal}
+        ref={triggerRef}
         type="button"
       >
         Verificar con camara
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-[#061f46]/80 p-4">
-          <section className="w-full max-w-3xl rounded-lg bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4">
+          <section
+            aria-labelledby="face-access-title"
+            aria-modal="true"
+            className="w-full max-w-3xl rounded-lg border border-charcoal bg-paper shadow-2xl"
+            onKeyDown={(event) => handleDialogKeyDown(event, closeModal)}
+            ref={dialogRef}
+            role="dialog"
+          >
             <div className="flex items-center justify-between border-b border-slate-200 p-5">
               <div>
-                <h2 className="text-2xl font-black text-[#061f46]">Reconocimiento facial</h2>
+                <h2 className="text-2xl font-black text-ink" id="face-access-title">
+                  Reconocimiento facial
+                </h2>
                 <p className="mt-1 text-sm font-semibold text-slate-500">
                   Captura automatica y validacion de suscripcion activa.
                 </p>
@@ -133,7 +264,7 @@ export function FaceAccessModal() {
               <aside className="grid content-between gap-4">
                 <ResultPanel message={message} result={result} status={status} />
                 <button
-                  className="min-h-12 rounded-md bg-[#083f88] px-5 py-3 text-sm font-black text-white hover:bg-[#062f66] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="min-h-12 rounded-md bg-ink px-5 py-3 text-sm font-black text-paper hover:bg-charcoal disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={status !== "camera"}
                   onClick={captureAndVerify}
                   type="button"
@@ -181,7 +312,7 @@ function ResultPanel({
       <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
         Estado
       </span>
-      <strong className="mt-3 block text-2xl font-black text-[#083f88]">
+      <strong className="mt-3 block text-2xl font-black text-ink">
         {status === "verifying" ? "Verificando" : status === "error" ? "Error" : "Camara lista"}
       </strong>
       <p className="mt-3 text-sm font-semibold text-slate-600">

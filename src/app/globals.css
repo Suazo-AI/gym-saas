@@ -1,1 +1,129 @@
 @import "tailwindcss";
+
+@theme {
+  --color-brand-orange: #e85002;
+  --color-brand-red: #c10801;
+  --color-brand-amber: #f16001;
+  --color-brand-sand: #d9c3ab;
+  --color-ink: #000000;
+  --color-charcoal: #333333;
+  --color-gray: #646464;
+  --color-gray-light: #a7a7a7;
+  --color-paper: #f9f9f9;
+
+  --color-white: #f9f9f9;
+  --color-black: #000000;
+  --color-slate-950: #000000;
+  --color-slate-900: #000000;
+  --color-slate-800: #333333;
+  --color-slate-700: #333333;
+  --color-slate-600: #646464;
+  --color-slate-500: #646464;
+  --color-slate-400: #a7a7a7;
+  --color-slate-300: #a7a7a7;
+  --color-slate-200: color-mix(in srgb, #a7a7a7 55%, #f9f9f9);
+  --color-slate-100: color-mix(in srgb, #a7a7a7 24%, #f9f9f9);
+  --color-slate-50: #f9f9f9;
+  --color-blue-950: #000000;
+  --color-blue-100: #a7a7a7;
+  --color-blue-50: #f9f9f9;
+  --color-orange-950: #c10801;
+  --color-orange-900: #333333;
+  --color-orange-800: #333333;
+  --color-orange-200: #d9c3ab;
+  --color-orange-50: color-mix(in srgb, #d9c3ab 35%, #f9f9f9);
+}
+
+:root {
+  color-scheme: light;
+  --brand-gradient: linear-gradient(135deg, #000000 0%, #c10801 34%, #f16001 68%, #d9c3ab 100%);
+}
+
+html {
+  background: #f9f9f9;
+}
+
+body {
+  background: #f9f9f9;
+  color: #000000;
+}
+
+::selection {
+  background: #e85002;
+  color: #000000;
+}
+
+:focus-visible {
+  outline: 3px solid #e85002;
+  outline-offset: 3px;
+}
+
+.brand-gradient {
+  background: var(--brand-gradient);
+}
+
+/* Temporary compatibility for legacy arbitrary-color utilities. */
+.bg-\[\#083f88\],
+.bg-\[\#061f46\] {
+  background-color: #000000;
+}
+
+.bg-\[\#083f88\]\/80,
+.bg-\[\#061f46\]\/80 {
+  background-color: rgb(0 0 0 / 80%);
+}
+
+.bg-\[\#ff7a1a\] {
+  background-color: #e85002;
+}
+
+.bg-\[\#ff7a1a\].text-white {
+  color: #000000;
+}
+
+.bg-\[\#f6f9fc\] {
+  background-color: #f9f9f9;
+}
+
+.text-\[\#083f88\],
+.text-\[\#061f46\] {
+  color: #000000;
+}
+
+.text-\[\#ff7a1a\] {
+  color: #e85002;
+}
+
+.border-\[\#083f88\] {
+  border-color: #333333;
+}
+
+.accent-\[\#ff7a1a\] {
+  accent-color: #e85002;
+}
+
+.hover\:bg-\[\#e86305\]:hover,
+.hover\:bg-\[\#062e64\]:hover,
+.hover\:bg-\[\#062f66\]:hover {
+  background-color: #c10801;
+  color: #f9f9f9;
+}
+
+.hover\:text-\[\#ff7a1a\]:hover {
+  color: #e85002;
+}
+
+.focus\:border-\[\#083f88\]:focus {
+  border-color: #e85002;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

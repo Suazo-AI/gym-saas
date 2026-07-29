@@ -131,41 +131,41 @@ export function MemberFaceEnrollmentField() {
   }
 
   return (
-    <section className="grid gap-4 rounded-lg border-2 border-[#083f88] bg-[#061f46] p-5 text-white shadow-[0_16px_35px_rgba(8,63,136,0.22)] md:grid-cols-[1fr_1.2fr]">
+    <section className="grid gap-4 rounded-lg border-2 border-charcoal border-t-brand-orange bg-ink p-5 text-paper md:grid-cols-[1fr_1.2fr]">
       <input name="faceImageBase64" type="hidden" value={imageBase64} />
       <input name="faceImageWidth" type="hidden" value={width} />
       <input name="faceImageHeight" type="hidden" value={height} />
       <input name="biometricConsentGranted" type="hidden" value={consent ? "on" : ""} />
 
       <div className="space-y-3">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#ffb36b]">Acceso facial</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-sand">Acceso facial</p>
         <h2 className="text-2xl font-black">Foto para reconocimiento</h2>
-        <p className="text-sm font-semibold text-blue-100">
+        <p className="text-sm font-semibold text-gray-light">
           Esta foto se guarda en Storage privado y el embedding se genera en el servicio seguro local.
         </p>
-        <label className="flex gap-3 rounded-md border border-white/20 bg-white/10 p-3 text-sm font-bold">
+        <label className="flex gap-3 rounded-md border border-gray bg-charcoal p-3 text-sm font-bold">
           <input
             checked={consent}
-            className="mt-1 h-4 w-4 accent-[#ff7a1a]"
+            className="mt-1 h-4 w-4 accent-brand-orange"
             onChange={(event) => setConsent(event.target.checked)}
             type="checkbox"
           />
           El miembro autoriza usar su rostro para validar entradas al gimnasio.
         </label>
-        <p className={`text-sm font-black ${status === "error" ? "text-orange-200" : "text-white"}`}>
+        <p className={`text-sm font-black ${status === "error" ? "text-brand-sand" : "text-paper"}`}>
           {message}
         </p>
       </div>
 
       <div className="grid gap-3">
-        <div className="overflow-hidden rounded-md border border-white/20 bg-black/30">
+        <div className="overflow-hidden rounded-md border border-gray bg-charcoal">
           {status === "camera" ? (
             <video className="aspect-video w-full object-cover" muted playsInline ref={videoRef} />
           ) : imageBase64 ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img alt="Foto facial capturada" className="aspect-video w-full object-cover" src={imageBase64} />
           ) : (
-            <div className="flex aspect-video items-center justify-center text-sm font-bold text-blue-100">
+            <div className="flex aspect-video items-center justify-center text-sm font-bold text-gray-light">
               Camara o foto
             </div>
           )}
@@ -174,7 +174,7 @@ export function MemberFaceEnrollmentField() {
         <div className="flex flex-wrap gap-2">
           {status === "camera" ? (
             <button
-              className="rounded-md bg-[#ff7a1a] px-4 py-2 text-sm font-black text-white hover:bg-[#e86305]"
+              className="min-h-11 rounded-md bg-brand-orange px-4 py-2 text-sm font-black text-ink hover:bg-brand-red hover:text-paper"
               onClick={capturePhoto}
               type="button"
             >
@@ -182,7 +182,7 @@ export function MemberFaceEnrollmentField() {
             </button>
           ) : (
             <button
-              className="rounded-md bg-[#ff7a1a] px-4 py-2 text-sm font-black text-white hover:bg-[#e86305]"
+              className="min-h-11 rounded-md bg-brand-orange px-4 py-2 text-sm font-black text-ink hover:bg-brand-red hover:text-paper"
               onClick={openCamera}
               type="button"
             >
@@ -190,7 +190,7 @@ export function MemberFaceEnrollmentField() {
             </button>
           )}
 
-          <label className="cursor-pointer rounded-md border border-white/30 px-4 py-2 text-sm font-black text-white hover:bg-white/10">
+          <label className="flex min-h-11 cursor-pointer items-center rounded-md border border-gray px-4 py-2 text-sm font-black text-paper hover:bg-charcoal">
             Subir foto
             <input
               accept="image/png,image/jpeg,image/webp"
@@ -202,7 +202,7 @@ export function MemberFaceEnrollmentField() {
 
           {imageBase64 ? (
             <button
-              className="rounded-md border border-white/30 px-4 py-2 text-sm font-black text-white hover:bg-white/10"
+              className="min-h-11 rounded-md border border-gray px-4 py-2 text-sm font-black text-paper hover:bg-charcoal"
               onClick={clearPhoto}
               type="button"
             >

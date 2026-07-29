@@ -1,4 +1,9 @@
-import type { MemberSummaryDto, MemberSummaryRow } from "../types/member.dto";
+import type {
+  MemberDetailDto,
+  MemberDetailRow,
+  MemberSummaryDto,
+  MemberSummaryRow,
+} from "../types/member.dto";
 
 export function mapMemberSummaryRow(row: MemberSummaryRow): MemberSummaryDto {
   return {
@@ -24,4 +29,20 @@ export function mapMemberSummaryRow(row: MemberSummaryRow): MemberSummaryDto {
 
 export function mapMemberSummaryRows(rows: MemberSummaryRow[]): MemberSummaryDto[] {
   return rows.map(mapMemberSummaryRow);
+}
+
+export function mapMemberDetailRow(row: MemberDetailRow): MemberDetailDto {
+  return {
+    ...mapMemberSummaryRow(row),
+    middleName: row.middle_name,
+    secondLastName: row.second_last_name,
+    birthDate: row.birth_date,
+    sex: row.sex,
+    notes: row.notes,
+    contacts: row.contacts ?? [],
+    primaryAddress: row.primary_address,
+    currentSubscription: row.current_subscription,
+    pendingCharges: row.pending_charges ?? [],
+    paymentSummary: row.payment_summary,
+  };
 }
