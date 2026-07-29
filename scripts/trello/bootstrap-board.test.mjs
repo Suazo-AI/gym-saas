@@ -1,8 +1,7 @@
-import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import test from 'node:test'
+import { expect, test } from 'vitest'
 
 const script = fileURLToPath(new URL('./bootstrap-board.mjs', import.meta.url))
 const projectRoot = fileURLToPath(new URL('../../', import.meta.url))
@@ -23,9 +22,9 @@ test('dry-run does not require or expose Trello credentials', () => {
     TRELLO_TOKEN: token,
   })
 
-  assert.equal(result.status, 0, result.stderr)
-  assert.match(result.stdout, /Dry run: no se llamó a la API de Trello\./)
-  assert.doesNotMatch(`${result.stdout}${result.stderr}`, new RegExp(`${key}|${token}`))
+  expect(result.status, result.stderr).toBe(0)
+  expect(result.stdout).toMatch(/Dry run: no se llamó a la API de Trello\./)
+  expect(`${result.stdout}${result.stderr}`).not.toMatch(new RegExp(`${key}|${token}`))
 })
 
 test('write mode stops before the API when credentials are missing', () => {
@@ -41,12 +40,12 @@ test('write mode stops before the API when credentials are missing', () => {
     env,
   })
 
-  assert.equal(result.status, 1)
-  assert.match(result.stderr, /Faltan TRELLO_KEY y TRELLO_TOKEN/)
+  expect(result.status).toBe(1)
+  expect(result.stderr).toMatch(/Faltan TRELLO_KEY y TRELLO_TOKEN/)
 })
 
 test('the client has no update or delete API operations', () => {
   const source = readFileSync(script, 'utf8')
 
-  assert.doesNotMatch(source, /api\(['"](?:PUT|DELETE)['"]/)
+  expect(source).not.toMatch(/api\(['"](?:PUT|DELETE)['"]/)
 })
