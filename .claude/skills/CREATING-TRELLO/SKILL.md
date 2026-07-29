@@ -5,7 +5,7 @@ description: Crear o actualizar el tablero de Trello de FitManager desde Docs/tr
 
 # Tablero de Trello de FitManager
 
-El tablero vive en **https://trello.com/b/8jUETslr** (`FitManager - Gym SaaS`, privado, workspace `Gym-saas`).
+El tablero operativo es privado. Pasa su `shortLink` o ID mediante `--board`; no lo hardcodees en scripts ni documentación compartida.
 
 Dos archivos gobiernan cosas distintas, y confundirlos es el error más caro de este flujo:
 
@@ -24,7 +24,7 @@ node scripts/trello/bootstrap-board.mjs --dry-run
 Parsea la plantilla y muestra qué saldría. No toca la API ni necesita credenciales. **Corre esto siempre primero**, sobre todo después de editar la plantilla — es la forma barata de descubrir que un bullet quedó mal indentado.
 
 ```bash
-node scripts/trello/bootstrap-board.mjs --board 8jUETslr
+node scripts/trello/bootstrap-board.mjs --board <board-id>
 ```
 El caso normal. Lee el tablero, compara por nombre y agrega solo lo que falta. Si no falta nada, gasta 5 llamadas y no cambia nada. Es seguro correrlo las veces que sea.
 
@@ -68,7 +68,7 @@ El script las busca en dos lugares, en este orden:
 1. Variables de entorno `TRELLO_KEY` y `TRELLO_TOKEN`.
 2. `%USERPROFILE%\.claude\.trello.env`, con una línea `CLAVE=valor` cada una.
 
-Ese archivo ya está creado y poblado, así que **normalmente no hay que hacer nada**: basta con correr el script. Vive fuera del repositorio a propósito — así no existe la ruta por la cual un secreto termine en un commit.
+El archivo es opcional y debe crearse manualmente solo si el entorno no resulta práctico. Vive fuera del repositorio para reducir el riesgo de commitear secretos.
 
 **Nunca** poner credenciales en un archivo del repo, ni imprimirlas en la salida, ni pegarlas en un chat. El script verifica `/members/me` antes de tocar nada, para no dejar un tablero a medias, y reporta de cuál de las dos fuentes las tomó.
 
@@ -78,7 +78,7 @@ Ese archivo ya está creado y poblado, así que **normalmente no hay que hacer n
 - **Token**: empieza con `ATTA` y mide ~76 caracteres. **No** es una cadena de 64 hex.
 - Una cadena de **64 hex** en esa pantalla es el **Secret** de OAuth 1. No sirve como token y produce `401 invalid key`, que apunta al lado equivocado del problema.
 
-Se genera abriendo, con la key real:
+Se genera desde Trello usando la key real. No copies la URL resultante a logs o chats:
 
 ```
 https://trello.com/1/authorize?expiration=never&scope=read,write&response_type=token&key=<API_KEY>
@@ -108,14 +108,15 @@ El script imprime `Listas nuevas / Tarjetas nuevas / Ya existían`. Cuando el ca
 
 ```bash
 node -e '
+const boardId = process.env.TRELLO_BOARD_ID;
 const q = `key=${process.env.TRELLO_KEY}&token=${process.env.TRELLO_TOKEN}`;
-const b = await (await fetch(`https://api.trello.com/1/boards/8jUETslr?${q}&lists=open&list_fields=name&cards=open&card_fields=name,idList,idLabels`)).json();
+const b = await (await fetch(`https://api.trello.com/1/boards/${boardId}?${q}&lists=open&list_fields=name&cards=open&card_fields=name,idList,idLabels`)).json();
 for (const l of b.lists) console.log(`${String(b.cards.filter(c=>c.idList===l.id).length).padStart(3)}  ${l.name}`);
 console.log(`Total: ${b.cards.length} | sin etiqueta: ${b.cards.filter(c=>!c.idLabels.length).length}`);
 '
 ```
 
-Referencia esperada al día de hoy: 11 listas, 74 tarjetas, 66 checklists, 435 ítems, ninguna tarjeta sin etiqueta.
+Referencia actual del `--dry-run` sobre la plantilla: 11 listas, 73 tarjetas, 65 checklists y 433 ítems. El tablero real puede contener tarjetas adicionales creadas manualmente; no borres ni dupliques contenido para forzar estos conteos.
 
 ## Reglas del producto que el tablero debe respetar
 
@@ -123,5 +124,5 @@ Referencia esperada al día de hoy: 11 listas, 74 tarjetas, 66 checklists, 435 �
 
 Dos decisiones cerradas que suelen colarse mal en tarjetas nuevas:
 
-- **Moneda**: el MVP opera **solo en córdobas (NIO)**. Nada de selector de moneda ni conversión. La tasa C$36.60 por US$1 es solo para precios listados en USD (el precio del SaaS). El cobro en dólares vive en `09 - Después del MVP`.
+- **Moneda**: el MVP acepta USD y NIO. La tasa inicial de referencia es C$36.60 por US$1; cada conversión debe conservar la moneda y tasa aplicadas, y los cambios futuros no recalculan transacciones históricas.
 - **Alcance**: una tarjeta nueva que no esté en el MVP va con etiqueta `DESPUÉS`, no se cuela en las listas de desarrollo.

@@ -3,12 +3,12 @@
  * Crea el tablero de Trello de FitManager a partir de Docs/trello-board-template.md
  *
  * Uso:
- *   set TRELLO_KEY / TRELLO_TOKEN en el entorno (nunca en el repositorio)
+ *   configura TRELLO_KEY / TRELLO_TOKEN en el entorno (nunca en el repositorio)
  *   node scripts/trello/bootstrap-board.mjs --dry-run
  *   node scripts/trello/bootstrap-board.mjs --name "FitManager - MVP"
  *   node scripts/trello/bootstrap-board.mjs --workspace gymsaas
  *   node scripts/trello/bootstrap-board.mjs --only 00,01,02,03,04
- *   node scripts/trello/bootstrap-board.mjs --board 8jUETslr   # agrega lo que falte
+ *   node scripts/trello/bootstrap-board.mjs --board <board-id> # agrega lo que falte
  *
  * Sin --board crea un tablero nuevo. Con --board reutiliza el existente y solo
  * agrega listas y tarjetas que aún no están, comparando por nombre. Nunca borra
@@ -71,9 +71,11 @@ const { key: KEY, token: TOKEN, from: CREDS_FROM } = loadCreds()
 if (!DRY_RUN && (!KEY || !TOKEN)) {
   console.error(
     'Faltan TRELLO_KEY y TRELLO_TOKEN.\n\n' +
-      'Opción 1, solo para esta terminal:\n' +
+      'Bash / Git Bash:\n' +
+      '  export TRELLO_KEY="..." TRELLO_TOKEN="..."\n\n' +
+      'PowerShell:\n' +
       '  $env:TRELLO_KEY = "..."; $env:TRELLO_TOKEN = "..."\n\n' +
-      `Opción 2, permanente — crea ${CREDS_FILE} con:\n` +
+      `Archivo opcional fuera del repositorio — ${CREDS_FILE}:\n` +
       '  TRELLO_KEY=...\n  TRELLO_TOKEN=...\n\n' +
       'Ese archivo está fuera del repositorio, así que no puede terminar en un commit.\n' +
       'Usa --dry-run para revisar el resultado sin credenciales.'
@@ -267,11 +269,11 @@ try {
 } catch (err) {
   console.error(`\nLas credenciales no funcionan: ${err.message}\n`)
   console.error(`  TRELLO_KEY:   ${KEY.length} caracteres (se esperan 32 hex)`)
-  console.error(`  TRELLO_TOKEN: ${TOKEN.length} caracteres, empieza con "${TOKEN.slice(0, 4)}"`)
+  console.error(`  TRELLO_TOKEN: ${TOKEN.length} caracteres`)
   console.error(
     '\nEl token actual de Trello empieza con "ATTA" y mide ~76 caracteres.\n' +
       'Una cadena de 64 hex NO es un token: es el Secret de OAuth, y produce "invalid key" de forma engañosa.\n' +
-      `Genera uno real en: https://trello.com/1/authorize?expiration=never&scope=read,write&response_type=token&key=${KEY}`
+      'Genera uno real desde Trello usando tu API key; no pegues la key ni el token en logs o chats.'
   )
   process.exit(1)
 }
