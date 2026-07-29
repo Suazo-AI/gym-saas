@@ -10,7 +10,7 @@
 - Producto: SaaS multi-tenant para administrar gimnasios pequeños de Nicaragua, inicialmente de 25 a 100 miembros.
 - Interfaz: español.
 - Monedas: USD y NIO.
-- Tasa inicial de referencia: C$36.50 por US$1.
+- Tasa inicial de referencia: C$36.60 por US$1.
 - Cada gimnasio podrá configurar su propia tasa.
 - Los cambios de tasa afectarán solamente transacciones nuevas y deberán quedar auditados.
 - Roles iniciales: Dueño, Gerente, Recepcionista y Administrador de plataforma.

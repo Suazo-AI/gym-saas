@@ -389,7 +389,7 @@ No asumir que una tasa configurada actualmente existe si todavía no está repre
 Cuando se implemente la tasa de cambio:
 
 * cada gimnasio tendrá su propia tasa;
-* la tasa inicial de referencia será C$36.50 por US$1;
+* la tasa inicial de referencia será C$36.60 por US$1;
 * la tasa aplicada debe guardarse en cada transacción convertida;
 * cambiar la tasa solo afectará transacciones nuevas;
 * las transacciones históricas no se recalcularán.
