@@ -125,7 +125,7 @@ export function MemberDetailView({
 
               <label className="flex min-h-11 items-center gap-3 rounded-md border border-gray px-3 py-2 text-sm font-bold text-ink">
                 <input
-                  className="size-5 accent-orange-500"
+                  className="size-5 accent-brand-orange"
                   defaultChecked
                   name="generateFirstCharge"
                   type="checkbox"
@@ -161,7 +161,7 @@ export function MemberDetailView({
           </div>
 
           {member.pendingCharges.length === 0 ? (
-            <p className="mt-4 rounded-md bg-gray-light p-4 text-sm font-semibold text-gray">
+            <p className="mt-4 rounded-md bg-gray-light p-4 text-sm font-semibold text-charcoal">
               No hay cargos pendientes visibles.
             </p>
           ) : (

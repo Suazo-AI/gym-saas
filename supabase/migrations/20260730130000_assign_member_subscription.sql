@@ -96,9 +96,29 @@ begin
       using errcode = '22023';
   end if;
 
+  -- El precio, la moneda y el ciclo los define el plan, no quien llama.
+  -- Los parametros existen para que el contrato sea explicito, pero si vienen
+  -- deben coincidir con el plan: no hay regla de producto para descuentos ni
+  -- para precios a medida, y PostgREST es alcanzable directamente por cualquier
+  -- usuario con 'memberships.manage'.
   v_cycle := coalesce(p_billing_cycle_months, v_plan.billing_cycle_months);
   v_amount := coalesce(p_recurring_amount, v_plan.price);
   v_currency := coalesce(p_currency, v_plan.currency);
+
+  if v_cycle is distinct from v_plan.billing_cycle_months then
+    raise exception 'El ciclo de cobro debe ser el del plan.'
+      using errcode = '22023';
+  end if;
+
+  if v_amount is distinct from v_plan.price then
+    raise exception 'El monto debe ser el precio del plan.'
+      using errcode = '22023';
+  end if;
+
+  if v_currency is distinct from v_plan.currency then
+    raise exception 'La moneda debe ser la del plan.'
+      using errcode = '22023';
+  end if;
 
   if v_cycle <= 0 or v_amount < 0 then
     raise exception 'El ciclo de cobro y el monto deben ser válidos.'
