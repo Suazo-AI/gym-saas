@@ -53,6 +53,22 @@ export function mapSupabaseError(error: unknown): ApiError {
     });
   }
 
+  if (supabaseError.code === "22023") {
+    return new ApiError(
+      "BUSINESS_RULE_VIOLATION",
+      supabaseError.message ?? "El pago no cumple las reglas del sistema.",
+      { cause: error, internalMessage },
+    );
+  }
+
+  if (supabaseError.code === "P0002") {
+    return new ApiError(
+      "NOT_FOUND",
+      supabaseError.message ?? "No encontramos el registro solicitado.",
+      { cause: error, internalMessage },
+    );
+  }
+
   if (supabaseError.status === 404 || supabaseError.code === "PGRST116") {
     return new ApiError("NOT_FOUND", "No encontramos el registro solicitado.", {
       cause: error,
