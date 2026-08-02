@@ -39,7 +39,7 @@ function SubmitButton({ label }: { label: string }) {
 
   return (
     <button
-      className="min-h-11 w-full rounded-md bg-[#ff7a1a] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#e86305] focus:outline-none focus:ring-2 focus:ring-[#ff7a1a] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+      className="min-h-11 w-full rounded-md bg-brand-orange px-4 py-3 text-sm font-semibold text-ink transition hover:bg-brand-red hover:text-paper focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       disabled={pending}
       type="submit"
     >

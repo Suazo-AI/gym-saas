@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { ApiError } from "@/lib/api/api-error";
 import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,6 +24,16 @@ export async function getCurrentUser() {
   }
 
   return data.user;
+}
+
+export async function requireApiUser() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new ApiError("UNAUTHENTICATED", "Debes iniciar sesión.");
+  }
+
+  return user;
 }
 
 export function getAuthCallbackUrl(path = "/auth/callback") {

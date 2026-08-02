@@ -19,31 +19,31 @@ type PlatformShellProps = {
 
 export function PlatformShell({ currentPath, userEmail, children }: PlatformShellProps) {
   return (
-    <main className="min-h-screen bg-[#061f46] text-white lg:grid lg:grid-cols-[292px_1fr]">
-      <aside className="border-b border-white/10 bg-[#061f46] p-5 lg:min-h-screen lg:border-b-0 lg:border-r">
+    <main className="min-h-screen bg-ink text-paper lg:grid lg:grid-cols-[292px_1fr]">
+      <aside className="border-b border-charcoal bg-ink p-5 lg:min-h-screen lg:border-b-0 lg:border-r">
         <Link className="flex items-center gap-3 text-lg font-black" href="/platform">
-          <span className="grid h-11 w-11 place-items-center rounded-md bg-[#ff7a1a] text-white shadow-lg shadow-orange-950/20">
+          <span className="grid h-11 w-11 place-items-center rounded-md bg-brand-orange text-ink">
             F
           </span>
           FitManager SaaS
         </Link>
 
-        <div className="mt-8 rounded-lg border border-white/10 bg-white/8 p-4">
-          <small className="font-black uppercase tracking-[0.16em] text-orange-200">
+        <div className="mt-8 rounded-lg border border-charcoal bg-charcoal/50 p-4">
+          <small className="font-black uppercase tracking-[0.16em] text-brand-sand">
             Consola interna
           </small>
           <strong className="mt-2 block text-xl">Clientes del SaaS</strong>
-          <span className="mt-1 block text-sm text-blue-100">Admin de plataforma</span>
+          <span className="mt-1 block text-sm text-gray-light">Admin de plataforma</span>
         </div>
 
-        <nav className="mt-8 grid gap-2">
+        <nav className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1">
           {nav.map(([label, href]) => (
             <Link
               aria-current={currentPath === href ? "page" : undefined}
               className={`rounded-md px-4 py-3 text-sm font-bold transition ${
                 currentPath === href
-                  ? "bg-[#ff7a1a] text-white"
-                  : "text-blue-100 hover:bg-white/10 hover:text-white"
+                  ? "bg-brand-orange text-ink"
+                  : "text-gray-light hover:bg-charcoal hover:text-paper"
               }`}
               href={href}
               key={href}
@@ -53,13 +53,13 @@ export function PlatformShell({ currentPath, userEmail, children }: PlatformShel
           ))}
         </nav>
 
-        <div className="mt-8 rounded-lg border border-white/10 p-4 text-sm text-blue-100">
-          <span className="block font-bold text-white">{userEmail ?? "Admin SaaS"}</span>
+        <div className="mt-8 rounded-lg border border-charcoal p-4 text-sm text-gray-light">
+          <span className="block font-bold text-paper">{userEmail ?? "Admin SaaS"}</span>
         </div>
 
         <form action={signOutAction} className="mt-4">
           <button
-            className="min-h-11 w-full rounded-md border border-white/20 px-4 py-3 text-sm font-bold text-white hover:bg-white/10"
+            className="min-h-11 w-full rounded-md border border-gray px-4 py-3 text-sm font-bold text-paper hover:bg-charcoal"
             type="submit"
           >
             Cerrar sesion
@@ -67,7 +67,7 @@ export function PlatformShell({ currentPath, userEmail, children }: PlatformShel
         </form>
       </aside>
 
-      <section className="bg-[#f6f9fc] p-5 text-slate-950 sm:p-8">{children}</section>
+      <section className="min-w-0 bg-paper p-5 text-ink sm:p-8">{children}</section>
     </main>
   );
 }
