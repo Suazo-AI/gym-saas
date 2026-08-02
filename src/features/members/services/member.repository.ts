@@ -2,10 +2,15 @@ import { createPagination, normalizePaginationInput } from "@/lib/api/pagination
 import { mapSupabaseError } from "@/lib/api/map-supabase-error";
 import { createClient } from "@/lib/supabase/server";
 
-import { mapMemberSummaryRow, mapMemberSummaryRows } from "../mappers/member.mapper";
+import {
+  mapMemberDetailRow,
+  mapMemberSummaryRow,
+  mapMemberSummaryRows,
+} from "../mappers/member.mapper";
 import { createMemberSchema, listMembersSchema, updateMemberSchema } from "../schemas/member.schema";
 import type {
   CreateMemberInput,
+  MemberDetailRow,
   MemberDetailDto,
   MemberSummaryRow,
   PaginatedMembersDto,
@@ -86,7 +91,7 @@ export async function listMembers(input: unknown): Promise<PaginatedMembersDto> 
 export async function getMember(input: { gymId: string; gymMemberId: string }): Promise<MemberDetailDto | null> {
   const supabase = (await createClient()) as unknown as MemberViewsClient;
   const { data, error } = await supabase
-    .from<MemberSummaryRow & Record<string, unknown>>("api_v1_member_details")
+    .from<MemberDetailRow>("api_v1_member_details")
     .select("*")
     .eq("gym_id", input.gymId)
     .eq("gym_member_id", input.gymMemberId)
@@ -100,21 +105,7 @@ export async function getMember(input: { gymId: string; gymMemberId: string }): 
     return null;
   }
 
-  const summary = mapMemberSummaryRow(data as MemberSummaryRow);
-
-  return {
-    ...summary,
-    middleName: stringOrNull(data.middle_name),
-    secondLastName: stringOrNull(data.second_last_name),
-    birthDate: stringOrNull(data.birth_date),
-    sex: stringOrNull(data.sex),
-    notes: stringOrNull(data.notes),
-    contacts: Array.isArray(data.contacts) ? data.contacts as MemberDetailDto["contacts"] : [],
-    primaryAddress: (data.primary_address ?? null) as MemberDetailDto["primaryAddress"],
-    currentSubscription: data.current_subscription ?? null,
-    pendingCharges: Array.isArray(data.pending_charges) ? data.pending_charges : [],
-    paymentSummary: data.payment_summary ?? null,
-  };
+  return mapMemberDetailRow(data);
 }
 
 export async function createMember(input: CreateMemberInput): Promise<string> {
@@ -194,8 +185,4 @@ export async function restoreMember(input: { gymMemberId: string }) {
   }
 
   return data;
-}
-
-function stringOrNull(value: unknown) {
-  return typeof value === "string" ? value : null;
 }

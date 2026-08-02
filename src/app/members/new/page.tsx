@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/features/app/components/app-shell";
@@ -110,9 +111,9 @@ export default async function NewMemberPage({ searchParams }: NewMemberPageProps
           <button className="min-h-11 rounded-md bg-[#ff7a1a] px-5 py-3 text-sm font-black text-white hover:bg-[#e86305]" type="submit">
             Crear miembro
           </button>
-          <a className="min-h-11 rounded-md border border-slate-300 px-5 py-3 text-sm font-black text-[#061f46] hover:bg-white" href="/members">
+          <Link className="min-h-11 rounded-md border border-slate-300 px-5 py-3 text-sm font-black text-[#061f46] hover:bg-white" href="/members">
             Cancelar
-          </a>
+          </Link>
         </div>
       </form>
     </AppShell>

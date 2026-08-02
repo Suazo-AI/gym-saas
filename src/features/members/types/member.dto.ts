@@ -21,6 +21,33 @@ export type MemberSummaryDto = {
   createdAt: string;
 };
 
+export type MemberSubscriptionDto = {
+  id: string;
+  status: string;
+  startDate: string;
+  endDate: string | null;
+  billingCycleMonths: number;
+  recurringAmount: string;
+  currency: string;
+  planId: string;
+  planName: string;
+};
+
+export type MemberPendingChargeDto = {
+  id: string;
+  periodStart: string;
+  periodEnd: string;
+  dueDate: string;
+  amountDue: string;
+  currency: string;
+  status: string;
+};
+
+export type MemberPaymentSummaryDto = {
+  settledTotal: string;
+  lastPaymentAt: string | null;
+};
+
 export type MemberDetailDto = MemberSummaryDto & {
   middleName: string | null;
   secondLastName: string | null;
@@ -43,9 +70,9 @@ export type MemberDetailDto = MemberSummaryDto & {
     addressLine2: string | null;
     postalCode: string | null;
   } | null;
-  currentSubscription: unknown;
-  pendingCharges: unknown[];
-  paymentSummary: unknown;
+  currentSubscription: MemberSubscriptionDto | null;
+  pendingCharges: MemberPendingChargeDto[];
+  paymentSummary: MemberPaymentSummaryDto | null;
 };
 
 export type CreateMemberInput = {
@@ -115,4 +142,17 @@ export type MemberSummaryRow = {
   overdue_amount: string | number | null;
   has_overdue_charges: boolean | null;
   created_at: string;
+};
+
+export type MemberDetailRow = MemberSummaryRow & {
+  middle_name: string | null;
+  second_last_name: string | null;
+  birth_date: string | null;
+  sex: string | null;
+  notes: string | null;
+  contacts: MemberDetailDto["contacts"] | null;
+  primary_address: MemberDetailDto["primaryAddress"];
+  current_subscription: MemberSubscriptionDto | null;
+  pending_charges: MemberPendingChargeDto[] | null;
+  payment_summary: MemberPaymentSummaryDto | null;
 };
