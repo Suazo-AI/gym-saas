@@ -1,6 +1,6 @@
 begin;
 
-select plan(10);
+select plan(11);
 
 select has_view('public', 'api_v1_member_summaries', 'member summaries view exists');
 select has_view('public', 'api_v1_member_details', 'member details view exists');
@@ -64,6 +64,53 @@ select ok(
 select ok(
   has_table_privilege('authenticated', 'public.api_v1_member_details', 'select'),
   'authenticated can select member details view'
+);
+
+insert into public.member_payments (
+  id,
+  gym_id,
+  gym_member_id,
+  branch_id,
+  payment_method_id,
+  status,
+  amount,
+  currency,
+  receipt_number,
+  paid_at,
+  received_by
+)
+select
+  '90000000-0000-4000-8000-000000000023',
+  '20000000-0000-4000-8000-000000000001',
+  '60000000-0000-4000-8000-000000000002',
+  '30000000-0000-4000-8000-000000000001',
+  pm.id,
+  'settled',
+  450.00,
+  'NIO',
+  'R-LOCAL-0023',
+  timezone('utc', now()),
+  '00000000-0000-4000-8000-000000000001'
+from public.payment_methods pm
+where pm.code = 'cash';
+
+insert into public.member_payment_allocations (
+  member_payment_id,
+  membership_charge_id,
+  amount
+)
+values (
+  '90000000-0000-4000-8000-000000000023',
+  '80000000-0000-4000-8000-000000000002',
+  450.00
+);
+
+select results_eq(
+  $$select pending_charges->0->>'amountDue'
+    from public.api_v1_member_details
+    where gym_member_id = '60000000-0000-4000-8000-000000000002'$$,
+  $$values ('450.00')$$,
+  'member details pending charges show the remaining balance after settled allocations'
 );
 
 select * from finish();
