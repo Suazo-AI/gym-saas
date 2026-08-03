@@ -1,7 +1,7 @@
 import type { EntryDecision } from "./types/entry.dto";
 
 export type EntryDecisionState = {
-  label: "Permitida" | "Vencida" | "Morosa" | "Bloqueada";
+  label: "Permitida" | "Sin membresía" | "Vencida" | "Morosa" | "Bloqueada";
   description: string;
   icon: "✓" | "!" | "×";
   tone: "success" | "warning" | "danger";
@@ -37,10 +37,22 @@ export function getEntryDecisionState(
     };
   }
 
+  // Un prospecto nunca tuvo membresía: decirle "Bloqueada" lo haría pasar por
+  // alguien vetado. Es un cliente potencial que todavía no compra.
+  if (input.membershipStatus === "prospect") {
+    return {
+      label: "Sin membresía",
+      description: input.decisionReason ?? "El miembro aún no tiene una membresía.",
+      icon: "!",
+      tone: "warning",
+    };
+  }
+
   if (
     input.membershipStatus === "expired"
     || input.membershipStatus === "canceled"
     || input.membershipStatus === "paused"
+    || input.membershipStatus === "inactive"
   ) {
     return {
       label: "Vencida",

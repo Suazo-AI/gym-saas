@@ -204,9 +204,20 @@ begin
     v_decision_reason := v_override_reason;
   else
     v_decision := 'denied'::public.access_decision;
+    -- El motivo queda guardado para siempre en el historial, asi que distingue
+    -- cada estado: un prospecto que nunca compro una membresia no puede quedar
+    -- registrado como si estuviera bloqueado.
     v_decision_reason := case
-      when v_member_status <> 'active'::public.member_status
-        then 'El miembro está inactivo, suspendido o bloqueado.'
+      when v_member_status = 'prospect'::public.member_status
+        then 'El miembro aún no tiene una membresía.'
+      when v_member_status = 'inactive'::public.member_status
+        then 'El miembro está inactivo.'
+      when v_member_status = 'suspended'::public.member_status
+        then 'El miembro está suspendido.'
+      when v_member_status = 'blocked'::public.member_status
+        then 'El miembro está bloqueado.'
+      when v_member_status = 'archived'::public.member_status
+        then 'El miembro está archivado.'
       when not v_has_active_subscription
         then 'El miembro no tiene una membresía vigente.'
       when v_has_overdue_charges
