@@ -46,18 +46,28 @@ export function mapSupabaseError(error: unknown): ApiError {
     });
   }
 
-  if (supabaseError.code === "23503" || supabaseError.code === "23514") {
-    return new ApiError("BUSINESS_RULE_VIOLATION", "La operación no cumple las reglas del sistema.", {
-      cause: error,
-      internalMessage,
-    });
+  if (
+    supabaseError.code === "22023" ||
+    supabaseError.code === "23503" ||
+    supabaseError.code === "23514"
+  ) {
+    return new ApiError(
+      "BUSINESS_RULE_VIOLATION",
+      userFacingMessage(supabaseError.message) ?? "La operación no cumple las reglas del sistema.",
+      { cause: error, internalMessage },
+    );
   }
 
-  if (supabaseError.status === 404 || supabaseError.code === "PGRST116") {
-    return new ApiError("NOT_FOUND", "No encontramos el registro solicitado.", {
-      cause: error,
-      internalMessage,
-    });
+  if (
+    supabaseError.status === 404 ||
+    supabaseError.code === "PGRST116" ||
+    supabaseError.code === "P0002"
+  ) {
+    return new ApiError(
+      "NOT_FOUND",
+      userFacingMessage(supabaseError.message) ?? "No encontramos el registro solicitado.",
+      { cause: error, internalMessage },
+    );
   }
 
   if (supabaseError.status === 429) {
@@ -78,6 +88,21 @@ export function mapSupabaseError(error: unknown): ApiError {
     cause: error,
     internalMessage,
   });
+}
+
+// Las RPC del dominio lanzan mensajes en español pensados para la recepcionista
+// ("El miembro ya tiene una membresía vigente."). PostgreSQL usa los mismos
+// códigos para sus propios diagnósticos, que son técnicos y en inglés. Sólo
+// dejamos pasar el mensaje cuando no parece un diagnóstico del motor.
+const DATABASE_DIAGNOSTIC = /violates|constraint|relation\s|column\s|duplicate key|invalid input syntax|out of range|null value in/i;
+
+function userFacingMessage(message?: string): string | null {
+  const trimmed = message?.trim();
+  if (!trimmed || DATABASE_DIAGNOSTIC.test(trimmed)) {
+    return null;
+  }
+
+  return trimmed;
 }
 
 function toSupabaseLikeError(error: unknown): SupabaseLikeError {

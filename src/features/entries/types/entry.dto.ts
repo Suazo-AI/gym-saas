@@ -19,6 +19,8 @@ export type MemberEntryDto = {
   source: EntrySource;
   decision: EntryDecision;
   decisionReason: string | null;
+  membershipStatus: string | null;
+  hasOverdueCharges: boolean;
   occurredAt: string;
 };
 
@@ -49,6 +51,8 @@ export type MemberEntryRow = {
   source: EntrySource;
   decision: EntryDecision;
   decision_reason: string | null;
+  membership_status: string | null;
+  has_overdue_charges: boolean | null;
   occurred_at: string;
 };
 

@@ -26,6 +26,12 @@ create table if not exists public.member_entries (
   source public.entry_source not null,
   decision public.access_decision not null,
   decision_reason text,
+  -- Retrato del miembro en el momento de la entrada. Se guarda en la fila en vez
+  -- de resolverse por join al consultar: el historial es inmutable y debe seguir
+  -- explicando por que se decidio lo que se decidio, aunque el miembro pague
+  -- manana y su estado actual cambie.
+  membership_status text,
+  has_overdue_charges boolean not null default false,
   face_recognition_event_id uuid references public.face_recognition_events(id) on delete set null,
   registered_by uuid references auth.users(id) on delete set null,
   occurred_at timestamptz not null default timezone('utc', now()),
@@ -100,8 +106,18 @@ create policy member_entries_insert on public.member_entries
   for insert to authenticated
   with check (private.has_permission(gym_id, 'entries.manage'));
 
-grant select, insert on public.member_entries to authenticated;
-revoke update, delete on public.member_entries from authenticated;
+-- La RPC public.register_member_entry es la UNICA puerta de escritura. Sin este
+-- revoke, cualquiera con 'entries.manage' podria hacer un POST directo a
+-- /rest/v1/member_entries y fabricar historial: poner a otro como responsable,
+-- declarar decision='allowed' para un moroso, marcar source='face' para una
+-- entrada facial que nunca ocurrio o fechar hacia atras. Como la tabla es
+-- inmutable, esa fila falsa no se podria corregir despues.
+-- La politica member_entries_insert se conserva como defensa por si algun dia
+-- alguien re-otorga el grant por error.
+-- Si en el futuro el flujo facial necesita escribir aqui, debe hacerlo por una
+-- RPC propia, no por PostgREST.
+grant select on public.member_entries to authenticated;
+revoke insert, update, delete on public.member_entries from authenticated;
 
 -- ============================================================================
 -- 4. RPC ATOMICA DE REGISTRO MANUAL
@@ -174,10 +190,18 @@ begin
       using errcode = '23503';
   end if;
 
+  -- Solo cuentan como duplicado las entradas donde el miembro SI paso. Repetir un
+  -- intento rechazado es legitimo: es exactamente lo que hace la recepcion cuando
+  -- vuelve a intentar con un motivo para autorizarlo. Si contaramos los rechazos,
+  -- el override seria imposible de registrar.
   if exists (
     select 1
     from public.member_entries me
     where me.gym_member_id = p_gym_member_id
+      and me.decision in (
+        'allowed'::public.access_decision,
+        'manual_review'::public.access_decision
+      )
       and me.occurred_at >= timezone('utc', now()) - interval '5 minutes'
   ) then
     raise exception 'Ya se registró una entrada de este miembro hace menos de 5 minutos.'
@@ -233,6 +257,8 @@ begin
     source,
     decision,
     decision_reason,
+    membership_status,
+    has_overdue_charges,
     registered_by
   )
   values (
@@ -242,6 +268,8 @@ begin
     'manual'::public.entry_source,
     v_decision,
     v_decision_reason,
+    v_membership_status,
+    coalesce(v_has_overdue_charges, false),
     v_actor
   )
   returning id, occurred_at into v_entry_id, v_occurred_at;
@@ -302,6 +330,8 @@ select
   me.source,
   me.decision,
   me.decision_reason,
+  me.membership_status,
+  me.has_overdue_charges,
   me.occurred_at
 from public.member_entries me
 
@@ -314,6 +344,10 @@ select
   'face'::public.entry_source as source,
   fre.decision,
   fre.decision_reason,
+  -- Los eventos faciales no guardan el estado del miembro; el historial los
+  -- muestra con el motivo que si registraron.
+  null::text as membership_status,
+  false as has_overdue_charges,
   fre.occurred_at
 from public.face_recognition_events fre
 order by occurred_at desc;

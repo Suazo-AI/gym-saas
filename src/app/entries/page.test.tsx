@@ -70,6 +70,8 @@ describe("EntriesPage", () => {
       source: "manual",
       decision: "denied",
       decisionReason: "El miembro tiene cargos vencidos.",
+      membershipStatus: "past_due",
+      hasOverdueCharges: true,
       occurredAt: "2026-07-30T15:00:00.000Z",
     }]);
 
@@ -77,8 +79,31 @@ describe("EntriesPage", () => {
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain("Manual");
-    expect(html).toContain("Bloqueada");
+    // Un moroso es un moroso, no un bloqueado: la etiqueta del historial tiene que
+    // decir lo mismo que el motivo guardado debajo.
+    expect(html).toContain("Morosa");
+    expect(html).not.toContain("Bloqueada");
     expect(html).toContain("El miembro tiene cargos vencidos.");
     expect(html).not.toContain("2026-07-30T15:00:00.000Z</time>");
+  });
+
+  it("no rotula al prospecto como bloqueado en el historial", async () => {
+    mocks.listGymEntries.mockResolvedValue([{
+      gymId: "20000000-0000-4000-8000-000000000001",
+      entryId: "entry-2",
+      gymMemberId: "member-2",
+      source: "manual",
+      decision: "denied",
+      decisionReason: "El miembro aún no tiene una membresía.",
+      membershipStatus: "prospect",
+      hasOverdueCharges: false,
+      occurredAt: "2026-07-30T15:00:00.000Z",
+    }]);
+
+    const element = await EntriesPage({ searchParams: Promise.resolve({}) });
+    const html = renderToStaticMarkup(element);
+
+    expect(html).toContain("Sin membresía");
+    expect(html).not.toContain("Bloqueada");
   });
 });

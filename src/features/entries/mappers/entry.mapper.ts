@@ -13,6 +13,8 @@ export function mapMemberEntryRow(row: MemberEntryRow): MemberEntryDto {
     source: row.source,
     decision: row.decision,
     decisionReason: row.decision_reason,
+    membershipStatus: row.membership_status,
+    hasOverdueCharges: row.has_overdue_charges ?? false,
     occurredAt: row.occurred_at,
   };
 }
