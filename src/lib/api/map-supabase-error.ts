@@ -53,7 +53,8 @@ export function mapSupabaseError(error: unknown): ApiError {
   ) {
     return new ApiError(
       "BUSINESS_RULE_VIOLATION",
-      userFacingMessage(supabaseError.message) ?? "La operación no cumple las reglas del sistema.",
+      userFacingMessage(supabaseError.message, supabaseError.code) ??
+        "La operación no cumple las reglas del sistema.",
       { cause: error, internalMessage },
     );
   }
@@ -63,11 +64,17 @@ export function mapSupabaseError(error: unknown): ApiError {
     supabaseError.code === "PGRST116" ||
     supabaseError.code === "P0002"
   ) {
-    return new ApiError(
-      "NOT_FOUND",
-      userFacingMessage(supabaseError.message) ?? "No encontramos el registro solicitado.",
-      { cause: error, internalMessage },
-    );
+    // Sólo P0002 lo lanza una RPC nuestra a propósito. Un 404 de PostgREST habla
+    // de la forma de la API, no del negocio.
+    const message =
+      supabaseError.code === "P0002"
+        ? userFacingMessage(supabaseError.message, supabaseError.code)
+        : null;
+
+    return new ApiError("NOT_FOUND", message ?? "No encontramos el registro solicitado.", {
+      cause: error,
+      internalMessage,
+    });
   }
 
   if (supabaseError.status === 429) {
@@ -94,11 +101,24 @@ export function mapSupabaseError(error: unknown): ApiError {
 // ("El miembro ya tiene una membresía vigente."). PostgreSQL usa los mismos
 // códigos para sus propios diagnósticos, que son técnicos y en inglés. Sólo
 // dejamos pasar el mensaje cuando no parece un diagnóstico del motor.
-const DATABASE_DIAGNOSTIC = /violates|constraint|relation\s|column\s|duplicate key|invalid input syntax|out of range|null value in/i;
+const DATABASE_DIAGNOSTIC =
+  /violates|constraint|relation\s|column\s|duplicate key|invalid input syntax|out of range|null value in|schema cache|could not find|does not exist|permission denied for/i;
 
-function userFacingMessage(message?: string): string | null {
+function userFacingMessage(message?: string, code?: string): string | null {
   const trimmed = message?.trim();
-  if (!trimmed || DATABASE_DIAGNOSTIC.test(trimmed)) {
+  if (!trimmed) {
+    return null;
+  }
+
+  // PostgREST describe la forma de la API, no el negocio: sus mensajes nombran
+  // funciones con toda su lista de parámetros, tablas y columnas. El caso normal
+  // es justo después de desplegar una migración, cuando el caché de esquema
+  // todavía no se recargó. Eso nunca se le muestra a la recepcionista.
+  if (code?.startsWith("PGRST")) {
+    return null;
+  }
+
+  if (DATABASE_DIAGNOSTIC.test(trimmed)) {
     return null;
   }
 

@@ -73,6 +73,29 @@ describe("mapSupabaseError", () => {
     expect(result.message).toBe("La operación no cumple las reglas del sistema.");
   });
 
+  it("no filtra la firma de la RPC cuando el caché de esquema no está recargado", () => {
+    const result = mapSupabaseError({
+      code: "PGRST202",
+      status: 404,
+      message:
+        "Could not find the function public.register_member_payment(p_allocations, p_amount, p_branch_id, p_currency, p_gym_id) in the schema cache",
+    });
+
+    expect(result.code).toBe("NOT_FOUND");
+    expect(result.message).toBe("No encontramos el registro solicitado.");
+    expect(result.message).not.toContain("register_member_payment");
+    expect(result.internalMessage).toContain("register_member_payment");
+  });
+
+  it("no filtra diagnósticos que nombran objetos inexistentes", () => {
+    const result = mapSupabaseError({
+      code: "22023",
+      message: 'relation "public.member_payments" does not exist',
+    });
+
+    expect(result.message).toBe("La operación no cumple las reglas del sistema.");
+  });
+
   it("usa el mensaje genérico cuando la base no manda texto", () => {
     const result = mapSupabaseError({ code: "22023" });
 

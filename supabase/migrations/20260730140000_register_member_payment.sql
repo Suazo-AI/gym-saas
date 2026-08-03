@@ -25,7 +25,10 @@ select
   mc.due_date,
   mc.amount_due,
   paid.amount_paid,
-  (mc.amount_due - paid.amount_paid)::numeric(14,2) as amount_remaining,
+  -- Nunca negativo: si un cargo llegara a quedar sobre-aplicado, el formulario
+  -- precarga este valor como monto por defecto y un numero negativo deja a la
+  -- recepcion trabada contra la validacion del navegador, sin explicacion.
+  greatest(mc.amount_due - paid.amount_paid, 0)::numeric(14,2) as amount_remaining,
   mc.currency,
   mc.status
 from public.membership_charges mc
@@ -121,6 +124,15 @@ begin
     raise exception 'El monto debe ser mayor que cero.' using errcode = '22023';
   end if;
 
+  -- Las columnas de dinero son numeric(14,2). Si aceptamos mas decimales, la
+  -- igualdad monto = suma de asignaciones se valida con los valores sin redondear
+  -- y deja de ser cierta en disco: 19.988 = 9.994 + 9.994 pasa el chequeo, pero
+  -- se guardan 19.99 y dos asignaciones de 9.99, y el centavo que falta no queda
+  -- registrado en ninguna parte.
+  if p_amount <> round(p_amount, 2) then
+    raise exception 'El monto no puede tener más de dos decimales.' using errcode = '22023';
+  end if;
+
   if p_currency is null or p_currency not in ('NIO', 'USD') then
     raise exception 'La moneda debe ser NIO o USD.' using errcode = '22023';
   end if;
@@ -162,6 +174,11 @@ begin
 
     if v_allocation_amount is null or v_allocation_amount <= 0 then
       raise exception 'El monto asignado debe ser mayor que cero.' using errcode = '22023';
+    end if;
+
+    if v_allocation_amount <> round(v_allocation_amount, 2) then
+      raise exception 'Los montos asignados no pueden tener más de dos decimales.'
+        using errcode = '22023';
     end if;
 
     v_charge_ids := array_append(v_charge_ids, v_charge_id);
@@ -245,6 +262,21 @@ begin
   end loop;
 
   v_paid_at := coalesce(p_paid_at, timezone('utc', now()));
+
+  -- La fecha del pago decide en que corte de caja aparece el dinero: los reportes
+  -- de ingresos leen member_payments.paid_at. Sin este limite, alguien puede cobrar
+  -- hoy y fechar el pago en 2025: el cargo queda pagado y el miembro entra, pero el
+  -- dinero no aparece en el ingreso del dia ni del mes. Se tolera un margen chico
+  -- hacia adelante por diferencia de reloj, y hasta 30 dias hacia atras para poder
+  -- cargar un cobro que se registro tarde.
+  if v_paid_at > timezone('utc', now()) + interval '5 minutes' then
+    raise exception 'La fecha del pago no puede estar en el futuro.' using errcode = '22023';
+  end if;
+
+  if v_paid_at < timezone('utc', now()) - interval '30 days' then
+    raise exception 'La fecha del pago no puede tener más de 30 días de antigüedad.'
+      using errcode = '22023';
+  end if;
 
   for v_attempt in 1..5
   loop
