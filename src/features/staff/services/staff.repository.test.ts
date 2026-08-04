@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
 
-import { inviteStaffUser, listStaffUsers, updateStaffUser } from "./staff.repository";
+import { deleteStaffUser, inviteStaffUser, listStaffUsers, restoreStaffUser, updateStaffUser } from "./staff.repository";
 
 const gymId = "20000000-0000-4000-8000-000000000001";
 const gymUserId = "30000000-0000-4000-8000-000000000001";
@@ -38,5 +38,24 @@ describe("staff repository", () => {
       { inviteUserByEmail, deleteUser, rpc },
     )).rejects.toThrow();
     expect(deleteUser).toHaveBeenCalledWith("auth-1");
+  });
+
+  it("retires staff through the shared soft-delete RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: {}, error: null });
+    await deleteStaffUser({ gymUserId, reason: "Fin de contrato" }, rpc);
+    expect(rpc).toHaveBeenCalledWith("soft_delete_entity", {
+      p_entity: "gym_user",
+      p_id: gymUserId,
+      p_reason: "Fin de contrato",
+    });
+  });
+
+  it("restores staff through the shared restore RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: {}, error: null });
+    await restoreStaffUser(gymUserId, rpc);
+    expect(rpc).toHaveBeenCalledWith("restore_entity", {
+      p_entity: "gym_user",
+      p_id: gymUserId,
+    });
   });
 });

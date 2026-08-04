@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-orange: #e85002;
-  --color-brand-red: #c10801;
-  --color-brand-amber: #f16001;
-  --color-brand-sand: #d9c3ab;
-  --color-ink: #000000;
-  --color-charcoal: #333333;
-  --color-gray: #646464;
-  --color-gray-light: #a7a7a7;
-  --color-paper: #f9f9f9;
+  --color-brand-green: #15803d;
+  --color-brand-lime: #84cc16;
+  --color-brand-orange: #15803d;
+  --color-brand-red: #dc2626;
+  --color-brand-amber: #d97706;
+  --color-brand-sand: #d9f99d;
+  --color-ink: #111814;
+  --color-charcoal: #18201b;
+  --color-gray: #647069;
+  --color-gray-light: #aeb8b1;
+  --color-paper: #f3f7f4;
+  --color-surface: #ffffff;
 
   --color-white: #f9f9f9;
   --color-black: #000000;
@@ -36,25 +39,25 @@
 
 :root {
   color-scheme: light;
-  --brand-gradient: linear-gradient(135deg, #000000 0%, #c10801 34%, #f16001 68%, #d9c3ab 100%);
+  --brand-gradient: linear-gradient(135deg, #101713 0%, #18201b 52%, #15803d 100%);
 }
 
 html {
-  background: #f9f9f9;
+  background: #f3f7f4;
 }
 
 body {
-  background: #f9f9f9;
-  color: #000000;
+  background: #f3f7f4;
+  color: #111814;
 }
 
 ::selection {
-  background: #e85002;
-  color: #000000;
+  background: #84cc16;
+  color: #111814;
 }
 
 :focus-visible {
-  outline: 3px solid #e85002;
+  outline: 3px solid #84cc16;
   outline-offset: 3px;
 }
 

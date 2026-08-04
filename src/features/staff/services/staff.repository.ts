@@ -34,6 +34,30 @@ export async function updateStaffUser(input: UpdateStaffInput, injectedRpc?: Rpc
   return data;
 }
 
+export async function deleteStaffUser(
+  input: { gymUserId: string; reason: string },
+  injectedRpc?: Rpc,
+) {
+  const rpc = injectedRpc ?? await serverRpc();
+  const { data, error } = await rpc("soft_delete_entity", {
+    p_entity: "gym_user",
+    p_id: input.gymUserId,
+    p_reason: input.reason,
+  });
+  if (error) throw mapSupabaseError(error);
+  return data;
+}
+
+export async function restoreStaffUser(gymUserId: string, injectedRpc?: Rpc) {
+  const rpc = injectedRpc ?? await serverRpc();
+  const { data, error } = await rpc("restore_entity", {
+    p_entity: "gym_user",
+    p_id: gymUserId,
+  });
+  if (error) throw mapSupabaseError(error);
+  return data;
+}
+
 type InviteDependencies = {
   inviteUserByEmail: (email: string, options?: { redirectTo?: string }) => Promise<{ data: { user: { id: string } | null }; error: unknown }>;
   deleteUser: (id: string) => Promise<unknown>;
