@@ -1,6 +1,6 @@
 begin;
 
-select plan(11);
+select plan(12);
 
 select has_view('public', 'api_v1_member_summaries', 'member summaries view exists');
 select has_view('public', 'api_v1_member_details', 'member details view exists');
@@ -110,7 +110,50 @@ select results_eq(
     from public.api_v1_member_details
     where gym_member_id = '60000000-0000-4000-8000-000000000002'$$,
   $$values ('450.00')$$,
-  'member details pending charges show the remaining balance after settled allocations'
+  'member details preserve the remaining balance after a historical partial allocation'
+);
+
+insert into public.persons (id, first_name, last_name, created_by)
+values (
+  '50000000-0000-4000-8000-000000000099',
+  'Contrato',
+  'Prepago',
+  '00000000-0000-4000-8000-000000000001'
+);
+
+insert into public.gym_members (
+  id,
+  gym_id,
+  person_id,
+  home_branch_id,
+  member_code,
+  status,
+  joined_on,
+  created_by
+)
+values (
+  '60000000-0000-4000-8000-000000000099',
+  '20000000-0000-4000-8000-000000000001',
+  '50000000-0000-4000-8000-000000000099',
+  '30000000-0000-4000-8000-000000000001',
+  'M-PREPAID-CONTRACT',
+  'prospect',
+  current_date,
+  '00000000-0000-4000-8000-000000000001'
+);
+
+select throws_ok(
+  $$ select public.start_member_subscription(
+    '60000000-0000-4000-8000-000000000099'::uuid,
+    '40000000-0000-4000-8000-000000000001'::uuid,
+    current_date,
+    (select id from public.payment_methods where code = 'cash'),
+    450.00,
+    'NIO'
+  ) $$,
+  '23514',
+  'Full payment is required',
+  'a partial prepaid membership is rejected'
 );
 
 select * from finish();

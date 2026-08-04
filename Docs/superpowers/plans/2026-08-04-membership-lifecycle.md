@@ -35,14 +35,14 @@ Replace assertions that accept a partial initial allocation with assertions that
 ```sql
 select throws_ok(
   $$ select public.start_member_subscription(
-    '20000000-0000-4000-8000-000000000001'::uuid,
-    '30000000-0000-4000-8000-000000000001'::uuid,
-    current_date,
+    '60000000-0000-4000-8000-000000000002'::uuid,
     '40000000-0000-4000-8000-000000000001'::uuid,
-    10.00,
-    'USD'
+    current_date,
+    (select id from public.payment_methods where code = 'cash'),
+    450.00,
+    'NIO'
   ) $$,
-  'P0001',
+  '23514',
   'Full payment is required',
   'a partial prepaid membership is rejected'
 );

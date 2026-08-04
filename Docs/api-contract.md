@@ -99,6 +99,8 @@ Incluye resumen, persona, contactos, direccion principal, suscripcion actual, me
 
 RPC: `public.create_gym_member(...)`
 
+`create_gym_member` es un contrato legado para el alta administrativa del miembro. No debe utilizarse para crear una suscripción activa sin pago. El flujo v2 separará el alta del miembro del inicio atómico de la membresía mediante `public.start_member_subscription(...)`.
+
 Puede crear en una transaccion:
 
 - `persons`
@@ -118,8 +120,31 @@ Validaciones:
 - plan pertenece al gimnasio;
 - metodo de pago activo;
 - nombres obligatorios;
-- pago inicial requiere plan, metodo y monto positivo;
+- una membresía nueva requiere el pago completo del período por adelantado;
+- no se admiten pagos parciales;
+- el acceso se habilita solamente después de confirmar el pago completo;
+- la gracia aplica únicamente a renovaciones de miembros previamente activos;
+- precios, totales, moneda y tasa aplicada se derivan y validan en PostgreSQL;
 - miembro duplicado queda protegido por restricciones unicas.
+
+### Contrato prepago v2
+
+RPC futura:
+
+```sql
+public.start_member_subscription(
+  p_gym_member_id uuid,
+  p_membership_plan_id uuid,
+  p_start_date date,
+  p_payment_method_id uuid,
+  p_tendered_amount numeric,
+  p_tendered_currency char(3)
+)
+```
+
+La firma no acepta `gym_id`: PostgreSQL lo deriva de `p_gym_member_id` y valida que el miembro, el plan y el método de pago sean accesibles en el mismo gimnasio activo.
+
+La operación debe ser atómica: deriva el gimnasio y el precio vigente, crea la instantánea de la suscripción, el cargo completo, el pago, su aplicación y el recibo. Si el monto no cubre exactamente el total exigible, debe rechazar toda la operación con SQLSTATE `23514` y `Full payment is required`. Los períodos configurables pueden expresarse en días, semanas o meses y siempre se cobran completos por adelantado.
 
 ### Actualizar
 
