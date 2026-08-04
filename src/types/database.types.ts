@@ -3293,6 +3293,7 @@ export type Database = {
           label: string
         }[]
       }
+      list_gym_staff: { Args: { p_gym_id: string }; Returns: Json }
       match_face_candidates: {
         Args: {
           p_embedding: string
