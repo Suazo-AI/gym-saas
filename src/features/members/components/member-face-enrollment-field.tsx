@@ -6,6 +6,17 @@ type CaptureStatus = "idle" | "camera" | "ready" | "error";
 
 export const FACE_IMAGE_PREVIEW_CLASS = "aspect-video w-full bg-black object-contain";
 
+export function drawScaledCameraFrame(
+  context: CanvasRenderingContext2D,
+  video: HTMLVideoElement,
+  sourceWidth: number,
+  sourceHeight: number,
+  targetWidth: number,
+  targetHeight: number,
+) {
+  context.drawImage(video, 0, 0, sourceWidth, sourceHeight, 0, 0, targetWidth, targetHeight);
+}
+
 export function MemberFaceEnrollmentField() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -69,8 +80,15 @@ export function MemberFaceEnrollmentField() {
       return;
     }
 
-    writeImageFromCanvas(video.videoWidth, video.videoHeight, (context) => {
-      context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+    writeImageFromCanvas(video.videoWidth, video.videoHeight, (context, targetWidth, targetHeight) => {
+      drawScaledCameraFrame(
+        context,
+        video,
+        video.videoWidth,
+        video.videoHeight,
+        targetWidth,
+        targetHeight,
+      );
     });
     stopCamera();
   }
