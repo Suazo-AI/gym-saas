@@ -36,9 +36,9 @@ El servicio ya usa el modelo preentrenado `buffalo_l`, pero el pipeline degrada 
 
 ## Decisión de modelo y licencia
 
-Se conservará InsightFace `buffalo_l` con su detector SCRFD, landmarks, alineación y reconocedor ArcFace de 512 dimensiones. No se entrenará un modelo desde cero ni se descargarán datasets faciales externos.
+Se reemplazará InsightFace por OpenCV YuNet + SFace. YuNet detectará el rostro y cinco landmarks; `FaceRecognizerSF` alineará la imagen y SFace generará embeddings de 128 dimensiones. El código y los pesos ONNX publicados en los directorios oficiales de ambos modelos están licenciados bajo Apache 2.0 y admiten uso comercial sin pago de licencia, conservando sus avisos y atribuciones.
 
-Los pesos de `buffalo_l` requieren una licencia comercial para su uso en este SaaS. La implementación podrá prepararse, pero no podrá desplegarse ni declararse terminada hasta obtener autorización escrita del proveedor y registrar sus condiciones. Si la licencia no se obtiene, será necesario aprobar un diseño alternativo y una migración de modelo.
+No se entrenará un modelo desde cero ni se descargarán datasets faciales externos. Los embeddings SFace vivirán en una tabla/versionado nuevo y nunca se compararán con los embeddings históricos InsightFace de 512 dimensiones.
 
 ## Arquitectura
 
@@ -58,14 +58,14 @@ El navegador ayuda a encuadrar, pero no toma decisiones biométricas críticas.
 
 ### Servicio biométrico confiable
 
-El servicio local/confiable reemplazará Haar por el pipeline oficial de InsightFace:
+El servicio local/confiable reemplazará Haar por el pipeline oficial de OpenCV:
 
 1. decodificar y validar la imagen;
-2. detectar exactamente un rostro con SCRFD;
+2. detectar exactamente un rostro con YuNet;
 3. obtener landmarks;
 4. medir calidad y pose;
-5. alinear el rostro al contrato esperado por ArcFace;
-6. generar y normalizar el embedding de 512 dimensiones;
+5. alinear el rostro con `FaceRecognizerSF.alignCrop`;
+6. generar y normalizar el embedding SFace de 128 dimensiones;
 7. devolver métricas no sensibles, versión exacta del modelo y duración.
 
 Los controles de calidad cubrirán como mínimo nitidez, iluminación, sobreexposición, tamaño del rostro, distancia entre ojos, centrado, pose y múltiples rostros. Los umbrales técnicos serán configuración versionada y deberán calibrarse, no quedar dispersos como constantes sin procedencia.
@@ -191,13 +191,13 @@ La tarjeta no estará terminada hasta alcanzar FAR ≤ 0.1 % y FRR ≤ 3 % o doc
 - control físico automático de puertas;
 - afirmar resistencia absoluta a suplantación;
 - usar reconocimiento facial como única prueba irreversible de identidad;
-- desplegar pesos sin licencia comercial válida.
+- mezclar o convertir silenciosamente embeddings InsightFace y SFace.
 
 ## Dependencias y criterio de terminado
 
 Dependencias:
 
-- licencia comercial escrita para `buffalo_l`;
+- modelos YuNet y SFace fijados por versión/hash con sus avisos Apache 2.0;
 - flujo básico de miembros, membresías, cargos, pagos y entradas verificable;
 - consentimiento biométrico y worker de eliminación operativos;
 - conjunto de evaluación consentido del piloto.
@@ -210,13 +210,13 @@ Terminado cuando:
 - las pruebas automatizadas pasan;
 - la evaluación independiente alcanza las metas acordadas;
 - los casos dudosos conservan revisión manual y alternativa no biométrica;
-- la licencia comercial y la documentación operativa están registradas;
+- las licencias, hashes de modelos y documentación operativa están registrados;
 - se verificó un recorrido realista sin exponer secretos ni datos biométricos en logs.
 
 ## Referencias técnicas
 
-- InsightFace, repositorio y política de licencias: https://github.com/deepinsight/insightface
-- InsightFace Python model zoo: https://github.com/deepinsight/insightface/blob/master/python-package/README.md
-- ArcFace, CVPR 2019: https://openaccess.thecvf.com/content_CVPR_2019/html/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.html
+- OpenCV Zoo SFace y licencia: https://github.com/opencv/opencv_zoo/tree/main/models/face_recognition_sface
+- OpenCV Zoo YuNet y licencia: https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet
+- SFace, IEEE TPAMI: https://ieeexplore.ieee.org/document/9318547
 - NIST Face Recognition Technology Evaluation: https://www.nist.gov/programs-projects/face-recognition-vendor-test-frvt
 - NIST Face Image Quality: https://pages.nist.gov/frvt/html/frvt_quality.html
