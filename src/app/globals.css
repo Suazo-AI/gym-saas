@@ -77,11 +77,11 @@ body {
 }
 
 .bg-\[\#ff7a1a\] {
-  background-color: #e85002;
+  background-color: #15803d;
 }
 
 .bg-\[\#ff7a1a\].text-white {
-  color: #000000;
+  color: #ffffff;
 }
 
 .bg-\[\#f6f9fc\] {
@@ -90,11 +90,11 @@ body {
 
 .text-\[\#083f88\],
 .text-\[\#061f46\] {
-  color: #000000;
+  color: #166534;
 }
 
 .text-\[\#ff7a1a\] {
-  color: #e85002;
+  color: #15803d;
 }
 
 .border-\[\#083f88\] {
@@ -102,22 +102,32 @@ body {
 }
 
 .accent-\[\#ff7a1a\] {
-  accent-color: #e85002;
+  accent-color: #15803d;
 }
 
 .hover\:bg-\[\#e86305\]:hover,
 .hover\:bg-\[\#062e64\]:hover,
 .hover\:bg-\[\#062f66\]:hover {
-  background-color: #c10801;
-  color: #f9f9f9;
+  background-color: #166534;
+  color: #ffffff;
 }
 
 .hover\:text-\[\#ff7a1a\]:hover {
-  color: #e85002;
+  color: #15803d;
 }
 
 .focus\:border-\[\#083f88\]:focus {
-  border-color: #e85002;
+  border-color: #15803d;
+}
+
+/* Compatibility while legacy views migrate to semantic Sport-tech tokens. */
+.bg-brand-orange.text-ink {
+  color: #ffffff;
+}
+
+.hover\:bg-brand-red:hover {
+  background-color: #166534;
+  color: #ffffff;
 }
 
 @media (prefers-reduced-motion: reduce) {
