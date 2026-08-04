@@ -9,6 +9,7 @@ import {
   focusFirstDialogControl,
   handleDialogKeyDown,
   restoreDialogTriggerFocus,
+  ResultPanel,
   stopMediaStream,
 } from "./face-access-modal";
 
@@ -113,5 +114,29 @@ describe("FaceAccessModal", () => {
     clearVideoStream(video);
 
     expect(video.srcObject).toBeNull();
+  });
+
+  it("shows the identity of the matched member", () => {
+    const html = renderToStaticMarkup(
+      createElement(ResultPanel, {
+        message: null,
+        status: "done",
+        result: {
+          decision: "allowed",
+          decisionReason: "Active subscription verified.",
+          accessAllowed: true,
+          similarity: 0.93,
+          member: {
+            gymMemberId: "member-1",
+            fullName: "Ana Martinez",
+            memberCode: "M-001",
+          },
+        },
+      }),
+    );
+
+    expect(html).toContain("Miembro identificado");
+    expect(html).toContain("Ana Martinez");
+    expect(html).toContain("M-001");
   });
 });

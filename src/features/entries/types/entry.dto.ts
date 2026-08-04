@@ -18,3 +18,11 @@ export type FaceVerificationResultDto = {
   similarity: number | null;
   accessAllowed: boolean;
 };
+
+export type FaceVerificationResponseDto = FaceVerificationResultDto & {
+  member: {
+    gymMemberId: string;
+    fullName: string;
+    memberCode: string;
+  } | null;
+};
