@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { coverCrop } from "./capture-geometry";
-
 export const CAMERA_CONSTRAINTS: MediaStreamConstraints = {
   video: {
     facingMode: "user",
@@ -13,8 +11,7 @@ export const CAMERA_CONSTRAINTS: MediaStreamConstraints = {
   audio: false,
 };
 
-const CAPTURE_WIDTH = 960;
-const CAPTURE_HEIGHT = 720;
+const MAX_CAPTURE_WIDTH = 1280;
 
 export type CapturedFrame = {
   imageBase64: string;
@@ -35,7 +32,7 @@ export function hasMinimumCameraResolution(width: number, height: number) {
   return Math.max(width, height) >= 1280 && Math.min(width, height) >= 720;
 }
 
-export function drawCoverFrame(
+export function drawFullFrame(
   context: CanvasRenderingContext2D,
   video: HTMLVideoElement,
   sourceWidth: number,
@@ -43,8 +40,7 @@ export function drawCoverFrame(
   targetWidth: number,
   targetHeight: number,
 ) {
-  const { sx, sy, sw, sh } = coverCrop(sourceWidth, sourceHeight, targetWidth, targetHeight);
-  context.drawImage(video, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
+  context.drawImage(video, 0, 0, sourceWidth, sourceHeight, 0, 0, targetWidth, targetHeight);
 }
 
 export function stopMediaStream(stream: MediaStream | null) {
@@ -115,22 +111,25 @@ export function FaceCamera({ frameCount, onCapture, onCancel }: FaceCameraProps)
       for (let index = 0; index < frameCount; index += 1) {
         if (index > 0) await nextVideoFrame(video);
         const canvas = document.createElement("canvas");
-        canvas.width = CAPTURE_WIDTH;
-        canvas.height = CAPTURE_HEIGHT;
+        const scale = Math.min(1, MAX_CAPTURE_WIDTH / video.videoWidth);
+        const captureWidth = Math.max(1, Math.round(video.videoWidth * scale));
+        const captureHeight = Math.max(1, Math.round(video.videoHeight * scale));
+        canvas.width = captureWidth;
+        canvas.height = captureHeight;
         const context = canvas.getContext("2d");
         if (!context) throw new Error("Canvas unavailable");
-        drawCoverFrame(
+        drawFullFrame(
           context,
           video,
           video.videoWidth,
           video.videoHeight,
-          CAPTURE_WIDTH,
-          CAPTURE_HEIGHT,
+          captureWidth,
+          captureHeight,
         );
         frames.push({
           imageBase64: canvas.toDataURL("image/jpeg", 0.95),
-          width: CAPTURE_WIDTH,
-          height: CAPTURE_HEIGHT,
+          width: captureWidth,
+          height: captureHeight,
           capturedAt: new Date().toISOString(),
         });
       }
@@ -154,7 +153,7 @@ export function FaceCamera({ frameCount, onCapture, onCancel }: FaceCameraProps)
     <div className="grid gap-3">
       <div className="relative overflow-hidden rounded-lg bg-slate-950">
         <video
-          className="aspect-[4/3] w-full object-cover"
+          className="aspect-video w-full bg-black object-contain"
           muted
           onLoadedMetadata={handleVideoReady}
           playsInline

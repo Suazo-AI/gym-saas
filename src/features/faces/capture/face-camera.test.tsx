@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CAMERA_CONSTRAINTS,
   attachMediaStream,
-  drawCoverFrame,
+  drawFullFrame,
   hasMinimumCameraResolution,
   stopMediaStream,
 } from "./face-camera";
@@ -27,14 +27,14 @@ describe("face camera", () => {
     expect(hasMinimumCameraResolution(0, 0)).toBe(false);
   });
 
-  it("draws the exact centered region represented by object-cover", () => {
+  it("draws the complete source frame without cropping its edges", () => {
     const drawImage = vi.fn();
     const context = { drawImage } as unknown as CanvasRenderingContext2D;
     const video = {} as HTMLVideoElement;
 
-    drawCoverFrame(context, video, 1280, 720, 960, 720);
+    drawFullFrame(context, video, 1280, 720, 960, 540);
 
-    expect(drawImage).toHaveBeenCalledWith(video, 160, 0, 960, 720, 0, 0, 960, 720);
+    expect(drawImage).toHaveBeenCalledWith(video, 0, 0, 1280, 720, 0, 0, 960, 540);
   });
 
   it("stops every camera track", () => {
