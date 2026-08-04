@@ -42,3 +42,6 @@ next-env.d.ts
 
 # graphify (salida generada del grafo del repo, se reconstruye con `graphify update .`)
 /graphify-out/
+
+# local git worktrees
+/.worktrees/
