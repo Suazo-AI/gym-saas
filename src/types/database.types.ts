@@ -571,6 +571,45 @@ export type Database = {
           },
         ]
       }
+      face_verification_rate_limits: {
+        Row: {
+          attempt_count: number
+          auth_user_id: string
+          gym_id: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          attempt_count?: number
+          auth_user_id: string
+          gym_id: string
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          attempt_count?: number
+          auth_user_id?: string
+          gym_id?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "face_verification_rate_limits_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "face_verification_rate_limits_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_dashboard"
+            referencedColumns: ["gym_id"]
+          },
+        ]
+      }
       gym_alert_recipients: {
         Row: {
           delivered_at: string | null
@@ -3194,6 +3233,10 @@ export type Database = {
         }
         Returns: string
       }
+      current_user_has_gym_permission: {
+        Args: { p_gym_id: string; p_permission_code: string }
+        Returns: boolean
+      }
       enroll_member_face: {
         Args: {
           p_consent_version?: string
@@ -3225,6 +3268,15 @@ export type Database = {
       }
       get_platform_dashboard: { Args: never; Returns: Json }
       get_platform_gym_detail: { Args: { p_gym_id: string }; Returns: Json }
+      link_invited_gym_staff_user: {
+        Args: {
+          p_auth_user_id: string
+          p_employee_code: string
+          p_gym_id: string
+          p_role_ids: string[]
+        }
+        Returns: Json
+      }
       list_deleted_entities: {
         Args: {
           p_entity?: string
@@ -3286,6 +3338,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      reserve_face_verification_attempt: {
+        Args: { p_gym_id: string; p_limit?: number; p_window_seconds?: number }
+        Returns: boolean
+      }
       restore_entity: {
         Args: { p_entity: string; p_id: string }
         Returns: Json
@@ -3334,6 +3390,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      update_gym_staff_user: {
+        Args: {
+          p_employee_code: string
+          p_gym_id: string
+          p_gym_user_id: string
+          p_role_ids?: string[]
+          p_status: Database["public"]["Enums"]["user_membership_status"]
+        }
+        Returns: Json
       }
       verify_face_access: {
         Args: {
