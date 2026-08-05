@@ -60,10 +60,10 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
         description="Busca a un miembro, confirma su estado y registra cada intento de entrada."
       />
 
-      <section className="mt-6 rounded-lg border border-charcoal bg-paper shadow-sm">
+      <section className="mt-6 rounded-lg border border-gray-300 bg-paper shadow-sm">
         <div className="border-b border-gray p-5">
           <h2 className="text-xl font-black text-ink">Registrar entrada manual</h2>
-          <p className="mt-1 text-sm text-charcoal">
+          <p className="mt-1 text-sm text-gray-300">
             Busca por nombre o código y selecciona al miembro correcto.
           </p>
         </div>
@@ -92,7 +92,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
             No pudimos buscar miembros. Intenta nuevamente.
           </p>
         ) : membersResult && membersResult.data.length === 0 ? (
-          <p className="p-5 text-sm text-charcoal">
+          <p className="p-5 text-sm text-gray-300">
             No encontramos miembros con esa búsqueda.
           </p>
         ) : membersResult ? (
@@ -105,14 +105,14 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
               >
                 <span>
                   <strong className="block text-sm text-ink">{member.fullName}</strong>
-                  <span className="text-sm text-charcoal">{member.memberCode}</span>
+                  <span className="text-sm text-gray-300">{member.memberCode}</span>
                 </span>
                 <span className="text-sm font-black text-ink">Seleccionar</span>
               </Link>
             ))}
           </div>
         ) : (
-          <p className="p-5 text-sm text-charcoal">
+          <p className="p-5 text-sm text-gray-300">
             Escribe un nombre o código para comenzar.
           </p>
         )}
@@ -137,10 +137,10 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
         </div>
       ) : null}
 
-      <section className="mt-6 rounded-lg border border-charcoal bg-paper shadow-sm">
+      <section className="mt-6 rounded-lg border border-gray-300 bg-paper shadow-sm">
         <div className="border-b border-gray p-5">
           <h2 className="text-xl font-black text-ink">Entradas recientes</h2>
-          <p className="mt-1 text-sm text-charcoal">
+          <p className="mt-1 text-sm text-gray-300">
             Historial manual y facial visible para tu gimnasio.
           </p>
         </div>
@@ -150,7 +150,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
             No pudimos cargar las entradas. Intenta nuevamente.
           </p>
         ) : entriesResult.length === 0 ? (
-          <p className="p-5 text-sm text-charcoal">Todavía no hay entradas registradas.</p>
+          <p className="p-5 text-sm text-gray-300">Todavía no hay entradas registradas.</p>
         ) : (
           <div className="divide-y divide-gray">
             {entriesResult.map((entry) => {
@@ -166,11 +166,11 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
                   <span className="text-sm font-black text-ink">
                     <span aria-hidden="true">{state.icon}</span> {state.label}
                   </span>
-                  <time className="text-sm text-charcoal" dateTime={entry.occurredAt}>
+                  <time className="text-sm text-gray-300" dateTime={entry.occurredAt}>
                     {dateFormatter.format(new Date(entry.occurredAt))}
                   </time>
                   {entry.decisionReason ? (
-                    <p className="text-sm text-charcoal md:col-span-3">{entry.decisionReason}</p>
+                    <p className="text-sm text-gray-300 md:col-span-3">{entry.decisionReason}</p>
                   ) : null}
                 </div>
               );
