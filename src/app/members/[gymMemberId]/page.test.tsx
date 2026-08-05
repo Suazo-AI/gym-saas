@@ -44,8 +44,28 @@ vi.mock("@/features/app/components/module-header", () => ({
 }));
 
 vi.mock("@/features/members/components/member-detail-view", () => ({
-  MemberDetailView: ({ member }: { member: { gymMemberId: string } }) => (
-    <div>Detalle {member.gymMemberId}</div>
+  MemberDetailView: ({
+    member,
+    membershipPlans = [],
+  }: {
+    member: { gymMemberId: string; currentSubscription?: { status: string } | null };
+    membershipPlans?: Array<{ id: string; name: string; currency: string; price: string }>;
+  }) => (
+    <div>
+      Detalle {member.gymMemberId}
+      {member.currentSubscription ? (
+        <span>Membresía actual</span>
+      ) : (
+        <form>
+          <select name="membershipPlanId">
+            {membershipPlans.map((plan) => (
+              <option key={plan.id}>{plan.name} · {plan.currency} {plan.price}</option>
+            ))}
+          </select>
+          <span>Generar el primer cargo</span>
+        </form>
+      )}
+    </div>
   ),
 }));
 

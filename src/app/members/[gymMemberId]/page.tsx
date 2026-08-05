@@ -10,7 +10,6 @@ import { MemberDetailView } from "@/features/members/components/member-detail-vi
 import { MemberAdministration } from "@/features/members/components/member-administration";
 import { canManageMembers, getMember } from "@/features/members/services/member.repository";
 import { listBranches } from "@/features/settings/services/branch.repository";
-import { getMember } from "@/features/members/services/member.repository";
 import { assignMembershipAction } from "@/features/memberships/actions/membership.actions";
 import { listMembershipPlans } from "@/features/memberships/services/membership.repository";
 
@@ -84,8 +83,6 @@ export default async function MemberDetailPage({
           </Link>
         }
       />
-      <MemberDetailView member={member} />
-      <MemberAdministration branches={branches} canManage={canManage} member={member} />
       {query.error ? (
         <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800">
           {query.error}
@@ -103,6 +100,7 @@ export default async function MemberDetailPage({
         membershipPlans={plansResult.plans}
         plansLoadFailed={plansResult.error}
       />
+      <MemberAdministration branches={branches} canManage={canManage} member={member} />
     </AppShell>
   );
 }

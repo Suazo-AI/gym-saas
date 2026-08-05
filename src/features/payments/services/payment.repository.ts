@@ -3,7 +3,19 @@ import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/types";
 
 import { recordPaymentSchema } from "../schemas/payment.schema";
-import type { PayableChargeDto, PaymentMethodDto, PaymentSummaryDto } from "../types/payment.dto";
+import { registerPaymentSchema } from "../schemas/payment.schema";
+import { mapPendingChargeRows, mapRegisteredPayment } from "../mappers/payment.mapper";
+import type {
+  PayableChargeDto, PaymentMethodDto, PaymentSummaryDto, PendingChargeDto,
+  PendingChargeRow, RegisteredPaymentDto, RegisteredPaymentRow, RegisterPaymentInput,
+} from "../types/payment.dto";
+
+type PendingChargeQuery = {
+  select: (columns: string) => PendingChargeQuery;
+  eq: (column: string, value: unknown) => PendingChargeQuery;
+  order: (column: string, options?: { ascending?: boolean }) => Promise<{ data: PendingChargeRow[] | null; error: unknown }>;
+};
+type PendingChargesClient = { from: (relation: string) => PendingChargeQuery };
 
 export async function listPaymentMethods(): Promise<PaymentMethodDto[]> {
   const supabase = await createClient();
