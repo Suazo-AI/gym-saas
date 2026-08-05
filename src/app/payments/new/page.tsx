@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import {
@@ -46,7 +47,8 @@ export default async function NewPaymentPage({ searchParams }: NewPaymentPagePro
           description="Busca al miembro y selecciona los cargos que vas a cobrar."
         />
         <section className="mt-6 rounded-lg border border-charcoal bg-paper p-5 shadow-sm">
-          <form className="flex flex-col gap-3 sm:flex-row">
+          <PersistedSearchForm placeholder="Buscar por nombre o código" storageKey="fitmanager.payments.new.search" />
+          <form className="hidden">
             <label className="sr-only" htmlFor="payment-member-search">Buscar miembro</label>
             <input
               className="min-h-11 flex-1 rounded-md border border-gray px-3 outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-sand"

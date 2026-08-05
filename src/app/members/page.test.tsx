@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
+vi.mock("next/navigation", () => ({ redirect: vi.fn(), useRouter: () => ({ replace: vi.fn() }), usePathname: () => "/members", useSearchParams: () => new URLSearchParams() }));
 vi.mock("@/features/auth/services/auth.service", () => ({
   requireUser: vi.fn().mockResolvedValue({ email: "owner@example.com" }),
 }));

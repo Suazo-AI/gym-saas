@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { requireUser } from "@/features/auth/services/auth.service";
 import { getEntryDecisionState } from "@/features/entries/entry-decision-state";
 import { FaceAccessModal } from "@/features/entries/components/face-access-modal";
@@ -68,7 +69,9 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
           </p>
         </div>
 
-        <form className="flex flex-col gap-3 border-b border-gray p-4 sm:flex-row">
+        <PersistedSearchForm placeholder="Buscar por nombre o código" storageKey="fitmanager.entries.search" />
+        {/* Legacy form markup is replaced by the client search above. */}
+        <form className="hidden">
           <label className="sr-only" htmlFor="entry-member-search">
             Buscar miembro
           </label>
