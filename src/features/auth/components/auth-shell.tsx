@@ -32,10 +32,10 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
         aria-label="Resumen del producto"
       >
         <div className="max-w-xl">
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-sand">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-lime ">
             Software para gimnasios pequenos
           </p>
-          <h2 className="mt-4 text-5xl font-bold leading-tight">
+          <h2 className="mt-4 text-5xl font-bold leading-tight text-white">
             Controla miembros, pagos y entradas desde una operacion clara.
           </h2>
         </div>
