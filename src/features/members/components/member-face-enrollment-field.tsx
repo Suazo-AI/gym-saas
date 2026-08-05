@@ -4,6 +4,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 type CaptureStatus = "idle" | "camera" | "ready" | "error";
 
+export const FACE_IMAGE_PREVIEW_CLASS = "aspect-video w-full bg-black object-contain";
+
+export function drawScaledCameraFrame(
+  context: CanvasRenderingContext2D,
+  video: HTMLVideoElement,
+  sourceWidth: number,
+  sourceHeight: number,
+  targetWidth: number,
+  targetHeight: number,
+) {
+  context.drawImage(video, 0, 0, sourceWidth, sourceHeight, 0, 0, targetWidth, targetHeight);
+}
+
 export function MemberFaceEnrollmentField() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -67,8 +80,15 @@ export function MemberFaceEnrollmentField() {
       return;
     }
 
-    writeImageFromCanvas(video.videoWidth, video.videoHeight, (context) => {
-      context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+    writeImageFromCanvas(video.videoWidth, video.videoHeight, (context, targetWidth, targetHeight) => {
+      drawScaledCameraFrame(
+        context,
+        video,
+        video.videoWidth,
+        video.videoHeight,
+        targetWidth,
+        targetHeight,
+      );
     });
     stopCamera();
   }
@@ -160,10 +180,10 @@ export function MemberFaceEnrollmentField() {
       <div className="grid gap-3">
         <div className="overflow-hidden rounded-md border border-gray bg-charcoal">
           {status === "camera" ? (
-            <video className="aspect-video w-full object-cover" muted playsInline ref={videoRef} />
+            <video className={FACE_IMAGE_PREVIEW_CLASS} muted playsInline ref={videoRef} />
           ) : imageBase64 ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img alt="Foto facial capturada" className="aspect-video w-full object-cover" src={imageBase64} />
+            <img alt="Foto facial capturada" className={FACE_IMAGE_PREVIEW_CLASS} src={imageBase64} />
           ) : (
             <div className="flex aspect-video items-center justify-center text-sm font-bold text-gray-light">
               Camara o foto
