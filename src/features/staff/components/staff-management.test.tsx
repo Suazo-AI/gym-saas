@@ -34,5 +34,6 @@ describe("StaffManagement", () => {
     expect(html).toContain("Suspender");
     expect(html).toContain("Retirar usuario");
     expect(html).toContain("Motivo del retiro");
+    expect(html).toMatch(/bg-brand-green[^\"]*text-white[^\"]*\"[^>]*>Guardar cambios/);
   });
 });

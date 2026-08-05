@@ -4,29 +4,34 @@ import base64
 import hashlib
 import os
 import time
+import zipfile
 from pathlib import Path
 from typing import Any, Optional, Union
 
 import cv2
 import numpy as np
+import onnxruntime as ort
 import requests
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 
-MODEL_CODE = os.getenv("FACE_MODEL_CODE", "opencv-sface-2021dec")
-MODEL_VERSION = "2021dec"
+MODEL_CODE = os.getenv("FACE_MODEL_CODE", "insightface-buffalo-l-w600k-r50")
+MODEL_VERSION = "buffalo_l"
 MODEL_DIR = Path(os.getenv("FACE_MODEL_DIR", "models"))
 YUNET_PATH = MODEL_DIR / "face_detection_yunet_2023mar.onnx"
-SFACE_PATH = MODEL_DIR / "face_recognition_sface_2021dec.onnx"
+RECOGNITION_PATH = MODEL_DIR / "w600k_r50.onnx"
 YUNET_URL = "https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx"
-SFACE_URL = "https://huggingface.co/opencv/face_recognition_sface/resolve/main/face_recognition_sface_2021dec.onnx"
+RECOGNITION_ZIP_URL = os.getenv(
+  "FACE_MODEL_ZIP_URL",
+  "https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip",
+)
 YUNET_SHA256 = "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
-SFACE_SHA256 = "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79"
+PROVIDERS = ["CPUExecutionProvider"]
 
 app = FastAPI(title="FitManager Face Recognition")
 _detector: Optional[Any] = None
-_recognizer: Optional[Any] = None
+_recognition_session: Optional[ort.InferenceSession] = None
 
 
 class EmbedRequest(BaseModel):
@@ -49,7 +54,7 @@ def health() -> dict[str, Union[str, bool]]:
     "model": MODEL_CODE,
     "modelVersion": MODEL_VERSION,
     "modelReady": model_file_is_valid(YUNET_PATH, YUNET_SHA256)
-      and model_file_is_valid(SFACE_PATH, SFACE_SHA256),
+      and RECOGNITION_PATH.is_file(),
   }
 
 
@@ -131,15 +136,33 @@ def assess_face_quality(image: np.ndarray, face: np.ndarray) -> float:
 
 
 def create_embedding(image: np.ndarray, face: np.ndarray) -> np.ndarray:
-  recognizer = get_recognizer()
-  aligned = recognizer.alignCrop(image, face)
-  feature = recognizer.feature(aligned)
+  aligned = align_face(image, face)
+  rgb = cv2.cvtColor(aligned, cv2.COLOR_BGR2RGB)
+  blob = ((rgb.astype(np.float32) - 127.5) / 127.5).transpose(2, 0, 1)
+  blob = np.expand_dims(blob, axis=0)
+  session = get_recognition_session()
+  feature = session.run(None, {session.get_inputs()[0].name: blob})[0]
   return normalise_embedding(feature)
+
+
+def align_face(image: np.ndarray, face: np.ndarray) -> np.ndarray:
+  landmarks = np.asarray(face[4:14], dtype=np.float32).reshape(5, 2)
+  reference = np.asarray([
+    [38.2946, 51.6963],
+    [73.5318, 51.5014],
+    [56.0252, 71.7366],
+    [41.5493, 92.3655],
+    [70.7299, 92.2041],
+  ], dtype=np.float32)
+  transform, _ = cv2.estimateAffinePartial2D(landmarks, reference, method=cv2.LMEDS)
+  if transform is None:
+    raise HTTPException(status_code=422, detail="FACE_POSE_INVALID")
+  return cv2.warpAffine(image, transform, (112, 112), borderValue=0)
 
 
 def normalise_embedding(feature: np.ndarray) -> np.ndarray:
   embedding = np.asarray(feature, dtype=np.float32).reshape(-1)
-  if embedding.shape[0] != 128:
+  if embedding.shape[0] != 512:
     raise HTTPException(status_code=500, detail="Face model returned an invalid embedding size.")
   norm = float(np.linalg.norm(embedding))
   if not np.isfinite(norm) or norm <= 0:
@@ -155,12 +178,32 @@ def get_detector():
   return _detector
 
 
-def get_recognizer():
-  global _recognizer
-  if _recognizer is None:
-    ensure_model_file(SFACE_PATH, SFACE_URL, SFACE_SHA256)
-    _recognizer = cv2.FaceRecognizerSF.create(str(SFACE_PATH), "")
-  return _recognizer
+def get_recognition_session() -> ort.InferenceSession:
+  global _recognition_session
+  if _recognition_session is None:
+    ensure_recognition_model()
+    _recognition_session = ort.InferenceSession(str(RECOGNITION_PATH), providers=PROVIDERS)
+  return _recognition_session
+
+
+def ensure_recognition_model() -> None:
+  if RECOGNITION_PATH.is_file():
+    return
+  MODEL_DIR.mkdir(parents=True, exist_ok=True)
+  archive_path = MODEL_DIR / "buffalo_l.zip"
+  if not archive_path.is_file():
+    with requests.get(RECOGNITION_ZIP_URL, stream=True, timeout=90) as response:
+      response.raise_for_status()
+      with archive_path.open("wb") as target:
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+          if chunk:
+            target.write(chunk)
+  with zipfile.ZipFile(archive_path) as archive:
+    candidates = [name for name in archive.namelist() if name.endswith("w600k_r50.onnx")]
+    if not candidates:
+      raise HTTPException(status_code=500, detail="Recognition model was not found in model archive.")
+    with archive.open(candidates[0]) as source, RECOGNITION_PATH.open("wb") as target:
+      target.write(source.read())
 
 
 def ensure_model_file(path: Path, url: str, expected_sha256: str) -> None:

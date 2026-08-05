@@ -35,9 +35,9 @@ function RoleEditor({ role, access }: { role: RoleScreenAccessDto["roles"][numbe
       {role.isOwner ? <span className="rounded-full bg-brand-sand px-3 py-1 text-xs font-black text-green-900">Acceso total protegido</span> : <div className="flex gap-2"><button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-black" onClick={() => setSelected(access.screens.map((screen) => screen.id))} type="button">Marcar todas</button><button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-black" onClick={() => setSelected([])} type="button">Limpiar selección</button></div>}
     </div>
     <fieldset className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" disabled={role.isOwner}>
-      {access.screens.map((screen) => <label className={`flex min-h-14 items-center gap-3 rounded-lg border px-3 text-sm font-bold ${selected.includes(screen.id) ? "border-brand-green bg-green-50" : "border-slate-200 bg-white"}`} key={screen.id}>
+      {access.screens.map((screen) => <label className={`flex min-h-14 items-center gap-3 rounded-lg border px-3 text-sm font-bold ${selected.includes(screen.id) ? "border-brand-green bg-brand-green text-white" : "border-slate-200 bg-white text-ink"}`} key={screen.id}>
         <input checked={role.isOwner || selected.includes(screen.id)} className="h-4 w-4 accent-brand-green" name="screenIds" onChange={() => toggle(screen.id)} type="checkbox" value={screen.id} />
-        <span>{screen.name}<small className="block font-normal text-gray">{permissionLabel(screen.permissionCodes)}</small></span>
+        <span>{screen.name}<small className={`block font-normal ${selected.includes(screen.id) ? "text-white/90" : "text-gray"}`}>{permissionLabel(screen.permissionCodes)}</small></span>
       </label>)}
     </fieldset>
     {role.isOwner ? <p className="mt-4 text-sm text-gray">El rol Dueño conserva acceso total para evitar que el gimnasio quede sin administración.</p> : <button className="mt-4 min-h-11 rounded-lg bg-ink px-5 text-sm font-black text-white disabled:opacity-60" disabled={pending}>{pending ? "Guardando…" : `Guardar ${selected.length} pantallas`}</button>}
