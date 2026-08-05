@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/features/app/components/app-shell";
@@ -15,7 +16,7 @@ export default async function PaymentsPage() {
 
   return (
     <AppShell activeGym={activeGym} currentPath="/payments" userEmail={user.email}>
-      <ModuleHeader eyebrow="Pagos" title="Cobros y recibos" description="Modulo protegido para registrar pagos, asignarlos a cargos y conservar historial financiero." />
+      <ModuleHeader eyebrow="Pagos" title="Cobros y recibos" description="Modulo protegido para registrar pagos, asignarlos a cargos y conservar historial financiero." action={<Link className="min-h-11 rounded-md bg-brand-green px-5 py-3 text-center text-sm font-black text-white" href="/payments/day-pass">Registrar pase diario</Link>} />
       {!payments||!charges||!methods?<p className="mt-6 rounded-xl bg-red-50 p-5 font-bold text-red-700">No pudimos cargar el módulo de pagos.</p>:<PaymentManagement charges={charges} methods={methods} payments={payments}/>}
     </AppShell>
   );

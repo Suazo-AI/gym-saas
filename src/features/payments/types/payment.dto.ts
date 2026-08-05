@@ -9,6 +9,27 @@ export type PaymentSummaryDto = {
   appliedNioPerUsd: string;
 };
 
+export type MemberDayPassDto = {
+  id: string;
+  gymMemberId: string;
+  serviceDate: string;
+  amount: string;
+  currency: string;
+  status: string;
+  receiptNumber: string | null;
+  paymentId: string;
+};
+
+export type RegisteredDayPassDto = {
+  passId: string;
+  paymentId: string;
+  receiptNumber: string;
+  serviceDate: string;
+  amount: string;
+  currency: string;
+  appliedNioPerUsd: string;
+};
+
 export type PaymentMethodDto = {
   id: string;
   code: string;
