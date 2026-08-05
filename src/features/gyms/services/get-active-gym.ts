@@ -1,7 +1,7 @@
 import { getUserGyms } from "./get-user-gyms";
 import type { ActiveGymDto } from "../types/gym.dto";
 
-export async function getActiveGym(): Promise<ActiveGymDto | null> {
+export const getActiveGym = cache(async (): Promise<ActiveGymDto | null> => {
   const gyms = await getUserGyms();
   const gym = gyms[0];
 
@@ -13,4 +13,5 @@ export async function getActiveGym(): Promise<ActiveGymDto | null> {
     ...gym,
     selectionSource: gyms.length === 1 ? "single_membership" : "first_membership",
   };
-}
+});
+import { cache } from "react";
