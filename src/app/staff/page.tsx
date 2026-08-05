@@ -5,7 +5,8 @@ import { ModuleHeader } from "@/features/app/components/module-header";
 import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { StaffManagement } from "@/features/staff/components/staff-management";
-import { listStaffRoles, listStaffUsers } from "@/features/staff/services/staff.repository";
+import { RoleScreenManagement } from "@/features/staff/components/role-screen-management";
+import { listRoleScreenAccess, listStaffRoles, listStaffUsers } from "@/features/staff/services/staff.repository";
 
 export default async function StaffPage() {
   const user = await requireUser();
@@ -13,6 +14,7 @@ export default async function StaffPage() {
   if (!activeGym) redirect("/login");
 
   const result = await Promise.all([listStaffUsers(activeGym.gymId), listStaffRoles(activeGym.gymId)]).catch(() => null);
+  const roleAccess = await listRoleScreenAccess(activeGym.gymId).catch(() => null);
 
   return (
     <AppShell activeGym={activeGym} currentPath="/staff" userEmail={user.email}>
@@ -28,6 +30,7 @@ export default async function StaffPage() {
           No pudimos cargar el personal. Verifica tus permisos e intenta nuevamente.
         </div>
       )}
+      {roleAccess ? <RoleScreenManagement access={roleAccess} /> : null}
     </AppShell>
   );
 }

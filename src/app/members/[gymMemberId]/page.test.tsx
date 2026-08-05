@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getMember: vi.fn(),
+  canManageMembers: vi.fn().mockResolvedValue(false),
   notFound: vi.fn(),
 }));
 
@@ -21,7 +22,10 @@ vi.mock("@/features/gyms/services/get-active-gym", () => ({
 
 vi.mock("@/features/members/services/member.repository", () => ({
   getMember: mocks.getMember,
+  canManageMembers: mocks.canManageMembers,
 }));
+
+vi.mock("@/features/settings/services/branch.repository", () => ({ listBranches: vi.fn().mockResolvedValue([]) }));
 
 vi.mock("@/features/app/components/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
@@ -36,6 +40,8 @@ vi.mock("@/features/members/components/member-detail-view", () => ({
     <div>Detalle {member.gymMemberId}</div>
   ),
 }));
+
+vi.mock("@/features/members/components/member-administration", () => ({ MemberAdministration: () => null }));
 
 import MemberDetailPage from "./page";
 

@@ -903,7 +903,7 @@ Orden normal:
 
 ## Reglas para agentes Codex
 
-* Leer `AGENTS.md` y `TRELLO.md`.
+* Leer `AGENTS.md` y `Docs/trello-board-template.md`.
 * Trabajar una tarjeta a la vez.
 * No ampliar el MVP silenciosamente.
 * No cambiar la arquitectura Supabase-first.

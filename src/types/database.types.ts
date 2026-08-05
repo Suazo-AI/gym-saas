@@ -1414,11 +1414,13 @@ export type Database = {
       }
       member_payments: {
         Row: {
+          applied_nio_per_usd: number
           amount: number
           branch_id: string | null
           created_at: string
           currency: string
           external_reference: string | null
+          exchange_rate_history_id: string
           gym_id: string
           gym_member_id: string
           id: string
@@ -1431,11 +1433,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          applied_nio_per_usd: number
           amount: number
           branch_id?: string | null
           created_at?: string
           currency: string
           external_reference?: string | null
+          exchange_rate_history_id: string
           gym_id: string
           gym_member_id: string
           id?: string
@@ -1448,11 +1452,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          applied_nio_per_usd?: number
           amount?: number
           branch_id?: string | null
           created_at?: string
           currency?: string
           external_reference?: string | null
+          exchange_rate_history_id?: string
           gym_id?: string
           gym_member_id?: string
           id?: string
@@ -1834,10 +1840,13 @@ export type Database = {
           deleted_by: string | null
           deletion_reason: string | null
           description: string | null
+          duration_count: number
           duration_months: number | null
+          duration_unit: string
           grace_days: number
           gym_id: string
           id: string
+          auto_renew: boolean
           is_active: boolean
           name: string
           price: number
@@ -1853,10 +1862,13 @@ export type Database = {
           deleted_by?: string | null
           deletion_reason?: string | null
           description?: string | null
+          duration_count?: number
           duration_months?: number | null
+          duration_unit?: string
           grace_days?: number
           gym_id: string
           id?: string
+          auto_renew?: boolean
           is_active?: boolean
           name: string
           price: number
@@ -1872,10 +1884,13 @@ export type Database = {
           deleted_by?: string | null
           deletion_reason?: string | null
           description?: string | null
+          duration_count?: number
           duration_months?: number | null
+          duration_unit?: string
           grace_days?: number
           gym_id?: string
           id?: string
+          auto_renew?: boolean
           is_active?: boolean
           name?: string
           price?: number

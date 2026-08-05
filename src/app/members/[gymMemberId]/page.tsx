@@ -7,7 +7,9 @@ import { ModuleHeader } from "@/features/app/components/module-header";
 import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { MemberDetailView } from "@/features/members/components/member-detail-view";
-import { getMember } from "@/features/members/services/member.repository";
+import { MemberAdministration } from "@/features/members/components/member-administration";
+import { canManageMembers, getMember } from "@/features/members/services/member.repository";
+import { listBranches } from "@/features/settings/services/branch.repository";
 
 type MemberDetailPageProps = {
   params: Promise<{ gymMemberId: string }>;
@@ -38,6 +40,9 @@ export default async function MemberDetailPage({ params }: MemberDetailPageProps
     notFound();
   }
 
+  const canManage = await canManageMembers(activeGym.gymId);
+  const branches = canManage ? await listBranches(activeGym.gymId).catch(() => []) : [];
+
   return (
     <AppShell activeGym={activeGym} currentPath="/members" userEmail={user.email}>
       <ModuleHeader
@@ -54,6 +59,7 @@ export default async function MemberDetailPage({ params }: MemberDetailPageProps
         }
       />
       <MemberDetailView member={member} />
+      <MemberAdministration branches={branches} canManage={canManage} member={member} />
     </AppShell>
   );
 }

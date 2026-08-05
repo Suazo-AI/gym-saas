@@ -1,6 +1,6 @@
 begin;
 
-select plan(12);
+select plan(15);
 
 select has_view('public', 'api_v1_member_summaries', 'member summaries view exists');
 select has_view('public', 'api_v1_member_details', 'member details view exists');
@@ -29,6 +29,18 @@ select has_function(
 );
 select has_function(
   'public',
+  'update_gym_member_admin',
+  array['uuid', 'uuid', 'text', 'text', 'text', 'uuid', 'boolean', 'text', 'boolean', 'text', 'boolean'],
+  'clearable member administration rpc exists'
+);
+select has_function(
+  'public',
+  'list_deleted_gym_members',
+  array['uuid', 'integer', 'integer'],
+  'member paper bin rpc exists'
+);
+select has_function(
+  'public',
   'update_gym_member',
   array['uuid', 'uuid', 'text', 'text', 'text', 'uuid', 'public.member_status', 'text', 'text'],
   'update_gym_member rpc exists'
@@ -43,6 +55,11 @@ select results_eq(
 select isnt_empty(
   $$select 1 from pg_views where schemaname = 'public' and viewname = 'api_v1_member_summaries' and definition ilike '%deleted_at IS NULL%'$$,
   'summary view ignores soft-deleted members'
+);
+
+select isnt_empty(
+  $$select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'list_deleted_gym_members' and p.prosecdef$$,
+  'member paper bin enforces permission in a security-definer boundary'
 );
 
 select throws_ok(
@@ -140,6 +157,13 @@ values (
   'prospect',
   current_date,
   '00000000-0000-4000-8000-000000000001'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}',
+  true
 );
 
 select throws_ok(

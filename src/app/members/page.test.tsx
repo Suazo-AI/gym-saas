@@ -9,6 +9,7 @@ vi.mock("@/features/gyms/services/get-active-gym", () => ({
   getActiveGym: vi.fn().mockResolvedValue({ gymId: "gym-1", tradeName: "Impulso Fitness" }),
 }));
 vi.mock("@/features/members/services/member.repository", () => ({
+  canManageMembers: vi.fn().mockResolvedValue(false),
   listMembers: vi.fn().mockResolvedValue({
     data: [{
       gymMemberId: "member-1",

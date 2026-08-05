@@ -1,0 +1,11 @@
+begin; select plan(8);
+select has_function('public','list_role_screen_access',array['uuid'],'role screen catalog rpc exists');
+select has_function('public','update_role_screen_access',array['uuid','uuid','uuid[]'],'role screen update rpc exists');
+select has_function('public','list_current_user_screens',array['uuid'],'current navigation rpc exists');
+select is((select name from public.screens where code='dashboard'),'Resumen'::text,'screen catalog uses readable Spanish names');
+select throws_ok($$select public.list_role_screen_access('20000000-0000-4000-8000-000000000001')$$,'42501',null,'anonymous catalog access rejected');
+set local role authenticated; select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',true);
+select throws_ok($$select public.update_role_screen_access('20000000-0000-4000-8000-000000000001',(select id from public.roles where gym_id='20000000-0000-4000-8000-000000000001' and code='owner'),array[]::uuid[])$$,'23514','Owner role screen access cannot be reduced','owner role is immutable');
+select lives_ok($$select public.update_role_screen_access('20000000-0000-4000-8000-000000000001',(select id from public.roles where gym_id='20000000-0000-4000-8000-000000000001' and code='trainer'),array[(select id from public.screens where code='dashboard')])$$,'authorized owner updates a non-owner role');
+select ok(exists(select 1 from public.list_current_user_screens('20000000-0000-4000-8000-000000000001') x where x.code='dashboard'),'owner navigation includes dashboard');
+select * from finish(); rollback;

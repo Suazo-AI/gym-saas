@@ -5,7 +5,7 @@ import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
 import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
-import { listMembers } from "@/features/members/services/member.repository";
+import { canManageMembers, listMembers } from "@/features/members/services/member.repository";
 
 type MembersPageProps = {
   searchParams: Promise<{ notice?: string; page?: string; search?: string }>;
@@ -20,6 +20,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   }
 
   const params = await searchParams;
+  const canManage = await canManageMembers(activeGym.gymId);
   const result = await listMembers({
     gymId: activeGym.gymId,
     page: params.page ? Number(params.page) : 1,
@@ -32,14 +33,12 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
         eyebrow="Miembros"
         title="Base de miembros"
         description="Consulta el estado actual de cada miembro y abre su detalle operativo."
-        action={
-          <Link
+        action={<div className="flex flex-wrap gap-2">{canManage ? <Link className="rounded-md border border-charcoal px-5 py-3 text-center text-sm font-black text-ink hover:bg-gray-light" href="/members/deleted">Papelera</Link> : null}<Link
             className="rounded-md bg-brand-orange px-5 py-3 text-center text-sm font-black text-ink hover:bg-brand-red hover:text-paper"
             href="/members/new"
           >
             Nuevo miembro
-          </Link>
-        }
+          </Link></div>}
       />
       {params.notice ? (
         <div className="mt-6 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-bold text-orange-900">

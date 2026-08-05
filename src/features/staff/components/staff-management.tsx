@@ -66,6 +66,7 @@ function StaffEditor({ person, roles }: { person: StaffUserDto; roles: StaffRole
           </select>
         </label>
         <div className="md:col-span-2"><RoleChoices roles={roles} selected={person.roles.map((role) => role.id)} /></div>
+        <div className="md:col-span-2"><p className="text-sm font-bold text-ink">Permisos efectivos</p><div className="mt-2 flex flex-wrap gap-2">{person.permissions.map((permission)=><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-gray-dark" key={permission}>{permission}</span>)}</div></div>
         <div className="flex items-center justify-between gap-3 md:col-span-2">
           <ActionMessage state={updateState} />
           <button className="min-h-11 rounded-xl bg-ink px-4 py-2 text-sm font-black text-white hover:bg-charcoal disabled:opacity-60" disabled={updatePending} type="submit">Guardar cambios</button>

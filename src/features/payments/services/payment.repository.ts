@@ -2,7 +2,8 @@ import { mapSupabaseError } from "@/lib/api/map-supabase-error";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/types";
 
-import type { PaymentMethodDto, PaymentSummaryDto } from "../types/payment.dto";
+import { recordPaymentSchema } from "../schemas/payment.schema";
+import type { PayableChargeDto, PaymentMethodDto, PaymentSummaryDto } from "../types/payment.dto";
 
 export async function listPaymentMethods(): Promise<PaymentMethodDto[]> {
   const supabase = await createClient();
@@ -24,7 +25,7 @@ export async function listRecentPayments(gymId: string, limit = 20): Promise<Pay
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("member_payments")
-    .select("id, gym_member_id, amount, currency, status, receipt_number, paid_at")
+    .select("id, gym_member_id, amount, currency, status, receipt_number, paid_at, applied_nio_per_usd")
     .eq("gym_id", gymId)
     .order("paid_at", { ascending: false })
     .limit(Math.max(1, Math.min(limit, 100)));
@@ -48,7 +49,26 @@ function mapPayment(row: Pick<
     status: row.status,
     receiptNumber: row.receipt_number,
     paidAt: row.paid_at,
+    appliedNioPerUsd: String((row as unknown as { applied_nio_per_usd: string | number }).applied_nio_per_usd),
   };
+}
+
+export async function listPayableCharges(gymId: string): Promise<PayableChargeDto[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("list_payable_member_charges" as never, { p_gym_id: gymId } as never);
+  if (error) throw mapSupabaseError(error);
+  return ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({ chargeId: String(row.charge_id), gymMemberId: String(row.gym_member_id), memberLabel: String(row.member_label), dueDate: String(row.due_date), amountDue: String(row.amount_due), currency: String(row.currency), status: String(row.status) }));
+}
+
+export async function recordPayment(input: unknown) {
+  const parsed = recordPaymentSchema.parse(input); const supabase = await createClient();
+  const { data, error } = await supabase.rpc("record_member_payment" as never, { p_gym_id: parsed.gymId, p_charge_id: parsed.chargeId, p_payment_method_id: parsed.paymentMethodId, p_amount: parsed.amount, p_currency: parsed.currency, p_paid_at: parsed.paidAt ?? null, p_notes: parsed.notes ?? null } as never);
+  if (error) throw mapSupabaseError(error); return data;
+}
+
+export async function voidPayment(paymentId: string, reason: string) {
+  const supabase = await createClient(); const { data, error } = await supabase.rpc("void_member_payment" as never, { p_payment_id: paymentId, p_reason: reason } as never);
+  if (error) throw mapSupabaseError(error); return data;
 }
 
 function mapPaymentMethod(row: Pick<

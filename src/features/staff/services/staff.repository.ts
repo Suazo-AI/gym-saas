@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 import type { InviteStaffInput, UpdateStaffInput } from "../schemas/staff.schema";
-import type { StaffRoleDto, StaffUserDto } from "../types/staff.dto";
+import type { RoleScreenAccessDto, StaffRoleDto, StaffUserDto } from "../types/staff.dto";
 
 type Rpc = (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
 
@@ -33,6 +33,11 @@ export async function updateStaffUser(input: UpdateStaffInput, injectedRpc?: Rpc
   if (error) throw mapSupabaseError(error);
   return data;
 }
+
+export async function listRoleScreenAccess(gymId: string, injectedRpc?: Rpc): Promise<RoleScreenAccessDto> {
+  const rpc=injectedRpc??await serverRpc(); const {data,error}=await rpc("list_role_screen_access",{p_gym_id:gymId}); if(error)throw mapSupabaseError(error); return data as RoleScreenAccessDto;
+}
+export async function updateRoleScreenAccess(input:{gymId:string;roleId:string;screenIds:string[]},injectedRpc?:Rpc){const rpc=injectedRpc??await serverRpc();const {data,error}=await rpc("update_role_screen_access",{p_gym_id:input.gymId,p_role_id:input.roleId,p_screen_ids:input.screenIds});if(error)throw mapSupabaseError(error);return data;}
 
 export async function deleteStaffUser(
   input: { gymUserId: string; reason: string },

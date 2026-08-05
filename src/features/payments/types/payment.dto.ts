@@ -6,6 +6,7 @@ export type PaymentSummaryDto = {
   status: string;
   receiptNumber: string | null;
   paidAt: string;
+  appliedNioPerUsd: string;
 };
 
 export type PaymentMethodDto = {
@@ -14,3 +15,5 @@ export type PaymentMethodDto = {
   name: string;
   isCash: boolean;
 };
+
+export type PayableChargeDto = { chargeId: string; gymMemberId: string; memberLabel: string; dueDate: string; amountDue: string; currency: string; status: string };

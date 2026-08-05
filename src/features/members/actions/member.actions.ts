@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { ApiError } from "@/lib/api/api-error";
+import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 
 import {
   createMember,
@@ -11,8 +12,9 @@ import {
   updateMember,
 } from "../services/member.repository";
 import { enrollMemberFaceFromForm } from "../services/member-face-enrollment.service";
+import { restoreMemberSchema, retireMemberSchema } from "../schemas/member.schema";
 
-type MemberActionState = {
+export type MemberActionState = {
   ok: boolean;
   message?: string;
   memberId?: string;
@@ -39,6 +41,8 @@ export async function createMemberAction(
   formData: FormData,
 ): Promise<MemberActionState> {
   try {
+    const activeGym = await getActiveGym();
+    if (!activeGym) return { ok: false, message: "No hay un gimnasio seleccionado." };
     const faceImageBase64 = text(formData, "faceImageBase64");
     const biometricConsentGranted = formData.get("biometricConsentGranted") === "on";
 
@@ -50,7 +54,7 @@ export async function createMemberAction(
     }
 
     const memberId = await createMember({
-      gymId: text(formData, "gymId") ?? "",
+      gymId: activeGym.gymId,
       firstName: text(formData, "firstName") ?? "",
       lastName: text(formData, "lastName") ?? "",
       memberCode: text(formData, "memberCode"),
@@ -69,7 +73,7 @@ export async function createMemberAction(
     if (faceImageBase64) {
       try {
         await enrollMemberFaceFromForm({
-          gymId: text(formData, "gymId") ?? "",
+          gymId: activeGym.gymId,
           gymMemberId: memberId,
           imageBase64: faceImageBase64,
           biometricConsentGranted,
@@ -100,36 +104,59 @@ export async function updateMemberAction(
   formData: FormData,
 ): Promise<MemberActionState> {
   try {
+    const activeGym = await getActiveGym();
+    if (!activeGym) return { ok: false, message: "No hay un gimnasio seleccionado." };
     await updateMember({
-      gymId: text(formData, "gymId") ?? "",
+      gymId: activeGym.gymId,
       gymMemberId: text(formData, "gymMemberId") ?? "",
       firstName: text(formData, "firstName"),
       lastName: text(formData, "lastName"),
       memberCode: text(formData, "memberCode"),
       branchId: text(formData, "branchId") ?? null,
-      phone: text(formData, "phone"),
-      email: text(formData, "email"),
+      phone: editableText(formData, "phone"),
+      email: editableText(formData, "email"),
     });
     revalidatePath("/dashboard");
+    revalidatePath("/members");
+    revalidatePath(`/members/${text(formData, "gymMemberId") ?? ""}`);
     return { ok: true, message: "Miembro actualizado." };
   } catch (error) {
     return { ok: false, message: publicMessage(error) };
   }
 }
 
-export async function deleteMemberAction(formData: FormData) {
-  await deleteMember({
-    gymMemberId: text(formData, "gymMemberId") ?? "",
-    reason: text(formData, "reason"),
-  });
-  revalidatePath("/dashboard");
+export async function deleteMemberAction(_state: MemberActionState, formData: FormData): Promise<MemberActionState> {
+  try {
+    const input = retireMemberSchema.parse({ gymMemberId: formData.get("gymMemberId"), reason: formData.get("reason") });
+    await deleteMember(input);
+    revalidateMemberPaths(input.gymMemberId);
+    return { ok: true, message: "Miembro retirado." };
+  } catch (error) {
+    return { ok: false, message: publicMessage(error) };
+  }
 }
 
-export async function restoreMemberAction(formData: FormData) {
-  await restoreMember({
-    gymMemberId: text(formData, "gymMemberId") ?? "",
-  });
+function editableText(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value.trim() : undefined;
+}
+
+export async function restoreMemberAction(_state: MemberActionState, formData: FormData): Promise<MemberActionState> {
+  try {
+    const input = restoreMemberSchema.parse({ gymMemberId: formData.get("gymMemberId") });
+    await restoreMember(input);
+    revalidateMemberPaths(input.gymMemberId);
+    return { ok: true, message: "Miembro restaurado." };
+  } catch (error) {
+    return { ok: false, message: publicMessage(error) };
+  }
+}
+
+function revalidateMemberPaths(gymMemberId: string) {
   revalidatePath("/dashboard");
+  revalidatePath("/members");
+  revalidatePath("/members/deleted");
+  revalidatePath(`/members/${gymMemberId}`);
 }
 
 function publicMessage(error: unknown) {

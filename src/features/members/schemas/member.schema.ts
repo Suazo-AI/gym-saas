@@ -45,7 +45,17 @@ export const createMemberSchema = z.object({
 export const updateMemberSchema = createMemberSchema.partial().extend({
   gymId: uuidSchema,
   gymMemberId: uuidSchema,
+  branchId: uuidSchema.nullish(),
+  phone: z.string().trim().optional(),
+  email: z.union([z.literal(""), z.string().trim().email()]).optional(),
 });
+
+export const retireMemberSchema = z.object({
+  gymMemberId: uuidSchema,
+  reason: z.string().trim().min(3, "Indica el motivo del retiro."),
+});
+
+export const restoreMemberSchema = z.object({ gymMemberId: uuidSchema });
 
 export type ListMembersSchemaInput = z.infer<typeof listMembersSchema>;
 export type CreateMemberSchemaInput = z.infer<typeof createMemberSchema>;
