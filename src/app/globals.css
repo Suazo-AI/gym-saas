@@ -105,6 +105,18 @@ html[data-theme="dark"] .text-slate-700 { color: #e1ebe4; }
 html[data-theme="dark"] .text-slate-600,
 html[data-theme="dark"] .text-slate-500 { color: #aeb8b1; }
 
+html[data-theme="dark"] button.bg-ink.text-white,
+html[data-theme="dark"] a.bg-ink.text-white {
+  background-color: #15803d;
+  color: #ffffff;
+}
+
+html[data-theme="dark"] button.bg-ink.text-white:hover,
+html[data-theme="dark"] a.bg-ink.text-white:hover {
+  background-color: #166534;
+  color: #ffffff;
+}
+
 html[data-theme="light"] .bg-white .text-gray-light,
 html[data-theme="light"] .bg-paper .text-gray-light {
   color: #526058;
