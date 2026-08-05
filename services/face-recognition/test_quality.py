@@ -20,15 +20,15 @@ class FaceQualityTests(unittest.TestCase):
     with self.assertRaisesRegex(Exception, "FACE_TOO_DARK"):
       assess_face_quality(image, face)
 
-  def test_normalises_a_128_dimension_sface_embedding(self):
-    embedding = normalise_embedding(np.ones((1, 128), dtype=np.float32))
+  def test_normalises_a_512_dimension_insightface_embedding(self):
+    embedding = normalise_embedding(np.ones((1, 512), dtype=np.float32))
 
-    self.assertEqual(embedding.shape, (128,))
+    self.assertEqual(embedding.shape, (512,))
     self.assertAlmostEqual(float(np.linalg.norm(embedding)), 1.0, places=6)
 
   def test_rejects_an_embedding_from_an_incompatible_model(self):
     with self.assertRaisesRegex(Exception, "invalid embedding size"):
-      normalise_embedding(np.ones((1, 512), dtype=np.float32))
+      normalise_embedding(np.ones((1, 128), dtype=np.float32))
 
 
 if __name__ == "__main__":
