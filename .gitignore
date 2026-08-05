@@ -46,3 +46,7 @@ next-env.d.ts
 
 # local git worktrees
 /.worktrees/
+
+# local facial-recognition runtime
+/services/face-recognition/.venv/
+/services/face-recognition/models/
