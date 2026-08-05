@@ -10,6 +10,14 @@ type CreateGateway = { insert: (values: Record<string, unknown>) => Promise<{ er
 type UpdateGateway = { update: (planId: string, gymId: string, values: Record<string, unknown>) => Promise<{ error: unknown }> };
 type PermissionGateway = { read: (gymId: string) => Promise<{ data: unknown; error: unknown }> };
 type BenefitCreateGateway = { insert: (planId: string, gymId: string, values: Record<string, unknown>) => Promise<{ error: unknown }> };
+import { mapAssignedSubscription } from "../mappers/membership.mapper";
+import { assignSubscriptionSchema } from "../schemas/membership.schema";
+import type {
+  AssignedSubscriptionDto,
+  AssignedSubscriptionRow,
+  AssignSubscriptionInput,
+  MembershipPlanDto,
+} from "../types/membership.dto";
 
 export async function listMembershipPlans(gymId: string): Promise<MembershipPlanDto[]> {
   const supabase = await createClient();
@@ -167,6 +175,30 @@ async function benefitCreateGateway(): Promise<BenefitCreateGateway> {
     const { error } = await supabase.from("membership_plan_benefits").insert({ membership_plan_id: planId, ...values } as never);
     return { error };
   } };
+}
+
+export async function assignMemberSubscription(
+  input: AssignSubscriptionInput,
+): Promise<AssignedSubscriptionDto> {
+  const parsed = assignSubscriptionSchema.parse(input);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("assign_member_subscription" as never, {
+    p_gym_id: parsed.gymId,
+    p_gym_member_id: parsed.gymMemberId,
+    p_membership_plan_id: parsed.membershipPlanId,
+    p_start_date: parsed.startDate ?? null,
+    p_billing_cycle_months: parsed.billingCycleMonths ?? null,
+    p_recurring_amount: parsed.recurringAmount ?? null,
+    p_currency: parsed.currency ?? null,
+    p_auto_renew: parsed.autoRenew ?? null,
+    p_generate_first_charge: parsed.generateFirstCharge ?? null,
+  } as never);
+
+  if (error) {
+    throw mapSupabaseError(error);
+  }
+
+  return mapAssignedSubscription(data as AssignedSubscriptionRow);
 }
 
 function mapPlan(row: Pick<

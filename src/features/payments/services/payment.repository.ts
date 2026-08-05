@@ -37,6 +37,53 @@ export async function listRecentPayments(gymId: string, limit = 20): Promise<Pay
   return (data ?? []).map(mapPayment);
 }
 
+export async function listMemberPendingCharges(input: {
+  gymId: string;
+  gymMemberId: string;
+}): Promise<PendingChargeDto[]> {
+  const supabase = (await createClient()) as unknown as PendingChargesClient;
+  const { data, error } = await supabase
+    .from("api_v1_member_pending_charges")
+    .select("*")
+    .eq("gym_id", input.gymId)
+    .eq("gym_member_id", input.gymMemberId)
+    .order("due_date", { ascending: true });
+
+  if (error) {
+    throw mapSupabaseError(error);
+  }
+
+  return mapPendingChargeRows(data ?? []);
+}
+
+export async function registerMemberPayment(
+  input: RegisterPaymentInput,
+): Promise<RegisteredPaymentDto> {
+  const parsed = registerPaymentSchema.parse(input);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("register_member_payment" as never, {
+    p_gym_id: parsed.gymId,
+    p_gym_member_id: parsed.gymMemberId,
+    p_payment_method_id: parsed.paymentMethodId,
+    p_amount: parsed.amount,
+    p_currency: parsed.currency,
+    p_allocations: parsed.allocations.map((allocation) => ({
+      chargeId: allocation.chargeId,
+      amount: allocation.amount,
+    })),
+    p_branch_id: parsed.branchId ?? null,
+    p_paid_at: parsed.paidAt ?? null,
+    p_external_reference: parsed.externalReference ?? null,
+    p_notes: parsed.notes ?? null,
+  } as never);
+
+  if (error) {
+    throw mapSupabaseError(error);
+  }
+
+  return mapRegisteredPayment(data as unknown as RegisteredPaymentRow);
+}
+
 function mapPayment(row: Pick<
   Tables<"member_payments">,
   "id" | "gym_member_id" | "amount" | "currency" | "status" | "receipt_number" | "paid_at"

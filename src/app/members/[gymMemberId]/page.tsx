@@ -10,14 +10,31 @@ import { MemberDetailView } from "@/features/members/components/member-detail-vi
 import { MemberAdministration } from "@/features/members/components/member-administration";
 import { canManageMembers, getMember } from "@/features/members/services/member.repository";
 import { listBranches } from "@/features/settings/services/branch.repository";
+import { getMember } from "@/features/members/services/member.repository";
+import { assignMembershipAction } from "@/features/memberships/actions/membership.actions";
+import { listMembershipPlans } from "@/features/memberships/services/membership.repository";
 
 type MemberDetailPageProps = {
   params: Promise<{ gymMemberId: string }>;
+  searchParams: Promise<{ error?: string; notice?: string }>;
 };
 
 const uuidSchema = z.string().uuid();
 
-export default async function MemberDetailPage({ params }: MemberDetailPageProps) {
+async function assignMembershipFormAction(formData: FormData) {
+  "use server";
+  const result = await assignMembershipAction({ ok: false }, formData);
+  const id = String(formData.get("gymMemberId") ?? "");
+  if (!result.ok) {
+    redirect(`/members/${id}?error=${encodeURIComponent(result.message ?? "No pudimos asignar la membresía.")}`);
+  }
+  redirect(`/members/${id}?notice=${encodeURIComponent("Membresía asignada.")}`);
+}
+
+export default async function MemberDetailPage({
+  params,
+  searchParams,
+}: MemberDetailPageProps) {
   const user = await requireUser();
   const activeGym = await getActiveGym();
 
@@ -26,6 +43,7 @@ export default async function MemberDetailPage({ params }: MemberDetailPageProps
   }
 
   const { gymMemberId } = await params;
+  const query = await searchParams;
 
   if (!uuidSchema.safeParse(gymMemberId).success) {
     notFound();
@@ -42,6 +60,14 @@ export default async function MemberDetailPage({ params }: MemberDetailPageProps
 
   const canManage = await canManageMembers(activeGym.gymId);
   const branches = canManage ? await listBranches(activeGym.gymId).catch(() => []) : [];
+  const canAssignMembership =
+    !member.currentSubscription ||
+    ["canceled", "expired"].includes(member.currentSubscription.status);
+  const plansResult = canAssignMembership
+    ? await listMembershipPlans(activeGym.gymId)
+        .then((plans) => ({ plans: plans.filter((plan) => plan.isActive), error: false }))
+        .catch(() => ({ plans: [], error: true }))
+    : { plans: [], error: false };
 
   return (
     <AppShell activeGym={activeGym} currentPath="/members" userEmail={user.email}>
@@ -51,7 +77,7 @@ export default async function MemberDetailPage({ params }: MemberDetailPageProps
         description="Estado observado de membresía, cargos y pagos registrados."
         action={
           <Link
-            className="rounded-md border border-charcoal px-5 py-3 text-center text-sm font-black text-ink hover:bg-gray-light"
+            className="min-h-11 rounded-md border border-charcoal px-5 py-3 text-center text-sm font-black text-ink hover:bg-gray-light"
             href="/members"
           >
             Volver a miembros
@@ -60,6 +86,23 @@ export default async function MemberDetailPage({ params }: MemberDetailPageProps
       />
       <MemberDetailView member={member} />
       <MemberAdministration branches={branches} canManage={canManage} member={member} />
+      {query.error ? (
+        <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800">
+          {query.error}
+        </div>
+      ) : null}
+      {query.notice ? (
+        <div className="mt-6 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-bold text-orange-900">
+          {query.notice}
+        </div>
+      ) : null}
+      <MemberDetailView
+        assignMembershipAction={assignMembershipFormAction}
+        gymId={activeGym.gymId}
+        member={member}
+        membershipPlans={plansResult.plans}
+        plansLoadFailed={plansResult.error}
+      />
     </AppShell>
   );
 }
