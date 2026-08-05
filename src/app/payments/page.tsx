@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/features/app/components/app-shell";
@@ -14,11 +15,23 @@ export default async function PaymentsPage() {
 
   return (
     <AppShell activeGym={activeGym} currentPath="/payments" userEmail={user.email}>
-      <ModuleHeader eyebrow="Pagos" title="Cobros y recibos" description="Modulo protegido para registrar pagos, asignarlos a cargos y conservar historial financiero." />
-      <section className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 p-5">
-          <h2 className="text-xl font-black text-[#083f88]">Pagos recientes</h2>
-          <p className="mt-1 text-sm text-slate-600">Lectura directa de member_payments bajo RLS.</p>
+      <ModuleHeader
+        eyebrow="Pagos"
+        title="Cobros y recibos"
+        description="Registra pagos, aplícalos a cargos y consulta los recibos recientes."
+        action={
+          <Link
+            className="min-h-11 rounded-md bg-brand-orange px-5 py-3 text-center text-sm font-black text-ink hover:bg-brand-red hover:text-paper"
+            href="/payments/new"
+          >
+            Registrar pago
+          </Link>
+        }
+      />
+      <section className="mt-6 rounded-lg border border-charcoal bg-paper shadow-sm">
+        <div className="border-b border-gray p-5">
+          <h2 className="text-xl font-black text-ink">Pagos recientes</h2>
+          <p className="mt-1 text-sm text-charcoal">Recibos registrados para el gimnasio activo.</p>
         </div>
         {!payments ? (
           <p className="p-5 text-sm font-semibold text-red-700">No pudimos cargar pagos.</p>
