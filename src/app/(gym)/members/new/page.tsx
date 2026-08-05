@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { createMemberAction } from "@/features/members/actions/member.actions";
 import { MemberFaceEnrollmentField } from "@/features/members/components/member-face-enrollment-field";
@@ -16,7 +14,6 @@ type NewMemberPageProps = {
 };
 
 export default async function NewMemberPage({ searchParams }: NewMemberPageProps) {
-  const user = await requireUser();
   const activeGym = await getActiveGym();
   const params = await searchParams;
 
@@ -31,7 +28,7 @@ export default async function NewMemberPage({ searchParams }: NewMemberPageProps
   ]);
 
   return (
-    <AppShell activeGym={activeGym} currentPath="/members" userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="Registro"
         title="Nuevo miembro"
@@ -116,7 +113,7 @@ export default async function NewMemberPage({ searchParams }: NewMemberPageProps
           </Link>
         </div>
       </form>
-    </AppShell>
+    </>
   );
 }
 

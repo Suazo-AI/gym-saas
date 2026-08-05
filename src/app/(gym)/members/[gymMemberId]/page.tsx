@@ -2,9 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 
-import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { MemberDetailView } from "@/features/members/components/member-detail-view";
 import { MemberAdministration } from "@/features/members/components/member-administration";
@@ -34,7 +32,6 @@ export default async function MemberDetailPage({
   params,
   searchParams,
 }: MemberDetailPageProps) {
-  const user = await requireUser();
   const activeGym = await getActiveGym();
 
   if (!activeGym) {
@@ -69,7 +66,7 @@ export default async function MemberDetailPage({
     : { plans: [], error: false };
 
   return (
-    <AppShell activeGym={activeGym} currentPath="/members" userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="Detalle del miembro"
         title={member.fullName}
@@ -101,6 +98,6 @@ export default async function MemberDetailPage({
         plansLoadFailed={plansResult.error}
       />
       <MemberAdministration branches={branches} canManage={canManage} member={member} />
-    </AppShell>
+    </>
   );
 }

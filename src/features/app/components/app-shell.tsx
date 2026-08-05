@@ -9,7 +9,7 @@ const supportedRoutes = new Set(["/dashboard","/members","/memberships","/paymen
 
 type AppShellProps = {
   activeGym: ActiveGymDto;
-  currentPath: string;
+  currentPath?: string;
   userEmail?: string | null;
   children: React.ReactNode;
 };

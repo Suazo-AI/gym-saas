@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { canManageMembers, listMembers } from "@/features/members/services/member.repository";
 
@@ -13,7 +11,6 @@ type MembersPageProps = {
 };
 
 export default async function MembersPage({ searchParams }: MembersPageProps) {
-  const user = await requireUser();
   const activeGym = await getActiveGym();
 
   if (!activeGym) {
@@ -29,7 +26,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   }).catch((error: unknown) => ({ error }));
 
   return (
-    <AppShell activeGym={activeGym} currentPath="/members" userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="Miembros"
         title="Base de miembros"
@@ -81,6 +78,6 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
           </div>
         )}
       </section>
-    </AppShell>
+    </>
   );
 }

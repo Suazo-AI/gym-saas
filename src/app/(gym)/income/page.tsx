@@ -1,19 +1,16 @@
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { listDailyIncome } from "@/features/income/services/income.repository";
 
 export default async function IncomePage() {
-  const user = await requireUser();
   const activeGym = await getActiveGym();
   if (!activeGym) redirect("/login");
   const income = await listDailyIncome(activeGym.gymId).catch(() => null);
 
   return (
-    <AppShell activeGym={activeGym} currentPath="/income" userEmail={user.email}>
+    <>
       <ModuleHeader eyebrow="Ingresos" title="Ingresos del gimnasio" description="Modulo simple para ingresos de membresias y otros ingresos autorizados." />
       <section className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-5">
@@ -35,6 +32,6 @@ export default async function IncomePage() {
           </div>
         )}
       </section>
-    </AppShell>
+    </>
   );
 }

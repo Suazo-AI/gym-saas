@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 
 export type Locale = "es" | "en";
@@ -18,9 +19,11 @@ export function PreferencesControls() {
   </div>;
 }
 
-export function LocalizedNav({ screens, currentPath }: { screens: Array<{ code: string; name: string; route: string }>; currentPath: string }) {
+export function LocalizedNav({ screens, currentPath }: { screens: Array<{ code: string; name: string; route: string }>; currentPath?: string }) {
   const locale = usePreference<Locale>("fitmanager-locale", "es");
-  return <nav className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-1">{screens.map((screen) => <Link aria-current={currentPath === screen.route ? "page" : undefined} className={`rounded-md px-4 py-3 text-sm font-bold transition ${currentPath === screen.route ? "bg-brand-green text-white shadow-sm" : "text-gray-light hover:bg-white/10 hover:text-white"}`} href={screen.route} key={screen.route}>{screenLabel(screen.code, screen.name, locale)}</Link>)}</nav>;
+  const pathname = usePathname();
+  const activePath = pathname || currentPath;
+  return <nav className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-1">{screens.map((screen) => <Link aria-current={activePath === screen.route ? "page" : undefined} className={`rounded-md px-4 py-3 text-sm font-bold transition ${activePath === screen.route ? "bg-brand-green text-white shadow-sm" : "text-gray-light hover:bg-white/10 hover:text-white"}`} href={screen.route} key={screen.route}>{screenLabel(screen.code, screen.name, locale)}</Link>)}</nav>;
 }
 
 function usePreference<T extends string>(key: string, fallback: T) { return useSyncExternalStore((notify) => { window.addEventListener(eventName, notify); window.addEventListener("storage", notify); return () => { window.removeEventListener(eventName, notify); window.removeEventListener("storage", notify); }; }, () => (localStorage.getItem(key) as T | null) ?? fallback, () => fallback); }

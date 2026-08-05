@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import {
   getMember,
@@ -25,7 +23,6 @@ type NewPaymentPageProps = {
 };
 
 export default async function NewPaymentPage({ searchParams }: NewPaymentPageProps) {
-  const user = await requireUser();
   const activeGym = await getActiveGym();
   if (!activeGym) redirect("/login");
   const params = await searchParams;
@@ -40,7 +37,7 @@ export default async function NewPaymentPage({ searchParams }: NewPaymentPagePro
       : null;
 
     return (
-      <AppShell activeGym={activeGym} currentPath="/payments" userEmail={user.email}>
+      <>
         <ModuleHeader
           eyebrow="Pagos"
           title="Registrar pago"
@@ -86,7 +83,7 @@ export default async function NewPaymentPage({ searchParams }: NewPaymentPagePro
             </ul>
           )}
         </section>
-      </AppShell>
+      </>
     );
   }
 
@@ -99,7 +96,7 @@ export default async function NewPaymentPage({ searchParams }: NewPaymentPagePro
     .catch((error: unknown) => ({ error }));
 
   return (
-    <AppShell activeGym={activeGym} currentPath="/payments" userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="Pagos"
         title="Registrar pago"
@@ -146,6 +143,6 @@ export default async function NewPaymentPage({ searchParams }: NewPaymentPagePro
           )}
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

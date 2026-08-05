@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { ApiError } from "@/lib/api/api-error";
 import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
-export async function requireUser() {
+export const requireUser = cache(async () => {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
 
@@ -13,7 +14,7 @@ export async function requireUser() {
   }
 
   return data.user;
-}
+});
 
 export async function getCurrentUser() {
   const supabase = await createClient();

@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { getEntryDecisionState } from "@/features/entries/entry-decision-state";
 import { FaceAccessModal } from "@/features/entries/components/face-access-modal";
 import { ManualEntryForm } from "@/features/entries/components/manual-entry-form";
@@ -22,7 +20,6 @@ const dateFormatter = new Intl.DateTimeFormat("es-NI", {
 });
 
 export default async function EntriesPage({ searchParams }: EntriesPageProps) {
-  const user = await requireUser();
   const activeGym = await getActiveGym();
   if (!activeGym) redirect("/login");
 
@@ -53,7 +50,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
     : null;
 
   return (
-    <AppShell activeGym={activeGym} currentPath="/entries" userEmail={user.email}>
+    <>
       <ModuleHeader
         action={<FaceAccessModal />}
         eyebrow="Entradas"
@@ -181,6 +178,6 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
           </div>
         )}
       </section>
-    </AppShell>
+    </>
   );
 }

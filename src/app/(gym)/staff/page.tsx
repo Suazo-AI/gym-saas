@@ -1,15 +1,12 @@
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/features/app/components/app-shell";
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { StaffManagement } from "@/features/staff/components/staff-management";
 import { RoleScreenManagement } from "@/features/staff/components/role-screen-management";
 import { listRoleScreenAccess, listStaffRoles, listStaffUsers } from "@/features/staff/services/staff.repository";
 
 export default async function StaffPage() {
-  const user = await requireUser();
   const activeGym = await getActiveGym();
   if (!activeGym) redirect("/login");
 
@@ -17,7 +14,7 @@ export default async function StaffPage() {
   const roleAccess = await listRoleScreenAccess(activeGym.gymId).catch(() => null);
 
   return (
-    <AppShell activeGym={activeGym} currentPath="/staff" userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="Seguridad del equipo"
         title="Personal y accesos"
@@ -31,6 +28,6 @@ export default async function StaffPage() {
         </div>
       )}
       {roleAccess ? <RoleScreenManagement access={roleAccess} /> : null}
-    </AppShell>
+    </>
   );
 }
