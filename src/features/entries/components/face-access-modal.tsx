@@ -13,6 +13,11 @@ type VerificationResult = {
   decisionReason: string;
   accessAllowed: boolean;
   similarity: number | null;
+  member: {
+    gymMemberId: string;
+    fullName: string;
+    memberCode: string;
+  } | null;
 };
 
 const FOCUSABLE_SELECTOR = [
@@ -280,7 +285,7 @@ export function FaceAccessModal({ initiallyOpen = false }: { initiallyOpen?: boo
   );
 }
 
-function ResultPanel({
+export function ResultPanel({
   message,
   result,
   status,
@@ -299,6 +304,19 @@ function ResultPanel({
         <strong className={`mt-3 block text-3xl font-black ${allowed ? "text-emerald-700" : "text-orange-800"}`}>
           {decisionLabel(result.decision)}
         </strong>
+        {result.member ? (
+          <div className="mt-4 rounded-md border border-slate-200 bg-white p-3">
+            <span className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              Miembro identificado
+            </span>
+            <strong className="mt-1 block text-xl font-black text-ink">
+              {result.member.fullName}
+            </strong>
+            <span className="text-sm font-semibold text-slate-600">
+              Codigo: {result.member.memberCode}
+            </span>
+          </div>
+        ) : null}
         <p className="mt-3 text-sm font-semibold text-slate-700">{result.decisionReason}</p>
         <p className="mt-2 text-sm text-slate-500">
           Similitud: {result.similarity === null ? "sin coincidencia" : `${Math.round(result.similarity * 100)}%`}

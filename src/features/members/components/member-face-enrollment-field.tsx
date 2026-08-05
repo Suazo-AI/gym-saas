@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 type CaptureStatus = "idle" | "camera" | "ready" | "error";
 
-export const FACE_IMAGE_PREVIEW_CLASS = "aspect-video w-full bg-black object-contain";
+export const FACE_IMAGE_PREVIEW_CLASS = "block h-auto w-full bg-black object-contain";
 
 export function drawScaledCameraFrame(
   context: CanvasRenderingContext2D,

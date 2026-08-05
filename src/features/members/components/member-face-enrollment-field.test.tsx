@@ -6,9 +6,11 @@ import {
 } from "./member-face-enrollment-field";
 
 describe("MemberFaceEnrollmentField image presentation", () => {
-  it("shows the complete camera frame instead of cropping it", () => {
+  it("shows the complete frame without forcing it into a smaller fixed ratio", () => {
     expect(FACE_IMAGE_PREVIEW_CLASS).toContain("object-contain");
+    expect(FACE_IMAGE_PREVIEW_CLASS).toContain("h-auto");
     expect(FACE_IMAGE_PREVIEW_CLASS).not.toContain("object-cover");
+    expect(FACE_IMAGE_PREVIEW_CLASS).not.toContain("aspect-video");
   });
 
   it("scales the complete camera frame into the smaller canvas", () => {

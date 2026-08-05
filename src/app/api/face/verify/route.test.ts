@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   getActiveGym: vi.fn(),
   generateFaceEmbedding: vi.fn(),
   verifyFaceAccessWithEmbedding: vi.fn(),
+  getMember: vi.fn(),
   rpc: vi.fn(),
 }));
 
@@ -40,6 +41,10 @@ vi.mock("@/features/entries/services/face-verification.repository", () => ({
   verifyFaceAccessWithEmbedding: mocks.verifyFaceAccessWithEmbedding,
 }));
 
+vi.mock("@/features/members/services/member.repository", () => ({
+  getMember: mocks.getMember,
+}));
+
 import { POST } from "./route";
 
 const gymId = "20000000-0000-4000-8000-000000000001";
@@ -67,6 +72,7 @@ describe("POST /api/face/verify", () => {
       processingMs: 10,
     });
     mocks.verifyFaceAccessWithEmbedding.mockResolvedValue({ decision: "allowed" });
+    mocks.getMember.mockResolvedValue(null);
   });
 
   it("returns 401 JSON when there is no authenticated user", async () => {
@@ -108,5 +114,29 @@ describe("POST /api/face/verify", () => {
 
     expect(response.status).toBe(429);
     expect(mocks.generateFaceEmbedding).not.toHaveBeenCalled();
+  });
+
+  it("returns the matched member identity from the active gym", async () => {
+    const gymMemberId = "30000000-0000-4000-8000-000000000001";
+    mocks.verifyFaceAccessWithEmbedding.mockResolvedValue({
+      decision: "allowed",
+      gymMemberId,
+    });
+    mocks.getMember.mockResolvedValue({
+      gymMemberId,
+      fullName: "Ana Martinez",
+      memberCode: "M-001",
+    });
+
+    const response = await POST(createRequest({ imageBase64: "a".repeat(32) }));
+
+    expect(mocks.getMember).toHaveBeenCalledWith({ gymId, gymMemberId });
+    await expect(response.json()).resolves.toMatchObject({
+      member: {
+        gymMemberId,
+        fullName: "Ana Martinez",
+        memberCode: "M-001",
+      },
+    });
   });
 });
