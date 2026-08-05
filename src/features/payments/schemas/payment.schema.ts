@@ -1,39 +1,34 @@
 import { z } from "zod";
 
-const uuidSchema = z.string().uuid();
-const amountSchema = z
+export const recordPaymentSchema = z.object({
+  gymId: z.string().uuid(), chargeId: z.string().uuid(), paymentMethodId: z.string().uuid(),
+  amount: z.string().regex(/^\d+(\.\d{1,2})?$/, "Monto inválido."), currency: z.enum(["USD", "NIO"]),
+  paidAt: z.string().datetime().optional(), notes: z.string().trim().max(500).optional(),
+});
+
+const registerAmountSchema = z
   .string()
   .regex(/^\d+(\.\d{1,2})?$/, "El monto debe ser decimal.");
-const optionalTrimmedString = z
-  .string()
-  .trim()
-  .transform((value) => (value.length > 0 ? value : undefined))
-  .nullish();
 
-function decimalToCents(value: string): number {
+function decimalToCents(value: string) {
   const [whole, fraction = ""] = value.split(".");
-  return parseInt(whole, 10) * 100 + parseInt(fraction.padEnd(2, "0"), 10);
+  return Number.parseInt(whole, 10) * 100 + Number.parseInt(fraction.padEnd(2, "0"), 10);
 }
 
 export const registerPaymentSchema = z
   .object({
-    gymId: uuidSchema,
-    gymMemberId: uuidSchema,
-    paymentMethodId: uuidSchema,
-    amount: amountSchema,
+    gymId: z.string().uuid(),
+    gymMemberId: z.string().uuid(),
+    paymentMethodId: z.string().uuid(),
+    amount: registerAmountSchema,
     currency: z.enum(["USD", "NIO"]),
     allocations: z
-      .array(
-        z.object({
-          chargeId: uuidSchema,
-          amount: amountSchema,
-        }),
-      )
-      .min(1, "Selecciona al menos un cargo."),
-    branchId: uuidSchema.nullish(),
+      .array(z.object({ chargeId: z.string().uuid(), amount: registerAmountSchema }))
+      .min(1),
+    branchId: z.string().uuid().nullish(),
     paidAt: z.string().datetime().nullish(),
-    externalReference: optionalTrimmedString,
-    notes: optionalTrimmedString,
+    externalReference: z.string().trim().nullish(),
+    notes: z.string().trim().nullish(),
   })
   .refine(
     (input) =>
@@ -46,3 +41,4 @@ export const registerPaymentSchema = z
       path: ["allocations"],
     },
   );
+export const voidPaymentSchema = z.object({ paymentId: z.string().uuid(), reason: z.string().trim().min(3, "Indica el motivo de anulación.") });

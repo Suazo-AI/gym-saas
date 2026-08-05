@@ -15,7 +15,11 @@ import type {
   MemberSummaryRow,
   PaginatedMembersDto,
   UpdateMemberInput,
+  DeletedMemberDto,
 } from "../types/member.dto";
+
+type Rpc = (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+type PermissionGateway = { read: (gymId: string) => Promise<{ data: boolean | null; error: unknown }> };
 
 type QueryResult<T> = Promise<{ data: T | null; count: number | null; error: unknown }>;
 
@@ -140,15 +144,18 @@ export async function createMember(input: CreateMemberInput): Promise<string> {
 export async function updateMember(input: UpdateMemberInput) {
   const parsed = updateMemberSchema.parse(input);
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("update_gym_member" as never, {
+  const { data, error } = await supabase.rpc("update_gym_member_admin" as never, {
     p_gym_id: parsed.gymId,
     p_gym_member_id: parsed.gymMemberId,
     p_first_name: parsed.firstName ?? null,
     p_last_name: parsed.lastName ?? null,
     p_member_code: parsed.memberCode ?? null,
     p_branch_id: parsed.branchId ?? null,
+    p_clear_branch: parsed.branchId === null,
     p_phone: parsed.phone ?? null,
+    p_clear_phone: parsed.phone === "",
     p_email: parsed.email ?? null,
+    p_clear_email: parsed.email === "",
   } as never);
 
   if (error) {
@@ -185,4 +192,35 @@ export async function restoreMember(input: { gymMemberId: string }) {
   }
 
   return data;
+}
+
+export async function listDeletedMembers(gymId: string, injectedRpc?: Rpc): Promise<DeletedMemberDto[]> {
+  const rpc = injectedRpc ?? await serverRpc();
+  const { data, error } = await rpc("list_deleted_gym_members", { p_gym_id: gymId, p_limit: 50, p_offset: 0 });
+  if (error) throw mapSupabaseError(error);
+  return ((data ?? []) as Array<{ id: string; label: string; deleted_at?: string; deletedAt?: string; deletion_reason?: string | null; reason?: string | null }>).map((row) => ({
+    id: row.id,
+    label: row.label,
+    deletedAt: row.deleted_at ?? row.deletedAt ?? "",
+    reason: row.deletion_reason ?? row.reason ?? null,
+  }));
+}
+
+export async function canManageMembers(gymId: string, injected?: PermissionGateway): Promise<boolean> {
+  const gateway = injected ?? await permissionGateway();
+  const { data, error } = await gateway.read(gymId);
+  if (error || !data) return false;
+  return data === true;
+}
+
+async function serverRpc(): Promise<Rpc> {
+  const supabase = await createClient();
+  return async (name, args) => supabase.rpc(name as never, args as never);
+}
+
+async function permissionGateway(): Promise<PermissionGateway> {
+  const supabase = await createClient();
+  return { read: async (gymId) => {
+    return supabase.rpc("current_user_has_gym_permission", { p_gym_id: gymId, p_permission_code: "members.manage" });
+  } };
 }

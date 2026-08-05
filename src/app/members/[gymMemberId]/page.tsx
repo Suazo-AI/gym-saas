@@ -7,7 +7,9 @@ import { ModuleHeader } from "@/features/app/components/module-header";
 import { requireUser } from "@/features/auth/services/auth.service";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { MemberDetailView } from "@/features/members/components/member-detail-view";
-import { getMember } from "@/features/members/services/member.repository";
+import { MemberAdministration } from "@/features/members/components/member-administration";
+import { canManageMembers, getMember } from "@/features/members/services/member.repository";
+import { listBranches } from "@/features/settings/services/branch.repository";
 import { assignMembershipAction } from "@/features/memberships/actions/membership.actions";
 import { listMembershipPlans } from "@/features/memberships/services/membership.repository";
 
@@ -55,6 +57,8 @@ export default async function MemberDetailPage({
     notFound();
   }
 
+  const canManage = await canManageMembers(activeGym.gymId);
+  const branches = canManage ? await listBranches(activeGym.gymId).catch(() => []) : [];
   const canAssignMembership =
     !member.currentSubscription ||
     ["canceled", "expired"].includes(member.currentSubscription.status);
@@ -96,6 +100,7 @@ export default async function MemberDetailPage({
         membershipPlans={plansResult.plans}
         plansLoadFailed={plansResult.error}
       />
+      <MemberAdministration branches={branches} canManage={canManage} member={member} />
     </AppShell>
   );
 }

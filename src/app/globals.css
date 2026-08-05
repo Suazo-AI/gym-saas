@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-orange: #e85002;
-  --color-brand-red: #c10801;
-  --color-brand-amber: #f16001;
-  --color-brand-sand: #d9c3ab;
-  --color-ink: #000000;
-  --color-charcoal: #333333;
-  --color-gray: #646464;
-  --color-gray-light: #a7a7a7;
-  --color-paper: #f9f9f9;
+  --color-brand-green: #15803d;
+  --color-brand-lime: #84cc16;
+  --color-brand-orange: #15803d;
+  --color-brand-red: #dc2626;
+  --color-brand-amber: #d97706;
+  --color-brand-sand: #d9f99d;
+  --color-ink: #111814;
+  --color-charcoal: #18201b;
+  --color-gray: #46544b;
+  --color-gray-light: #aeb8b1;
+  --color-paper: #f3f7f4;
+  --color-surface: #ffffff;
 
   --color-white: #f9f9f9;
   --color-black: #000000;
@@ -17,9 +20,9 @@
   --color-slate-900: #000000;
   --color-slate-800: #333333;
   --color-slate-700: #333333;
-  --color-slate-600: #646464;
-  --color-slate-500: #646464;
-  --color-slate-400: #a7a7a7;
+  --color-slate-600: #4b554f;
+  --color-slate-500: #526058;
+  --color-slate-400: #66736b;
   --color-slate-300: #a7a7a7;
   --color-slate-200: color-mix(in srgb, #a7a7a7 55%, #f9f9f9);
   --color-slate-100: color-mix(in srgb, #a7a7a7 24%, #f9f9f9);
@@ -36,25 +39,25 @@
 
 :root {
   color-scheme: light;
-  --brand-gradient: linear-gradient(135deg, #000000 0%, #c10801 34%, #f16001 68%, #d9c3ab 100%);
+  --brand-gradient: linear-gradient(135deg, #101713 0%, #18201b 52%, #15803d 100%);
 }
 
 html {
-  background: #f9f9f9;
+  background: #f3f7f4;
 }
 
 body {
-  background: #f9f9f9;
-  color: #000000;
+  background: #f3f7f4;
+  color: #111814;
 }
 
 ::selection {
-  background: #e85002;
-  color: #000000;
+  background: #84cc16;
+  color: #111814;
 }
 
 :focus-visible {
-  outline: 3px solid #e85002;
+  outline: 3px solid #84cc16;
   outline-offset: 3px;
 }
 
@@ -74,11 +77,41 @@ body {
 }
 
 .bg-\[\#ff7a1a\] {
-  background-color: #e85002;
+  background-color: #15803d;
+}
+
+html[data-theme="dark"] {
+  --color-paper: #0b100d;
+  --color-surface: #151d18;
+  --color-ink: #f0f7f2;
+  --color-charcoal: #202b24;
+  --color-gray: #aeb8b1;
+  --color-gray-light: #cbd5ce;
+  background: #0b100d;
+}
+
+
+html[data-theme="dark"] body { background: #0b100d; color: #f0f7f2; }
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-slate-50,
+html[data-theme="dark"] .bg-slate-100 { background-color: #151d18; }
+html[data-theme="dark"] .border-slate-200,
+html[data-theme="dark"] .border-slate-300 { border-color: #344239; }
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea { background-color: #101713; color: #f0f7f2; border-color: #4b5c50; }
+html[data-theme="dark"] .text-slate-800,
+html[data-theme="dark"] .text-slate-700 { color: #e1ebe4; }
+html[data-theme="dark"] .text-slate-600,
+html[data-theme="dark"] .text-slate-500 { color: #aeb8b1; }
+
+html[data-theme="light"] .bg-white .text-gray-light,
+html[data-theme="light"] .bg-paper .text-gray-light {
+  color: #526058;
 }
 
 .bg-\[\#ff7a1a\].text-white {
-  color: #000000;
+  color: #ffffff;
 }
 
 .bg-\[\#f6f9fc\] {
@@ -87,11 +120,11 @@ body {
 
 .text-\[\#083f88\],
 .text-\[\#061f46\] {
-  color: #000000;
+  color: #166534;
 }
 
 .text-\[\#ff7a1a\] {
-  color: #e85002;
+  color: #15803d;
 }
 
 .border-\[\#083f88\] {
@@ -99,22 +132,32 @@ body {
 }
 
 .accent-\[\#ff7a1a\] {
-  accent-color: #e85002;
+  accent-color: #15803d;
 }
 
 .hover\:bg-\[\#e86305\]:hover,
 .hover\:bg-\[\#062e64\]:hover,
 .hover\:bg-\[\#062f66\]:hover {
-  background-color: #c10801;
-  color: #f9f9f9;
+  background-color: #166534;
+  color: #ffffff;
 }
 
 .hover\:text-\[\#ff7a1a\]:hover {
-  color: #e85002;
+  color: #15803d;
 }
 
 .focus\:border-\[\#083f88\]:focus {
-  border-color: #e85002;
+  border-color: #15803d;
+}
+
+/* Compatibility while legacy views migrate to semantic Sport-tech tokens. */
+.bg-brand-orange.text-ink {
+  color: #ffffff;
+}
+
+.hover\:bg-brand-red:hover {
+  background-color: #166534;
+  color: #ffffff;
 }
 
 @media (prefers-reduced-motion: reduce) {

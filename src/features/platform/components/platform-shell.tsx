@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { signOutAction } from "@/features/auth/actions/auth.actions";
+import { PreferencesControls } from "@/features/app/components/preferences-controls";
 
 const nav = [
   ["Resumen", "/platform"],
@@ -19,16 +20,16 @@ type PlatformShellProps = {
 
 export function PlatformShell({ currentPath, userEmail, children }: PlatformShellProps) {
   return (
-    <main className="min-h-screen bg-ink text-paper lg:grid lg:grid-cols-[292px_1fr]">
-      <aside className="border-b border-charcoal bg-ink p-5 lg:min-h-screen lg:border-b-0 lg:border-r">
+    <main className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[272px_1fr]">
+      <aside className="border-b border-white/10 bg-[#111814] p-5 text-white lg:min-h-screen lg:border-b-0 lg:border-r">
         <Link className="flex items-center gap-3 text-lg font-black" href="/platform">
-          <span className="grid h-11 w-11 place-items-center rounded-md bg-brand-orange text-ink">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-lime text-ink shadow-lg shadow-brand-lime/10">
             F
           </span>
           FitManager SaaS
         </Link>
 
-        <div className="mt-8 rounded-lg border border-charcoal bg-charcoal/50 p-4">
+        <div className="mt-8 rounded-xl border border-white/10 bg-white/5 p-4">
           <small className="font-black uppercase tracking-[0.16em] text-brand-sand">
             Consola interna
           </small>
@@ -42,8 +43,8 @@ export function PlatformShell({ currentPath, userEmail, children }: PlatformShel
               aria-current={currentPath === href ? "page" : undefined}
               className={`rounded-md px-4 py-3 text-sm font-bold transition ${
                 currentPath === href
-                  ? "bg-brand-orange text-ink"
-                  : "text-gray-light hover:bg-charcoal hover:text-paper"
+                  ? "bg-brand-green text-white shadow-sm"
+                  : "text-gray-light hover:bg-white/10 hover:text-white"
               }`}
               href={href}
               key={href}
@@ -54,12 +55,13 @@ export function PlatformShell({ currentPath, userEmail, children }: PlatformShel
         </nav>
 
         <div className="mt-8 rounded-lg border border-charcoal p-4 text-sm text-gray-light">
-          <span className="block font-bold text-paper">{userEmail ?? "Admin SaaS"}</span>
+          <span className="block font-bold text-white">{userEmail ?? "Admin SaaS"}</span>
         </div>
+        <PreferencesControls />
 
         <form action={signOutAction} className="mt-4">
           <button
-            className="min-h-11 w-full rounded-md border border-gray px-4 py-3 text-sm font-bold text-paper hover:bg-charcoal"
+            className="min-h-11 w-full rounded-md border border-gray-light px-4 py-3 text-sm font-bold text-white hover:bg-charcoal"
             type="submit"
           >
             Cerrar sesion

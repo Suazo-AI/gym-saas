@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getMember: vi.fn(),
+  canManageMembers: vi.fn().mockResolvedValue(false),
   listMembershipPlans: vi.fn(),
   notFound: vi.fn(),
 }));
@@ -22,8 +23,10 @@ vi.mock("@/features/gyms/services/get-active-gym", () => ({
 
 vi.mock("@/features/members/services/member.repository", () => ({
   getMember: mocks.getMember,
+  canManageMembers: mocks.canManageMembers,
 }));
 
+vi.mock("@/features/settings/services/branch.repository", () => ({ listBranches: vi.fn().mockResolvedValue([]) }));
 vi.mock("@/features/memberships/services/membership.repository", () => ({
   listMembershipPlans: mocks.listMembershipPlans,
 }));
@@ -39,6 +42,34 @@ vi.mock("@/features/app/components/app-shell", () => ({
 vi.mock("@/features/app/components/module-header", () => ({
   ModuleHeader: ({ title }: { title: string }) => <h1>{title}</h1>,
 }));
+
+vi.mock("@/features/members/components/member-detail-view", () => ({
+  MemberDetailView: ({
+    member,
+    membershipPlans = [],
+  }: {
+    member: { gymMemberId: string; currentSubscription?: { status: string } | null };
+    membershipPlans?: Array<{ id: string; name: string; currency: string; price: string }>;
+  }) => (
+    <div>
+      Detalle {member.gymMemberId}
+      {member.currentSubscription ? (
+        <span>Membresía actual</span>
+      ) : (
+        <form>
+          <select name="membershipPlanId">
+            {membershipPlans.map((plan) => (
+              <option key={plan.id}>{plan.name} · {plan.currency} {plan.price}</option>
+            ))}
+          </select>
+          <span>Generar el primer cargo</span>
+        </form>
+      )}
+    </div>
+  ),
+}));
+
+vi.mock("@/features/members/components/member-administration", () => ({ MemberAdministration: () => null }));
 
 import MemberDetailPage from "./page";
 

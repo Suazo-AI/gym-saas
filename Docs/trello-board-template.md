@@ -693,6 +693,10 @@
   - Renovación.
   - Cancelación.
   - Reactivación si fue aprobada.
+  - El cargo de cada período diario, semanal o mensual se paga completo y por adelantado.
+  - No se permiten pagos parciales.
+  - Una membresía nueva no habilita acceso hasta confirmar el pago completo.
+  - La gracia se aplica únicamente a renovaciones.
 - Terminado cuando: los estados y transiciones coinciden con las reglas de Producto.
 
 ### Módulo de pagos y recibos
@@ -706,7 +710,9 @@
   - Corregir mediante anulación o ajuste auditado, no borrado.
   - Crear un recibo único por pago.
   - Proteger operaciones mediante RPC o función de servidor confiable.
-- Terminado cuando: pagos completos, parciales y correcciones aprobadas funcionan de forma atómica.
+  - Cobrar completo y por adelantado cada período diario, semanal o mensual.
+  - Rechazar pagos parciales.
+- Terminado cuando: pagos completos y correcciones aprobadas funcionan de forma atómica, sin activar membresías nuevas antes de confirmar el pago total.
 
 ### Módulo de entradas
 

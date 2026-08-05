@@ -124,6 +124,13 @@ export type PaginatedMembersDto = {
   };
 };
 
+export type DeletedMemberDto = {
+  id: string;
+  label: string;
+  deletedAt: string;
+  reason: string | null;
+};
+
 export type MemberSummaryRow = {
   gym_id: string;
   gym_member_id: string;

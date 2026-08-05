@@ -12,7 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{__html:`(()=>{try{const t=localStorage.getItem('fitmanager-theme')||'system';const d=t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.dataset.theme=d;document.documentElement.style.colorScheme=d;document.documentElement.lang=localStorage.getItem('fitmanager-locale')||'es'}catch{}})();`}} /></head>
       <body className="min-h-screen bg-paper font-sans text-ink antialiased">
         {children}
       </body>

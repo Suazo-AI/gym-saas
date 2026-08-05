@@ -1,77 +1,50 @@
 "use server";
-
 import { revalidatePath } from "next/cache";
+import { getActiveGym } from "@/features/gyms/services/get-active-gym";
+import { recordPaymentSchema, voidPaymentSchema } from "../schemas/payment.schema";
+import { recordPayment, registerMemberPayment, voidPayment } from "../services/payment.repository";
 
-import { ApiError } from "@/lib/api/api-error";
-
-import { registerMemberPayment } from "../services/payment.repository";
-
-type PaymentActionState = {
-  ok: boolean;
-  message?: string;
-  paymentId?: string;
-  receiptNumber?: string;
-};
-
-function text(formData: FormData, key: string) {
-  const value = formData.get(key);
-  return typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
+export type PaymentActionState = { ok: boolean; message?: string };
+export async function recordPaymentAction(_: PaymentActionState, form: FormData): Promise<PaymentActionState> {
+  try { const gym=await getActiveGym(); if(!gym) return {ok:false,message:"No hay gimnasio activo."}; const input=recordPaymentSchema.parse({gymId:gym.gymId,chargeId:form.get("chargeId"),paymentMethodId:form.get("paymentMethodId"),amount:form.get("amount"),currency:form.get("currency"),paidAt:optional(form,"paidAt"),notes:optional(form,"notes")}); await recordPayment(input); refresh(); return {ok:true,message:"Pago registrado y recibo generado."}; } catch(e) { return {ok:false,message:message(e)}; }
+}
+export async function voidPaymentAction(_: PaymentActionState, form: FormData): Promise<PaymentActionState> {
+  try { const input=voidPaymentSchema.parse({paymentId:form.get("paymentId"),reason:form.get("reason")}); await voidPayment(input.paymentId,input.reason); refresh(); return {ok:true,message:"Pago anulado. El cargo fue reabierto."}; } catch(e) { return {ok:false,message:message(e)}; }
 }
 
-export async function registerPaymentAction(
-  _state: PaymentActionState,
-  formData: FormData,
-): Promise<PaymentActionState> {
+export async function registerPaymentAction(_: PaymentActionState, form: FormData): Promise<PaymentActionState> {
   try {
-    const chargeIds = formData.getAll("allocationChargeId");
-    const amounts = formData.getAll("allocationAmount");
+    const gym = await getActiveGym();
+    if (!gym) return { ok: false, message: "No hay gimnasio activo." };
+
+    const chargeIds = form.getAll("allocationChargeId");
+    const amounts = form.getAll("allocationAmount");
     const allocations = chargeIds.flatMap((chargeId, index) => {
       const amount = amounts[index];
-      if (
-        typeof chargeId !== "string" ||
-        chargeId.trim() === "" ||
-        typeof amount !== "string" ||
-        amount.trim() === ""
-      ) {
-        return [];
-      }
-
-      return [{ chargeId: chargeId.trim(), amount: amount.trim() }];
+      return typeof chargeId === "string" && chargeId.trim() && typeof amount === "string" && amount.trim()
+        ? [{ chargeId: chargeId.trim(), amount: amount.trim() }]
+        : [];
     });
-    const gymMemberId = text(formData, "gymMemberId") ?? "";
+    const gymMemberId = optional(form, "gymMemberId") ?? "";
     const payment = await registerMemberPayment({
-      gymId: text(formData, "gymId") ?? "",
+      gymId: gym.gymId,
       gymMemberId,
-      paymentMethodId: text(formData, "paymentMethodId") ?? "",
-      amount: text(formData, "amount") ?? "",
-      currency: (text(formData, "currency") ?? "") as "USD" | "NIO",
+      paymentMethodId: optional(form, "paymentMethodId") ?? "",
+      amount: optional(form, "amount") ?? "",
+      currency: (optional(form, "currency") ?? "") as "USD" | "NIO",
       allocations,
-      branchId: text(formData, "branchId") ?? null,
-      paidAt: text(formData, "paidAt") ?? null,
-      externalReference: text(formData, "externalReference") ?? null,
-      notes: text(formData, "notes") ?? null,
+      branchId: optional(form, "branchId") ?? null,
+      paidAt: optional(form, "paidAt") ?? null,
+      externalReference: optional(form, "externalReference") ?? null,
+      notes: optional(form, "notes") ?? null,
     });
-
-    revalidatePath("/payments");
-    revalidatePath("/members");
+    refresh();
     revalidatePath(`/members/${gymMemberId}`);
-    revalidatePath("/dashboard");
-
-    return {
-      ok: true,
-      message: `Pago registrado. Recibo ${payment.receiptNumber}.`,
-      paymentId: payment.paymentId,
-      receiptNumber: payment.receiptNumber,
-    };
+    return { ok: true, message: `Pago registrado. Recibo ${payment.receiptNumber}.` };
   } catch (error) {
-    return { ok: false, message: publicMessage(error) };
+    return { ok: false, message: message(error) };
   }
 }
-
-function publicMessage(error: unknown) {
-  if (error instanceof ApiError) {
-    return error.message;
-  }
-
-  return "No pudimos completar la operacion.";
-}
+function optional(form:FormData,key:string){const value=form.get(key);return typeof value==="string"&&value.trim()?value.trim():undefined;}
+function refresh(){revalidatePath("/payments");revalidatePath("/dashboard");revalidatePath("/members");}
+function message(error:unknown){return error instanceof Error?error.message:"No pudimos completar la operación.";}
