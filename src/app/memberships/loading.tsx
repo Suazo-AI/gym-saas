@@ -1,3 +1,3 @@
 import { PageSkeleton } from "@/features/app/components/page-skeleton";
 
-export default function MembershipsLoading() { return <PageSkeleton variant="list" />; }
+export default function MembershipsLoading() { return <PageSkeleton screen="memberships" />; }

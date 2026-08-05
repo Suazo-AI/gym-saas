@@ -6,7 +6,7 @@ import { PageSkeleton } from "./page-skeleton";
 
 describe("PageSkeleton", () => {
   it("exposes an accessible loading status and stable animated surfaces", () => {
-    const html = renderToStaticMarkup(createElement(PageSkeleton, { variant: "list" }));
+    const html = renderToStaticMarkup(createElement(PageSkeleton, { screen: "members" }));
     expect(html).toContain('role="status"');
     expect(html).toContain('aria-label="Cargando"');
     expect(html).toContain("animate-pulse");

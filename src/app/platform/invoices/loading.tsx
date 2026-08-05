@@ -1,3 +1,3 @@
 import { PageSkeleton } from "@/features/app/components/page-skeleton";
 
-export default function PlatformInvoicesLoading() { return <PageSkeleton variant="list" />; }
+export default function PlatformInvoicesLoading() { return <PageSkeleton screen="income" />; }
