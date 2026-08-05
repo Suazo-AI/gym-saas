@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Inicia sesion"
-      subtitle="Entra con tu correo de Supabase Auth para administrar tu gimnasio."
+      subtitle="Entra con tu correo para administrar tu gimnasio."
     >
       <AuthForm action={loginAction} buttonLabel="Entrar al panel">
         <label className="block text-sm font-semibold text-slate-800">

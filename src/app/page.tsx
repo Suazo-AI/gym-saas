@@ -35,28 +35,28 @@ export default function Home() {
             Fit Manager
           </Link>
           <div className="hidden items-center gap-8 text-sm font-semibold md:flex">
-            <a className="text-gray-light hover:text-paper" href="#funciones">Funciones</a>
-            <a className="text-gray-light hover:text-paper" href="#como-funciona">Como funciona</a>
-            <Link className="rounded-md bg-paper px-4 py-2 text-ink hover:bg-brand-sand" href="/login">Entrar</Link>
+            <a className="text-gray-600 hover:text-paper" href="#funciones">Funciones</a>
+            <a className="text-gray-600 hover:text-paper" href="#como-funciona">Como funciona</a>
+            <Link className="rounded-md bg-paper px-4 py-2 text-ink hover:bg-green-500" href="/login">Entrar</Link>
           </div>
         </nav>
 
         <div className="mx-auto grid max-w-7xl items-center gap-12 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:py-24">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-sand">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-green">
               Gestion simple para gimnasios
             </p>
             <h1 className="mt-5 max-w-3xl text-3xl font-bold leading-[1.02] tracking-normal min-[360px]:text-4xl sm:text-6xl lg:text-7xl">
               Tu gimnasio, en orden.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-gray-light">
+            <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600">
               Controla miembros, membresias, pagos y entradas desde un solo lugar. Menos trabajo manual y mas claridad para operar cada dia.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link className="rounded-md bg-brand-orange px-5 py-3 text-center text-sm font-bold text-ink hover:bg-brand-red hover:text-paper" href="/login">
                 Comenzar
               </Link>
-              <a className="rounded-md border border-gray px-5 py-3 text-center text-sm font-bold text-paper hover:bg-charcoal" href="#funciones">
+              <a className="rounded-md border border-gray px-5 py-3 text-center text-sm font-bold text-paper hover:bg-charcoal hover:text-white" href="#funciones">
                 Ver funciones
               </a>
             </div>
@@ -116,7 +116,7 @@ export default function Home() {
             {benefits.map((benefit) => (
               <article className="rounded-lg border border-charcoal bg-charcoal p-6" key={benefit.number}>
                 <span className="text-sm font-bold text-brand-orange">{benefit.number}</span>
-                <h3 className="mt-4 text-xl font-bold">{benefit.title}</h3>
+                <h3 className="mt-4 text-xl text-white font-bold">{benefit.title}</h3>
                 <p className="mt-3 leading-7 text-gray-light">{benefit.copy}</p>
               </article>
             ))}
@@ -127,7 +127,7 @@ export default function Home() {
       <section className="px-5 py-16 text-center sm:px-8 lg:px-12" id="como-funciona">
         <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-orange">Empieza simple</p>
         <h2 className="mx-auto mt-4 max-w-2xl text-4xl font-bold">Tu operacion clara desde el primer vistazo.</h2>
-        <Link className="mt-8 inline-flex rounded-md bg-ink px-5 py-3 text-sm font-bold text-paper hover:bg-charcoal" href="/login">
+        <Link className="mt-8 inline-flex rounded-md bg-ink px-5 py-3 text-sm font-bold text-paper hover:bg-charcoal hover:text-brand-sand" href="/login">
           Entrar al sistema
         </Link>
       </section>

@@ -39,7 +39,7 @@
 
 :root {
   color-scheme: light;
-  --brand-gradient: linear-gradient(135deg, #101713 0%, #18201b 52%, #15803d 100%);
+  --brand-gradient: linear-gradient(135deg, #173021 0%, #192c20 52%, #15803d 100%);
 }
 
 html {
