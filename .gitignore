@@ -42,3 +42,10 @@ next-env.d.ts
 
 # graphify (salida generada del grafo del repo, se reconstruye con `graphify update .`)
 /graphify-out/
+
+# local git worktrees
+/.worktrees/
+
+# local facial-recognition runtime
+/services/face-recognition/.venv/
+/services/face-recognition/models/

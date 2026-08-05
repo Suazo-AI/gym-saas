@@ -8,6 +8,7 @@ import { requireApiUser } from "@/features/auth/services/auth.service";
 import { generateFaceEmbedding } from "@/features/entries/services/face-embedding.service";
 import { reserveFaceVerificationAttempt } from "@/features/entries/services/face-verification-rate-limit";
 import { verifyFaceAccessWithEmbedding } from "@/features/entries/services/face-verification.repository";
+import { getMember } from "@/features/members/services/member.repository";
 
 const MAX_IMAGE_BASE64_LENGTH = 2_800_000;
 const MAX_REQUEST_BYTES = 3 * 1024 * 1024;
@@ -58,9 +59,19 @@ export async function POST(request: Request) {
       processingMs: embedding.processingMs,
       modelCode: embedding.modelCode,
     });
+    const member = result.gymMemberId
+      ? await getMember({ gymId: activeGym.gymId, gymMemberId: result.gymMemberId })
+      : null;
 
     return NextResponse.json({
       ...result,
+      member: member
+        ? {
+            gymMemberId: member.gymMemberId,
+            fullName: member.fullName,
+            memberCode: member.memberCode,
+          }
+        : null,
       qualityScore: embedding.qualityScore,
       faceCount: embedding.faceCount,
     });
