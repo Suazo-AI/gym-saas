@@ -4,10 +4,12 @@ import type { Tables } from "@/lib/supabase/types";
 
 import { recordPaymentSchema } from "../schemas/payment.schema";
 import { registerPaymentSchema } from "../schemas/payment.schema";
+import { registerDayPassSchema, type RegisterDayPassInput } from "../schemas/day-pass.schema";
 import { mapPendingChargeRows, mapRegisteredPayment } from "../mappers/payment.mapper";
 import type {
   PayableChargeDto, PaymentMethodDto, PaymentSummaryDto, PendingChargeDto,
   PendingChargeRow, RegisteredPaymentDto, RegisteredPaymentRow, RegisterPaymentInput,
+  MemberDayPassDto, RegisteredDayPassDto,
 } from "../types/payment.dto";
 
 type PendingChargeQuery = {
@@ -139,5 +141,36 @@ function mapPaymentMethod(row: Pick<
     code: row.code,
     name: row.name,
     isCash: row.is_cash,
+  };
+}
+
+export async function listMemberDayPasses(input: { gymId: string; gymMemberId: string }): Promise<MemberDayPassDto[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("list_member_day_passes" as never, {
+    p_gym_id: input.gymId,
+    p_gym_member_id: input.gymMemberId,
+  } as never);
+  if (error) throw mapSupabaseError(error);
+  return ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({
+    id: String(row.id), gymMemberId: String(row.gym_member_id), serviceDate: String(row.service_date),
+    amount: String(row.amount), currency: String(row.currency), status: String(row.status),
+    receiptNumber: row.receipt_number ? String(row.receipt_number) : null, paymentId: String(row.payment_id),
+  }));
+}
+
+export async function registerMemberDayPass(input: RegisterDayPassInput): Promise<RegisteredDayPassDto> {
+  const parsed = registerDayPassSchema.parse(input);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("register_member_day_pass" as never, {
+    p_gym_id: parsed.gymId, p_gym_member_id: parsed.gymMemberId, p_payment_method_id: parsed.paymentMethodId,
+    p_service_date: parsed.serviceDate, p_amount: parsed.amount, p_currency: parsed.currency,
+    p_branch_id: parsed.branchId ?? null, p_paid_at: parsed.paidAt ?? null, p_notes: parsed.notes ?? null,
+  } as never);
+  if (error) throw mapSupabaseError(error);
+  const row = data as Record<string, unknown>;
+  return {
+    passId: String(row.pass_id), paymentId: String(row.payment_id), receiptNumber: String(row.receipt_number),
+    serviceDate: String(row.service_date), amount: String(row.amount), currency: String(row.currency),
+    appliedNioPerUsd: String(row.applied_nio_per_usd),
   };
 }
