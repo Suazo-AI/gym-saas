@@ -54,3 +54,30 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-no-es-una-clave-real
           NEXT_PUBLIC_SITE_URL: https://example.com
+
+  # El job de arriba solo mira Node. services/face-recognition/ es Python y
+  # hasta ahora no lo ejecutaba nadie, aunque ahi vive la dimension del
+  # embedding facial. Corre siempre y no con filtro de rutas: son ~25 s
+  # medidos, y eso no justifica la complejidad de un paths-filter.
+  face-service:
+    name: Pruebas del servicio de reconocimiento facial
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v6
+
+      - name: Preparar Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: services/face-recognition/requirements.txt
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+        working-directory: services/face-recognition
+
+      - name: Ejecutar pruebas
+        run: python -m unittest discover -v
+        working-directory: services/face-recognition
