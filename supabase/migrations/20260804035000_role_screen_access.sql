@@ -1,6 +1,15 @@
 begin;
 
-update public.screens set route='/entries', name='Entradas' where code='facial_access';
+-- Esta linea movia 'facial_access' a la ruta /entries sin ver que
+-- 20260802150000_member_entries.sql ya habia creado la pantalla 'entries' con
+-- esa misma ruta. Como screens.route es UNIQUE, la cadena de migraciones
+-- explotaba al aplicarse sobre una base vacia y nadie podia levantar el
+-- proyecto desde cero. No se nota en una base que ya venia evolucionando.
+-- Se deja condicional para que la migracion siga siendo reproducible; la
+-- consolidacion definitiva vive en 20260807100000_consolidate_entries_screen.sql.
+update public.screens set route='/entries', name='Entradas'
+where code='facial_access'
+  and not exists (select 1 from public.screens where route='/entries');
 
 create function public.list_role_screen_access(p_gym_id uuid)
 returns jsonb language plpgsql stable security definer set search_path=''
