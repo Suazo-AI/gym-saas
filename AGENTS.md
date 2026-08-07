@@ -1,9 +1,10 @@
 # AGENTS.md - FitManager / Gym SaaS
+
 ## Preflight obligatorio
 
 Antes de analizar, planificar, editar archivos, ejecutar migraciones o escribir código, el agente debe:
 
-1. Leer completamente este `AGENTS.md`.
+1. Leer completamente este `AGENTS.md`. Es corto a propósito: solo contiene reglas cuyo incumplimiento causa un daño **irreversible o silencioso**. El procedimiento vive en `Docs/guia-tecnica.md` y se lee al tocar cada área.
 2. Identificar la tarjeta concreta del tablero de Trello que se trabajará.
 3. Revisar su descripción, responsable, etiquetas, checklist, dependencias y criterio de terminado.
 4. Confirmar que la tarjeta está dentro del MVP y no contradice una decisión de este archivo.
@@ -35,37 +36,6 @@ Si una tarjeta de Trello contradice este archivo, el trabajo debe detenerse y la
 El archivo utilizado originalmente para preparar el tablero de Trello es solamente una referencia de planificación. No representa automáticamente el estado actual de las tarjetas ni debe utilizarse como sustituto del tablero real.
 
 
-## Objetivo del producto
-
-Construir un SaaS multi-tenant para administrar gimnasios pequeños de Nicaragua.
-
-La primera versión debe resolver el trabajo diario de recepción y permitir que el dueño controle:
-
-* miembros;
-* membresías;
-* cargos;
-* pagos;
-* morosidad;
-* entradas;
-* personal;
-* permisos;
-* ingresos;
-* alertas;
-* estado general del gimnasio.
-
-El producto comenzará dirigido a gimnasios de aproximadamente 25 a 100 miembros.
-
-## Usuarios iniciales
-
-* Dueño del gimnasio.
-* Gerente.
-* Recepcionista.
-* Administrador interno de la plataforma SaaS.
-
-La hipótesis principal es que los gimnasios pierden tiempo y control al manejar pagos, vencimientos y miembros mediante papel, Excel y WhatsApp.
-
-Esta hipótesis debe validarse con al menos 10 dueños o gerentes. No debe tratarse como confirmada antes de completar las entrevistas.
-
 ## Alcance del MVP
 
 Incluir:
@@ -91,7 +61,7 @@ Incluir:
 * archivos y fotografías mediante Supabase Storage;
 * borrado lógico para entidades administrativas.
 
-El esquema ya contiene soporte para reconocimiento facial, consentimiento biométrico, embeddings, dispositivos y eventos de acceso. Esto no obliga a implementar todo el reconocimiento facial en el primer flujo vertical.
+El reconocimiento facial ya está implementado y mergeado: servicio de embeddings en `services/face-recognition/`, captura y verificación en `src/features/faces` y `src/features/entries`. Sus reglas están en su propia sección.
 
 Fuera del MVP:
 
@@ -107,6 +77,7 @@ Fuera del MVP:
 * funcionalidades que no estén respaldadas por una tarjeta aprobada.
 
 El acceso propio del miembro sigue pendiente de decisión. No implementarlo sin aprobación explícita.
+
 
 ## Stack tecnológico actual
 
@@ -135,37 +106,6 @@ ASP.NET Core y Entity Framework Core no forman parte de la arquitectura actual.
 
 No introducir ASP.NET Core, Entity Framework, SQL Server, Somee ni otro backend principal sin una decisión explícita.
 
-## Estado actual de Supabase
-
-La base de datos actual fue creada mediante estos scripts:
-
-1. `gym_saas_supabase_schema.sql`
-2. `gym_saas_storage_only_migration.sql`
-3. `gym_saas_soft_delete_migration.sql`
-
-Estos scripts ya fueron ejecutados en el proyecto remoto de Supabase.
-
-Deben conservarse también como migraciones versionadas dentro del repositorio, preferiblemente en:
-
-```text
-supabase/
-  migrations/
-```
-
-Ejemplo:
-
-```text
-supabase/migrations/
-  20260716010000_initial_schema.sql
-  20260716010100_storage_only.sql
-  20260716010200_soft_delete.sql
-```
-
-No volver a ejecutar el esquema inicial completo sobre producción.
-
-Todo cambio futuro debe hacerse mediante una migración incremental nueva.
-
-No modificar producción únicamente desde SQL Editor sin guardar el mismo cambio como migración en el repositorio.
 
 ## Supabase como límite de seguridad
 
@@ -198,6 +138,7 @@ El frontend nunca debe ser considerado una fuente confiable para:
 * identificadores de usuario;
 * rutas de archivos.
 
+
 ## Multi-tenancy obligatorio
 
 El sistema es multi-tenant desde el inicio.
@@ -223,35 +164,6 @@ El aislamiento debe mantenerse mediante RLS, funciones seguras y validaciones de
 
 Las operaciones con `service_role` deben validar manualmente el `gym_id`, porque `service_role` puede omitir RLS.
 
-## Autenticación
-
-La autenticación se realiza con Supabase Auth.
-
-Las contraseñas pertenecen exclusivamente a Supabase Auth.
-
-No crear tablas propias para guardar contraseñas.
-
-El esquema relaciona usuarios autenticados mediante `auth.users`.
-
-La creación de un usuario puede generar automáticamente:
-
-* una persona;
-* un perfil de usuario;
-* información de contacto inicial.
-
-El código de aplicación debe manejar correctamente:
-
-* registro;
-* inicio de sesión;
-* cierre de sesión;
-* recuperación de contraseña;
-* verificación de sesión;
-* expiración de sesión;
-* usuarios invitados;
-* usuarios suspendidos;
-* usuarios revocados.
-
-Las páginas protegidas deben validar la sesión en el servidor cuando sea posible.
 
 ## Claves de Supabase
 
@@ -268,32 +180,6 @@ La clave `service_role`:
 
 Los secretos deben almacenarse en variables de entorno de Vercel, Supabase o el entorno de despliegue correspondiente.
 
-## Acceso a datos desde Next.js
-
-El acceso normal a datos debe hacerse con el cliente oficial de Supabase.
-
-Separar claramente:
-
-* cliente Supabase para navegador;
-* cliente Supabase para servidor;
-* operaciones privilegiadas;
-* funciones de dominio;
-* validación de datos;
-* componentes de interfaz.
-
-No colocar reglas críticas directamente dentro de componentes React.
-
-Para operaciones simples puede utilizarse Supabase directamente bajo RLS.
-
-Para operaciones complejas o sensibles se deben utilizar:
-
-* funciones RPC;
-* Route Handlers;
-* Server Actions;
-* Edge Functions;
-* funciones de servidor confiables.
-
-Las operaciones relacionadas con dinero, cancelaciones, permisos, biometría o eliminación deben ser atómicas.
 
 ## RLS y permisos
 
@@ -327,41 +213,6 @@ Toda política nueva debe probarse con al menos:
 * un usuario de otro gimnasio;
 * un usuario no autenticado.
 
-## Roles y permisos
-
-El esquema incluye:
-
-* pantallas;
-* permisos;
-* relación entre pantallas y permisos;
-* usuarios de gimnasio;
-* roles;
-* permisos por rol;
-* roles asignados a usuarios.
-
-Roles iniciales:
-
-### Dueño
-
-Control total de su gimnasio, configuración, personal, membresías, pagos, ingresos, auditoría y reportes.
-
-### Gerente
-
-Operación y reportes autorizados, sin propiedad de la cuenta SaaS.
-
-### Recepcionista
-
-Miembros, membresías, cobros y entradas, con acceso financiero limitado.
-
-### Administrador de plataforma
-
-Gestión interna del SaaS, soporte y auditoría. Sus operaciones especiales deben quedar registradas.
-
-No asignar permisos basándose solamente en el nombre del rol.
-
-La autorización debe usar códigos de permisos.
-
-No modificar los códigos de permisos existentes sin una migración y revisión del frontend.
 
 ## Dinero y monedas
 
@@ -382,17 +233,12 @@ Los registros financieros deben guardar como mínimo:
 
 El esquema actual registra montos y monedas de forma separada.
 
-Antes de implementar conversiones automáticas entre USD y NIO debe cerrarse y migrarse la regla de tasa de cambio por gimnasio.
+La tasa de cambio ya está implementada (`20260804023000_gym_exchange_rate_contract.sql`). Sus reglas, que no se deducen del esquema:
 
-No asumir que una tasa configurada actualmente existe si todavía no está representada en las tablas.
+* cada gimnasio tiene su propia tasa;
+* la tasa aplicada se guarda en cada transacción convertida;
+* cambiarla solo afecta transacciones nuevas: las históricas nunca se recalculan.
 
-Cuando se implemente la tasa de cambio:
-
-* cada gimnasio tendrá su propia tasa;
-* la tasa inicial de referencia será C$36.60 por US$1;
-* la tasa aplicada debe guardarse en cada transacción convertida;
-* cambiar la tasa solo afectará transacciones nuevas;
-* las transacciones históricas no se recalcularán.
 
 ## Pagos, cargos y suscripciones
 
@@ -436,6 +282,7 @@ Usar las RPC existentes cuando corresponda, por ejemplo:
 * `generate_membership_charges`;
 * `cancel_member_subscription`;
 * `request_saas_subscription_cancellation`.
+
 
 ## Borrado lógico
 
@@ -485,6 +332,7 @@ No borrar:
 * auditorías.
 
 Estos registros deben manejarse mediante sus estados de ciclo de vida.
+
 
 ## Supabase Storage
 
@@ -554,40 +402,21 @@ Validar:
 * ruta;
 * duplicados cuando corresponda.
 
+
 ## Eliminación de archivos
 
-Eliminar el registro de PostgreSQL no elimina automáticamente el objeto de Storage.
+Eliminar el registro de PostgreSQL no elimina el objeto de Storage. No modificar ni eliminar directamente registros de `storage.objects`.
 
-El esquema incluye `storage_deletion_queue`.
+**El worker que procesa la cola no existe todavía.** El esquema tiene `storage_deletion_queue` y sus tres RPC (`claim`/`complete`/`fail_storage_deletion_job`, que requieren `service_role`), pero nada en `src/` las llama y no hay `supabase/functions/`. Los objetos borrados lógicamente siguen ocupando Storage.
 
-El flujo correcto es:
+Consecuencia que importa: hay fotografías biométricas en `gym-media` y este archivo promete que el consentimiento se puede revocar con retención. Hoy no hay camino para que esa fotografía muera. Construir el worker cuando exista su disparador real (revocación de consentimiento o baja de miembro con foto), no antes: sin caso de uso no se puede probar.
 
-1. solicitar el borrado lógico;
-2. crear o procesar el trabajo de eliminación;
-3. una Edge Function o worker confiable reclama el trabajo;
-4. el worker elimina el objeto usando la API de Supabase Storage;
-5. el worker marca el trabajo como completado o fallido.
-
-Las RPC de la cola requieren `service_role`.
-
-No modificar ni eliminar directamente registros de `storage.objects`.
 
 ## Reconocimiento facial
 
-El esquema incluye:
+Módulo implementado. El esquema cubre fotografías, consentimiento biométrico, modelos faciales, embeddings, eventos, dispositivos, alertas y búsqueda por similitud con `pgvector`.
 
-* fotografías de personas;
-* consentimiento biométrico;
-* modelos faciales;
-* embeddings;
-* eventos de reconocimiento;
-* dispositivos;
-* alertas;
-* búsqueda por similitud con `pgvector`.
-
-Los embeddings actuales utilizan vectores de 512 dimensiones.
-
-No cambiar la dimensión sin una migración completa y una decisión sobre el modelo facial.
+**Los embeddings son de 512 dimensiones y ese número vive hoy en cuatro lugares editables por separado:** `services/face-recognition/app.py`, el `zod .length(512)` de `member-face-enrollment.repository.ts`, el chequeo de `face-verification.repository.ts` y el tipo `vector(512)` del esquema. Cambiar la dimensión exige migración completa, decisión sobre el modelo facial, y tocar los cuatro. Ya se rompió una vez (`4865e98`, el servicio pasó a 128 y hubo que revertirlo).
 
 Antes de crear un embedding debe existir consentimiento biométrico válido.
 
@@ -628,6 +457,7 @@ No utilizar reconocimiento facial como única evidencia irreversible de identida
 
 Debe existir revisión manual para casos dudosos.
 
+
 ## Auditoría
 
 Registrar acciones críticas como:
@@ -657,249 +487,19 @@ No guardar en auditoría:
 
 No afirmar que una acción fue auditada sin verificar que realmente se creó el registro.
 
-## Migraciones
 
-Toda modificación de base de datos debe tener una migración nueva.
+## Seguridad, más allá de lo ya dicho
 
-Una migración debe incluir, cuando corresponda:
+RLS, Storage privado, manejo de claves y desconfianza del frontend están en sus propias secciones y no se repiten acá. Lo que no aparece en ninguna otra:
 
-* cambios de tablas;
-* índices;
-* restricciones;
-* funciones;
-* triggers;
-* políticas RLS;
-* grants;
-* vistas;
-* comentarios;
-* rollback documentado cuando sea viable;
-* pruebas o consultas de verificación.
+* protección contra XSS y contra CSRF donde aplique;
+* rotación de secretos comprometidos y dependencias actualizadas;
+* logs sin credenciales;
+* backups verificados, con una restauración probada antes del piloto;
+* rate limiting en autenticación y en reconocimiento facial.
 
-No editar una migración que ya fue aplicada en producción para cambiar su comportamiento.
+Sobre validación: puede vivir en el formulario, en Zod, en el servidor, en una restricción de PostgreSQL, en RLS o en una RPC. La del cliente mejora la experiencia y no protege nada; **toda regla crítica debe existir además en PostgreSQL o en una función confiable.**
 
-Crear una migración incremental.
-
-Antes de aplicar una migración:
-
-1. revisar dependencias;
-2. revisar datos existentes;
-3. verificar si es destructiva;
-4. crear respaldo cuando exista riesgo;
-5. probar en ambiente local o de desarrollo;
-6. revisar RLS;
-7. revisar permisos;
-8. verificar que no exponga datos entre gimnasios.
-
-Después de aplicarla:
-
-1. ejecutar consultas de validación;
-2. verificar funciones;
-3. verificar políticas;
-4. probar con usuarios de diferentes gimnasios;
-5. actualizar documentación;
-6. registrar el resultado en la tarjeta correspondiente.
-
-## Uso de Supabase SQL Editor
-
-SQL Editor puede utilizarse para:
-
-* consultas de diagnóstico;
-* verificaciones;
-* pruebas controladas;
-* aplicar una migración aprobada.
-
-No debe utilizarse como único historial de cambios.
-
-Todo SQL aplicado manualmente debe copiarse inmediatamente a una migración versionada.
-
-Nunca pegar y ejecutar código destructivo en producción sin revisar primero:
-
-* proyecto seleccionado;
-* rama;
-* entorno;
-* transacción;
-* tablas afectadas;
-* respaldo;
-* impacto multi-tenant.
-
-## Desarrollo del frontend
-
-El frontend debe construirse a partir de contratos reales de Supabase.
-
-Antes de crear una pantalla:
-
-1. identificar tablas, vistas o RPC necesarias;
-2. identificar permisos;
-3. identificar estados;
-4. revisar RLS;
-5. definir validaciones;
-6. definir estados vacíos;
-7. definir errores;
-8. definir carga;
-9. definir actualización;
-10. definir comportamiento sin conexión cuando corresponda.
-
-No inventar campos que no existan en el esquema.
-
-No consultar directamente tablas históricas complejas cuando exista una vista o RPC preparada.
-
-Las vistas actuales deben aprovecharse para:
-
-* estado de acceso del miembro;
-* ingresos;
-* ingresos diarios;
-* dashboard.
-
-## Validación de datos
-
-Validar datos en más de una capa cuando el riesgo lo justifique:
-
-* formulario;
-* esquema Zod;
-* código de servidor;
-* restricción PostgreSQL;
-* RLS;
-* RPC.
-
-La validación del cliente mejora la experiencia, pero no protege el sistema.
-
-Las reglas críticas deben existir en PostgreSQL o en una función confiable.
-
-## Seguridad mínima
-
-* HTTPS en entornos reales.
-* RLS en tablas expuestas.
-* Storage privado.
-* Protección contra XSS.
-* Protección contra CSRF donde aplique.
-* Validación de archivos.
-* Validación de entrada.
-* Variables de entorno.
-* Rotación de secretos comprometidos.
-* Dependencias actualizadas.
-* Logs sin credenciales.
-* Backups verificados.
-* Restauración probada antes del piloto.
-* Rate limiting para operaciones sensibles.
-* Protección especial para autenticación y reconocimiento facial.
-
-## Realtime
-
-No utilizar Supabase Realtime de forma automática en todos los módulos.
-
-Usarlo solamente cuando exista una necesidad concreta, como:
-
-* alertas;
-* accesos recientes;
-* actualización de recepción;
-* cambios de estado relevantes.
-
-Toda suscripción Realtime debe respetar RLS y limpiarse correctamente al desmontar componentes.
-
-## Edge Functions
-
-Usar Edge Functions o un servicio confiable para:
-
-* operaciones con `service_role`;
-* procesamiento de imágenes;
-* generación de embeddings;
-* integración con correo;
-* webhooks;
-* tareas programadas;
-* eliminación física de Storage;
-* procesamiento de pagos externos;
-* operaciones que requieran secretos.
-
-No usar Edge Functions como reemplazo innecesario de todas las operaciones CRUD.
-
-Las operaciones normales pueden ejecutarse mediante Supabase y RLS.
-
-## Pruebas
-
-Agregar pruebas proporcionales al riesgo.
-
-### Riesgo bajo
-
-* componentes visuales;
-* textos;
-* estados vacíos.
-
-### Riesgo medio
-
-* formularios;
-* filtros;
-* búsqueda;
-* carga de archivos;
-* CRUD administrativo.
-
-### Riesgo alto
-
-* pagos;
-* membresías;
-* cancelaciones;
-* roles;
-* permisos;
-* RLS;
-* multi-tenancy;
-* biometría;
-* service role;
-* eliminación;
-* migraciones.
-
-Las pruebas de multi-tenancy deben intentar explícitamente acceder a datos de otro gimnasio.
-
-No afirmar que algo fue probado si no se ejecutó una verificación concreta.
-
-## Forma de trabajo
-
-El trabajo alterna dos funciones.
-
-### Producto y Vibe Coder
-
-* diseña flujos;
-* diseña pantallas;
-* define estados;
-* escribe textos en español;
-* crea prototipos;
-* usa datos falsos;
-* valida facilidad de uso.
-
-No decide por sí solo:
-
-* seguridad;
-* permisos;
-* dinero;
-* migraciones;
-* RLS;
-* biometría;
-* estructura de datos.
-
-### Full-Stack Developer
-
-* revisa arquitectura;
-* revisa esquema;
-* implementa contratos de datos;
-* implementa RLS;
-* implementa funciones;
-* implementa migraciones;
-* revisa seguridad;
-* agrega pruebas;
-* revisa operaciones monetarias;
-* protege el aislamiento multi-tenant;
-* prepara despliegue y monitoreo.
-
-Orden normal:
-
-1. Producto define el flujo.
-2. Se valida la necesidad.
-3. Vibe Coder crea el prototipo.
-4. Full-Stack revisa esquema, permisos y riesgos.
-5. Se crean migraciones o RPC si hacen falta.
-6. Se implementa el frontend.
-7. Se ejecutan pruebas.
-8. Producto prueba con usuarios.
-9. Se corrigen problemas.
-10. La tarjeta pasa a terminado.
 
 ## Reglas para agentes Codex
 
@@ -922,65 +522,20 @@ Orden normal:
 * Informar brechas reales entre frontend, migraciones y producto.
 * Detener la implementación cuando falte una decisión crítica de dinero, seguridad, permisos o biometría.
 
-## Criterio general de terminado
 
-Una función está terminada cuando:
+## Estado y prioridades
 
-* cumple criterios funcionales claros;
-* pertenece al MVP;
-* respeta aislamiento entre gimnasios;
-* respeta permisos;
-* maneja carga, éxito, vacío, validación y error;
-* tiene pruebas proporcionales al riesgo;
-* fue verificada con un recorrido realista;
-* no expone secretos;
-* no permite acceso a otro gimnasio;
-* actualiza la documentación;
-* incluye migración cuando modifica Supabase;
-* revisa RLS;
-* no rompe datos históricos;
-* no deja trabajos de Storage sin procesar;
-* no depende solamente de validación del frontend.
+El orden del trabajo, su estado y sus dependencias viven en el tablero de Trello, no en este archivo. Una lista de prioridades escrita acá se desactualiza sin que nadie lo note: la que había en su lugar daba por pendientes la tasa de cambio, la matriz de roles, el flujo vertical completo y el reconocimiento facial, todos ya implementados y mergeados.
 
-## Prioridad inmediata
+Decisiones de alcance que siguen abiertas y que ningún tablero reemplaza:
 
-Antes de desarrollar todo el sistema:
+* validar la hipótesis principal con al menos 10 dueños o gerentes;
+* decidir si el miembro tendrá acceso propio.
 
-1. Entrevistar al menos 10 dueños o gerentes.
-2. Confirmar el dolor principal.
-3. Cerrar reglas de membresías.
-4. Cerrar reglas de cargos y pagos.
-5. Definir la tasa de cambio USD/NIO y crear la migración correspondiente.
-6. Decidir si el miembro tendrá acceso propio.
-7. Versionar correctamente las tres migraciones ya aplicadas.
-8. Configurar el proyecto Next.js con Supabase Auth.
-9. Crear la matriz inicial de roles y permisos.
-10. Implementar el primer flujo vertical:
+## Guía técnica
 
-    * registrar miembro;
-    * asignar membresía;
-    * generar cargo;
-    * registrar pago;
-    * consultar estado;
-    * registrar entrada.
-11. Probar el flujo con dos gimnasios diferentes.
-12. Confirmar que ningún usuario puede acceder a los datos del otro gimnasio.
-
-El reconocimiento facial debe implementarse después de que el flujo básico de miembros, membresías, pagos y entradas funcione correctamente.
-## Referencia de planificación
-
-El tablero real de Trello es la fuente de verdad para el trabajo operativo del equipo.
-
-Cada tarjeta debe indicar:
-
-* resultado esperado;
-* responsable;
-* etiquetas;
-* checklist;
-* dependencias;
-* criterio de terminado;
-* estado actual.
-
-El archivo Markdown utilizado para diseñar inicialmente el tablero solamente sirve como plantilla o respaldo. No determina qué tareas están asignadas, iniciadas, bloqueadas o terminadas.
-
-Los agentes deben recibir o identificar una tarjeta concreta antes de implementar cambios.
+Lo que sigue vive en `Docs/guia-tecnica.md` y se lee al tocar cada área, no al
+empezar una sesión: objetivo y usuarios del producto, autenticación, acceso a
+datos desde Next.js, catálogo de roles y permisos, procedimiento de migraciones,
+uso del SQL Editor, desarrollo del frontend, Realtime, Edge Functions,
+estrategia de pruebas, forma de trabajo del equipo y criterio de terminado.
