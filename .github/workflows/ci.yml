@@ -54,6 +54,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-no-es-una-clave-real
           NEXT_PUBLIC_SITE_URL: https://example.com
+          FACE_RECOGNITION_SERVICE_URL: http://127.0.0.1:8010
+          FACE_RECOGNITION_SERVICE_TOKEN: ci-face-service-token-placeholder-123456
 
   # El job de arriba solo mira Node. services/face-recognition/ es Python y
   # hasta ahora no lo ejecutaba nadie, aunque ahi vive la dimension del
@@ -81,3 +83,5 @@ jobs:
       - name: Ejecutar pruebas
         run: python -m unittest discover -v
         working-directory: services/face-recognition
+        env:
+          FACE_RECOGNITION_SERVICE_TOKEN: ci-face-service-token-placeholder-123456

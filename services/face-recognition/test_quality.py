@@ -1,6 +1,12 @@
+import os
 import unittest
 
 import numpy as np
+
+os.environ.setdefault(
+  "FACE_RECOGNITION_SERVICE_TOKEN",
+  "face-service-unit-test-token-1234567890",
+)
 
 from app import assess_face_quality, normalise_embedding
 

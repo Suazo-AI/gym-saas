@@ -3,35 +3,44 @@ from __future__ import annotations
 import base64
 import hashlib
 import os
+import secrets
 import time
-import zipfile
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Optional, Union
 
 import cv2
 import numpy as np
 import onnxruntime as ort
-import requests
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 
 MODEL_CODE = os.getenv("FACE_MODEL_CODE", "insightface-buffalo-l-w600k-r50")
 MODEL_VERSION = "buffalo_l"
-MODEL_DIR = Path(os.getenv("FACE_MODEL_DIR", "models"))
+MODEL_DIR = Path(os.getenv("FACE_MODEL_DIR", str(Path(__file__).resolve().parent / "models")))
 YUNET_PATH = MODEL_DIR / "face_detection_yunet_2023mar.onnx"
 RECOGNITION_PATH = MODEL_DIR / "w600k_r50.onnx"
-YUNET_URL = "https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx"
-RECOGNITION_ZIP_URL = os.getenv(
-  "FACE_MODEL_ZIP_URL",
-  "https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip",
-)
 YUNET_SHA256 = "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
+RECOGNITION_SHA256 = "4c06341c33c2ca1f86781dab0e829f88ad5b64be9fba56e56bc9ebdefc619e43"
 PROVIDERS = ["CPUExecutionProvider"]
 
-app = FastAPI(title="FitManager Face Recognition")
+SERVICE_TOKEN = os.getenv("FACE_RECOGNITION_SERVICE_TOKEN", "")
+if len(SERVICE_TOKEN) < 32:
+  raise RuntimeError("FACE_RECOGNITION_SERVICE_TOKEN must contain at least 32 characters.")
+
 _detector: Optional[Any] = None
 _recognition_session: Optional[ort.InferenceSession] = None
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+  get_detector()
+  get_recognition_session()
+  yield
+
+
+app = FastAPI(title="FitManager Face Recognition", lifespan=lifespan)
 
 
 class EmbedRequest(BaseModel):
@@ -47,19 +56,39 @@ class EmbedResponse(BaseModel):
   processingMs: int
 
 
+def require_service_token(authorization: Optional[str] = Header(default=None)) -> None:
+  expected = f"Bearer {SERVICE_TOKEN}"
+  if authorization is None or not secrets.compare_digest(authorization, expected):
+    raise HTTPException(
+      status_code=401,
+      detail="UNAUTHORIZED",
+      headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
 @app.get("/health")
 def health() -> dict[str, Union[str, bool]]:
+  model_ready = (
+    _detector is not None
+    and _recognition_session is not None
+    and model_file_is_valid(YUNET_PATH, YUNET_SHA256)
+    and model_file_is_valid(RECOGNITION_PATH, RECOGNITION_SHA256)
+  )
+  if not model_ready:
+    raise HTTPException(status_code=503, detail="MODEL_NOT_READY")
   return {
     "status": "ok",
     "model": MODEL_CODE,
     "modelVersion": MODEL_VERSION,
-    "modelReady": model_file_is_valid(YUNET_PATH, YUNET_SHA256)
-      and RECOGNITION_PATH.is_file(),
+    "modelReady": True,
   }
 
 
 @app.post("/embed", response_model=EmbedResponse)
-def embed_face(payload: EmbedRequest) -> dict[str, Any]:
+def embed_face(
+  payload: EmbedRequest,
+  _: None = Depends(require_service_token),
+) -> dict[str, Any]:
   started = time.perf_counter()
   image = decode_image(payload.imageBase64)
   face = detect_single_face(image)
@@ -117,7 +146,10 @@ def assess_face_quality(image: np.ndarray, face: np.ndarray) -> float:
 
   face_center_x = x + width / 2
   face_center_y = y + height / 2
-  if abs(face_center_x - image_width / 2) > image_width * 0.22 or abs(face_center_y - image_height / 2) > image_height * 0.22:
+  if (
+    abs(face_center_x - image_width / 2) > image_width * 0.22
+    or abs(face_center_y - image_height / 2) > image_height * 0.22
+  ):
     raise HTTPException(status_code=422, detail="FACE_NOT_CENTERED")
 
   right_eye = face[4:6]
@@ -132,7 +164,10 @@ def assess_face_quality(image: np.ndarray, face: np.ndarray) -> float:
   size_score = min(1.0, eye_distance / 130.0)
   blur_score = min(1.0, blur / 180.0)
   light_score = max(0.0, 1.0 - abs(brightness - 130.0) / 130.0)
-  return round(max(0.01, min(1.0, size_score * 0.4 + blur_score * 0.35 + light_score * 0.25)), 4)
+  return round(
+    max(0.01, min(1.0, size_score * 0.4 + blur_score * 0.35 + light_score * 0.25)),
+    4,
+  )
 
 
 def create_embedding(image: np.ndarray, face: np.ndarray) -> np.ndarray:
@@ -173,7 +208,7 @@ def normalise_embedding(feature: np.ndarray) -> np.ndarray:
 def get_detector():
   global _detector
   if _detector is None:
-    ensure_model_file(YUNET_PATH, YUNET_URL, YUNET_SHA256)
+    require_model_file(YUNET_PATH, YUNET_SHA256, "YuNet detector")
     _detector = cv2.FaceDetectorYN.create(str(YUNET_PATH), "", (960, 720), 0.90, 0.30, 5000)
   return _detector
 
@@ -181,46 +216,14 @@ def get_detector():
 def get_recognition_session() -> ort.InferenceSession:
   global _recognition_session
   if _recognition_session is None:
-    ensure_recognition_model()
+    require_model_file(RECOGNITION_PATH, RECOGNITION_SHA256, "InsightFace recognition model")
     _recognition_session = ort.InferenceSession(str(RECOGNITION_PATH), providers=PROVIDERS)
   return _recognition_session
 
 
-def ensure_recognition_model() -> None:
-  if RECOGNITION_PATH.is_file():
-    return
-  MODEL_DIR.mkdir(parents=True, exist_ok=True)
-  archive_path = MODEL_DIR / "buffalo_l.zip"
-  if not archive_path.is_file():
-    with requests.get(RECOGNITION_ZIP_URL, stream=True, timeout=90) as response:
-      response.raise_for_status()
-      with archive_path.open("wb") as target:
-        for chunk in response.iter_content(chunk_size=1024 * 1024):
-          if chunk:
-            target.write(chunk)
-  with zipfile.ZipFile(archive_path) as archive:
-    candidates = [name for name in archive.namelist() if name.endswith("w600k_r50.onnx")]
-    if not candidates:
-      raise HTTPException(status_code=500, detail="Recognition model was not found in model archive.")
-    with archive.open(candidates[0]) as source, RECOGNITION_PATH.open("wb") as target:
-      target.write(source.read())
-
-
-def ensure_model_file(path: Path, url: str, expected_sha256: str) -> None:
-  if model_file_is_valid(path, expected_sha256):
-    return
-  path.parent.mkdir(parents=True, exist_ok=True)
-  temporary = path.with_suffix(path.suffix + ".part")
-  with requests.get(url, stream=True, timeout=90) as response:
-    response.raise_for_status()
-    with temporary.open("wb") as target:
-      for chunk in response.iter_content(chunk_size=1024 * 1024):
-        if chunk:
-          target.write(chunk)
-  if not model_file_is_valid(temporary, expected_sha256):
-    temporary.unlink(missing_ok=True)
-    raise HTTPException(status_code=500, detail="Downloaded face model failed integrity verification.")
-  temporary.replace(path)
+def require_model_file(path: Path, expected_sha256: str, label: str) -> None:
+  if not model_file_is_valid(path, expected_sha256):
+    raise RuntimeError(f"{label} is missing or failed integrity verification: {path}")
 
 
 def model_file_is_valid(path: Path, expected_sha256: str) -> bool:
@@ -230,7 +233,7 @@ def model_file_is_valid(path: Path, expected_sha256: str) -> bool:
   with path.open("rb") as source:
     for chunk in iter(lambda: source.read(1024 * 1024), b""):
       digest.update(chunk)
-  return digest.hexdigest() == expected_sha256
+  return secrets.compare_digest(digest.hexdigest(), expected_sha256)
 
 
 def decode_image(image_base64: str) -> np.ndarray:

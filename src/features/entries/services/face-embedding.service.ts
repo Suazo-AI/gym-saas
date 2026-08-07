@@ -1,5 +1,7 @@
+import "server-only";
+
 import { ApiError } from "@/lib/api/api-error";
-import { env } from "@/lib/env";
+import { getFaceServiceEnv } from "@/lib/env.server";
 
 type FaceEmbeddingResponse = {
   embedding: number[];
@@ -10,16 +12,14 @@ type FaceEmbeddingResponse = {
 };
 
 export async function generateFaceEmbedding(imageBase64: string): Promise<FaceEmbeddingResponse> {
-  if (!env.FACE_RECOGNITION_SERVICE_URL) {
-    throw new ApiError(
-      "EXTERNAL_SERVICE_ERROR",
-      "El servicio de reconocimiento facial no esta configurado.",
-    );
-  }
+  const faceServiceEnv = getFaceServiceEnv();
 
-  const response = await fetch(new URL("/embed", env.FACE_RECOGNITION_SERVICE_URL), {
+  const response = await fetch(new URL("/embed", faceServiceEnv.FACE_RECOGNITION_SERVICE_URL), {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      authorization: `Bearer ${faceServiceEnv.FACE_RECOGNITION_SERVICE_TOKEN}`,
+      "content-type": "application/json",
+    },
     body: JSON.stringify({ imageBase64 }),
     cache: "no-store",
   });
