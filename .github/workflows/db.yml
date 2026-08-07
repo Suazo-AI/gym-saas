@@ -25,13 +25,9 @@ jobs:
     name: Pruebas pgTAP del esquema
     runs-on: ubuntu-latest
 
-    # PRIMERA CORRIDA: no bloquea. El baseline local no se pudo medir limpio
-    # porque el stack de Supabase se comparte entre worktrees y la base quedo
-    # con migraciones de otra rama. Esta corrida ES el baseline: cuando se
-    # conozca el numero real de aserciones, se quita este flag y pasa a
-    # bloquear el merge.
-    continue-on-error: true
-
+    # Baseline medido en la primera corrida de este job: Files=16, Tests=148,
+    # todo en verde sobre una base creada desde cero. Con ese numero conocido el
+    # job pasa a bloquear el merge, que era el objetivo.
     steps:
       - name: Descargar el codigo
         uses: actions/checkout@v6
