@@ -193,6 +193,23 @@
       ],
       "expectPgtapDeltaMin": 0,
       "frozenFiles": {}
+    },
+    {
+      "id": "V1",
+      "name": "Resolver vulnerabilidades npm",
+      "branch": "fix/npm-audit",
+      "base": "origin/main",
+      "maxCommits": 3,
+      "allowedPaths": [
+        "package.json",
+        "package-lock.json"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "expectPgtapDeltaMin": 0,
+      "frozenFiles": {}
     }
   ]
 }

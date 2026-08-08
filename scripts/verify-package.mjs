@@ -152,7 +152,10 @@ function structuralChecks(pkg, report) {
   );
 
   // Alcance: cada archivo tocado tiene que estar declarado en el manifiesto.
-  const changed = git(["diff", "--name-only", baseSha, head]).split("\n").filter(Boolean);
+  // Se compara con tres puntos, contra la base de fusion, no contra la punta de
+  // la base. Con dos puntos una rama atrasada aparece "tocando" archivos que
+  // en realidad cambiaron en main despues de que la rama saliera.
+  const changed = git(["diff", "--name-only", `${baseSha}...${head}`]).split("\n").filter(Boolean);
   const outside = changed.filter((f) => !matchesAny(f, pkg.allowedPaths));
   report.add(
     "sin archivos fuera de alcance",
@@ -161,7 +164,7 @@ function structuralChecks(pkg, report) {
   );
 
   // Nadie edita una migracion ya aplicada: solo se agregan archivos nuevos.
-  const touched = git(["diff", "--name-status", baseSha, head])
+  const touched = git(["diff", "--name-status", `${baseSha}...${head}`])
     .split("\n")
     .filter(Boolean)
     .map((l) => {
@@ -229,7 +232,7 @@ function structuralChecks(pkg, report) {
   }
 
   // Guion largo y guion medio: regla explicita del dueño del repositorio.
-  const added = git(["diff", "--unified=0", baseSha, head])
+  const added = git(["diff", "--unified=0", `${baseSha}...${head}`])
     .split("\n")
     .filter((l) => l.startsWith("+") && !l.startsWith("+++"));
   const dashes = added.filter((l) => /[–—]/.test(l));
