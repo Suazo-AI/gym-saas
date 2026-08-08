@@ -1,11 +1,5 @@
 import { z } from "zod";
 
-export const recordPaymentSchema = z.object({
-  gymId: z.string().uuid(), chargeId: z.string().uuid(), paymentMethodId: z.string().uuid(),
-  amount: z.string().regex(/^\d+(\.\d{1,2})?$/, "Monto inválido."), currency: z.enum(["USD", "NIO"]),
-  paidAt: z.string().datetime().optional(), notes: z.string().trim().max(500).optional(),
-});
-
 const registerAmountSchema = z
   .string()
   .regex(/^\d+(\.\d{1,2})?$/, "El monto debe ser decimal.");

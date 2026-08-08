@@ -1,5 +1,5 @@
 begin;
-select plan(8);
+select plan(10);
 select has_column('public','member_payments','applied_nio_per_usd','payments snapshot applied exchange rate');
 select has_function('public','record_member_payment',array['uuid','uuid','uuid','numeric','character','timestamp with time zone','text'],'record payment rpc exists');
 select has_function('public','void_member_payment',array['uuid','text'],'void payment rpc exists');
@@ -7,8 +7,10 @@ select has_function('public','list_payable_member_charges',array['uuid'],'payabl
 select throws_ok($$select public.record_member_payment('20000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000002',(select id from public.payment_methods where code='cash'),900,'NIO')$$,'42501',null,'anonymous payment is rejected');
 set local role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',true);
-select throws_ok($$select public.record_member_payment('20000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000002',(select id from public.payment_methods where code='cash'),899,'NIO')$$,'23514','Full remaining charge amount is required','partial payment is rejected');
-select throws_ok($$select public.record_member_payment('20000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000002',(select id from public.payment_methods where code='cash'),900,'USD')$$,'23514','Payment currency must match charge currency','cross currency payment is rejected');
-select lives_ok($$select public.record_member_payment('20000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000002',(select id from public.payment_methods where code='cash'),900,'NIO')$$,'full payment is recorded atomically');
+select lives_ok($$select public.record_member_payment('20000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000002',(select id from public.payment_methods where code='cash'),100,'NIO')$$,'the compatibility wrapper accepts a partial payment');
+select is((select status::text from public.membership_charges where id='80000000-0000-4000-8000-000000000002'),'partial','the partial payment leaves the charge partial');
+select matches((select mp.receipt_number from public.member_payments mp join public.member_payment_allocations a on a.member_payment_id=mp.id where a.membership_charge_id='80000000-0000-4000-8000-000000000002' and a.amount=100 limit 1),'^R-[0-9A-F]{10}$','the wrapper uses the unified receipt format');
+select throws_ok($$select public.record_member_payment('20000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000002',(select id from public.payment_methods where code='cash'),900,'USD')$$,'22023','La moneda del pago no coincide con la del cargo.','cross currency payment uses the canonical validation');
+select lives_ok($$select public.record_member_payment('20000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000002',(select id from public.payment_methods where code='cash'),800,'NIO')$$,'remaining payment is recorded atomically');
 select * from finish();
 rollback;

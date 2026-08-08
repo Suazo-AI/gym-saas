@@ -2,7 +2,6 @@ import { mapSupabaseError } from "@/lib/api/map-supabase-error";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/types";
 
-import { recordPaymentSchema } from "../schemas/payment.schema";
 import { registerPaymentSchema } from "../schemas/payment.schema";
 import { registerDayPassSchema, type RegisterDayPassInput } from "../schemas/day-pass.schema";
 import { mapPendingChargeRows, mapRegisteredPayment } from "../mappers/payment.mapper";
@@ -119,12 +118,6 @@ export async function listPayableCharges(gymId: string): Promise<PayableChargeDt
   const { data, error } = await supabase.rpc("list_payable_member_charges" as never, { p_gym_id: gymId } as never);
   if (error) throw mapSupabaseError(error);
   return ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({ chargeId: String(row.charge_id), gymMemberId: String(row.gym_member_id), memberLabel: String(row.member_label), dueDate: String(row.due_date), amountDue: String(row.amount_due), currency: String(row.currency), status: String(row.status) }));
-}
-
-export async function recordPayment(input: unknown) {
-  const parsed = recordPaymentSchema.parse(input); const supabase = await createClient();
-  const { data, error } = await supabase.rpc("record_member_payment" as never, { p_gym_id: parsed.gymId, p_charge_id: parsed.chargeId, p_payment_method_id: parsed.paymentMethodId, p_amount: parsed.amount, p_currency: parsed.currency, p_paid_at: parsed.paidAt ?? null, p_notes: parsed.notes ?? null } as never);
-  if (error) throw mapSupabaseError(error); return data;
 }
 
 export async function voidPayment(paymentId: string, reason: string) {
