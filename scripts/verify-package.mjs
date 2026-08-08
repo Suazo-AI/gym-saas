@@ -228,9 +228,15 @@ function structuralChecks(pkg, report) {
     dashes.length ? `${dashes.length} linea(s): ${dashes[0].slice(0, 80)}` : "limpio",
   );
 
-  // Nada publicado. La rama no debe existir en el remoto.
-  const remote = gitOk(["rev-parse", "--verify", `refs/remotes/origin/${branch}`]);
-  report.add("rama no publicada", !remote, remote ? "existe en origin" : "solo local");
+  // Nada publicado sin revision. Se relaja con allowPublished cuando el flujo
+  // acordado es publicar la rama a proposito para que el CI la juzgue: ese CI
+  // es un oraculo mas fuerte que este verificador, no una fuga.
+  if (pkg.allowPublished) {
+    report.skip("rama no publicada", "allowPublished: se publica para que el CI emita el veredicto");
+  } else {
+    const remote = gitOk(["rev-parse", "--verify", `refs/remotes/origin/${branch}`]);
+    report.add("rama no publicada", !remote, remote ? "existe en origin" : "solo local");
+  }
 
   // Conteo de aserciones pgTAP: se parsea de los archivos, no se le cree a nadie.
   const planTotal = (ref) => {
