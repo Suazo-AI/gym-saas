@@ -214,7 +214,7 @@ select isnt_empty(
     select 1
     from public.member_payments
     where notes = 'P1 record payment'
-      and receipt_number like 'PAY-%'
+      and receipt_number ~ '^R-[0-9A-F]{10}$'
   $$,
   'record_member_payment creates its payment and receipt'
 );
@@ -239,7 +239,7 @@ select isnt_empty(
     select 1
     from public.member_payments
     where notes = 'P1 day pass'
-      and receipt_number like 'DAY-%'
+      and receipt_number ~ '^R-[0-9A-F]{10}$'
   $$,
   'register_member_day_pass creates its payment and receipt'
 );
