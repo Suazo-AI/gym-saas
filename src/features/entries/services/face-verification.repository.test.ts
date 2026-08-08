@@ -3,14 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import { verifyFaceAccessWithEmbedding } from "./face-verification.repository";
 
 describe("verifyFaceAccessWithEmbedding", () => {
-  it("rejects embeddings that are not 512 dimensions", async () => {
+  it("rejects embeddings that are not 128 dimensions", async () => {
     await expect(
       verifyFaceAccessWithEmbedding({
         gymId: "20000000-0000-4000-8000-000000000001",
         embedding: [0, 1, 2],
         rpc: vi.fn(),
       }),
-    ).rejects.toThrow("El embedding facial debe tener 512 dimensiones.");
+    ).rejects.toThrow("El embedding facial debe tener 128 dimensiones.");
   });
 
   it("calls verify_face_access with a pgvector literal", async () => {
@@ -31,20 +31,20 @@ describe("verifyFaceAccessWithEmbedding", () => {
     const result = await verifyFaceAccessWithEmbedding({
       gymId: "20000000-0000-4000-8000-000000000001",
       branchId: "30000000-0000-4000-8000-000000000001",
-      embedding: Array.from({ length: 512 }, () => 0.1),
+      embedding: Array.from({ length: 128 }, () => 0.1),
       processingMs: 25,
-      modelCode: "insightface-buffalo-l",
+      modelCode: "opencv-sface",
       rpc,
     });
 
     expect(rpc).toHaveBeenCalledWith("verify_face_access", {
       p_gym_id: "20000000-0000-4000-8000-000000000001",
-      p_embedding: `[${Array.from({ length: 512 }, () => 0.1).join(",")}]`,
+      p_embedding: `[${Array.from({ length: 128 }, () => 0.1).join(",")}]`,
       p_branch_id: "30000000-0000-4000-8000-000000000001",
       p_device_id: null,
-      p_similarity_threshold: 0.75,
+      p_similarity_threshold: 0.363,
       p_processing_ms: 25,
-      p_model_code: "insightface-buffalo-l",
+      p_model_code: "opencv-sface",
     });
     expect(result.accessAllowed).toBe(true);
   });

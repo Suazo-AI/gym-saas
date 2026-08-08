@@ -65,7 +65,7 @@ describe("POST /api/face/verify", () => {
     mocks.getActiveGym.mockResolvedValue({ gymId });
     mocks.rpc.mockResolvedValue({ data: true, error: null });
     mocks.generateFaceEmbedding.mockResolvedValue({
-      embedding: Array.from({ length: 512 }, () => 0.1),
+      embedding: Array.from({ length: 128 }, () => 0.1),
       faceCount: 1,
       qualityScore: 0.91,
       modelCode: "test-model",

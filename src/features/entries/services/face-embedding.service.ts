@@ -34,7 +34,7 @@ export async function generateFaceEmbedding(imageBase64: string): Promise<FaceEm
 
   const data = await response.json() as FaceEmbeddingResponse;
 
-  if (!Array.isArray(data.embedding) || data.embedding.length !== 512) {
+  if (!Array.isArray(data.embedding) || data.embedding.length !== 128) {
     throw new ApiError("EXTERNAL_SERVICE_ERROR", "El servicio facial devolvio un embedding invalido.");
   }
 

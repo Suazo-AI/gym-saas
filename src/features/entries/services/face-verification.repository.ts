@@ -22,8 +22,8 @@ type VerifyFaceAccessInput = {
 export async function verifyFaceAccessWithEmbedding(
   input: VerifyFaceAccessInput,
 ): Promise<FaceVerificationResultDto> {
-  if (input.embedding.length !== 512) {
-    throw new ApiError("VALIDATION_ERROR", "El embedding facial debe tener 512 dimensiones.");
+  if (input.embedding.length !== 128) {
+    throw new ApiError("VALIDATION_ERROR", "El embedding facial debe tener 128 dimensiones.");
   }
 
   const rpc = input.rpc ?? await createRpcClient();
@@ -32,9 +32,10 @@ export async function verifyFaceAccessWithEmbedding(
     p_embedding: toPgVector(input.embedding),
     p_branch_id: input.branchId ?? null,
     p_device_id: input.deviceId ?? null,
-    p_similarity_threshold: input.similarityThreshold ?? 0.75,
+    // OpenCV reference value. Pending calibration with real photos.
+    p_similarity_threshold: input.similarityThreshold ?? 0.363,
     p_processing_ms: input.processingMs ?? null,
-    p_model_code: input.modelCode ?? "insightface-buffalo-l",
+    p_model_code: input.modelCode ?? "opencv-sface",
   });
 
   if (error) {

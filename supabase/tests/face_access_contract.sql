@@ -51,12 +51,12 @@ select ok(
 select throws_ok(
   $$select public.verify_face_access(
     '20000000-0000-4000-8000-000000000001',
-    array_fill(0.0::real, array[512])::extensions.vector,
+    array_fill(0.0::real, array[128])::extensions.vector,
     null,
     null,
-    0.75,
+    0.363,
     15,
-    'insightface-buffalo-l'
+    'opencv-sface'
   )$$,
   '42501',
   null,
