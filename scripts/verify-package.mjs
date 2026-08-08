@@ -73,7 +73,11 @@ function globToRegExp(pattern) {
 const matchesAny = (path, patterns) =>
   patterns.some((p) => globToRegExp(p).test(path));
 
-const sha256 = (text) => createHash("sha256").update(text, "utf8").digest("hex");
+// Se normalizan los finales de linea antes de hashear. En Windows git convierte
+// LF a CRLF al materializar el archivo, y sin esto el congelado fallaria por una
+// diferencia que no cambia una sola instruccion del codigo.
+const sha256 = (text) =>
+  createHash("sha256").update(text.replace(/\r\n/g, "\n"), "utf8").digest("hex");
 
 // --- verificaciones -----------------------------------------------------
 
@@ -200,9 +204,16 @@ function structuralChecks(pkg, report) {
   const frozen = Object.entries(pkg.frozenFiles ?? {});
   if (frozen.length) {
     const tampered = frozen.filter(([path, expected]) => {
+      // Sin trimEnd: el salto de linea final es parte del archivo, y recortarlo
+      // hacia que el hash nunca coincidiera con el del archivo en disco.
       let content = "";
       try {
-        content = git(["show", `${head}:${path}`]);
+        content = execFileSync("git", ["show", `${head}:${path}`], {
+          cwd: REPO,
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "pipe"],
+          maxBuffer: 64 * 1024 * 1024,
+        });
       } catch {
         return true;
       }
