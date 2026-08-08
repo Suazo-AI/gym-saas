@@ -38,14 +38,18 @@ select has_function(
   'get_owner_dashboard acepta una ventana en dias'
 );
 
+-- Corregido despues de la primera corrida de CI. La version anterior comparaba
+-- pg_get_function_identity_arguments(oid) contra 'uuid, integer', y esa funcion
+-- devuelve los NOMBRES de los parametros junto a los tipos
+-- ("p_gym_id uuid, p_expiring_days integer"), asi que no podia coincidir con
+-- ninguna implementacion. Era un defecto del instrumento, no del codigo.
+-- regprocedure identifica la sobrecarga por tipos y no depende de como se
+-- hayan llamado los parametros.
 select isnt_empty(
   $$select 1
     from pg_proc p
-    join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname = 'public'
-      and p.proname = 'get_owner_dashboard'
-      and p.prosecdef
-      and pg_get_function_identity_arguments(p.oid) = 'uuid, integer'$$,
+    where p.oid = 'public.get_owner_dashboard(uuid,integer)'::regprocedure
+      and p.prosecdef$$,
   'la version con ventana es security definer'
 );
 
