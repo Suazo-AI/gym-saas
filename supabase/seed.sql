@@ -454,7 +454,7 @@ values
     current_date - 45,
     900.00,
     'NIO',
-    'overdue'
+    'pending'
   )
 on conflict do nothing;
 

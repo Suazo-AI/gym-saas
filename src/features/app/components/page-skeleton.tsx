@@ -1,4 +1,4 @@
-type Screen = "dashboard" | "income" | "members" | "entries" | "payments" | "memberships" | "settings" | "staff" | "detail" | "platform";
+type Screen = "dashboard" | "income" | "members" | "entries" | "alerts" | "payments" | "memberships" | "settings" | "staff" | "detail" | "platform";
 
 const pulse = "animate-pulse rounded bg-gray-light";
 const card = "rounded-2xl border border-gray bg-paper shadow-sm";

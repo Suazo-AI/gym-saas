@@ -15,4 +15,9 @@ describe("AppShell theme contrast", () => {
     expect(css).toContain("--color-gray: #46544b");
     expect(css).toContain('html[data-theme="light"] .bg-white .text-gray-light');
   });
+
+  it("allows the alerts catalog route into the gym navigation", () => {
+    const source = readFileSync("src/features/app/components/app-shell.tsx", "utf8");
+    expect(source).toContain('"/alerts"');
+  });
 });
