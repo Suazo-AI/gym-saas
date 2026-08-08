@@ -175,7 +175,8 @@
     },
     {
       "base": "origin/main",
-      "maxCommits": 4,
+      "maxCommits": 5,
+      "_maxCommits": "5 y no 4: el primer commit de la rama es el contrato congelado, escrito antes de delegar y por fuera del ejecutor. Le quedan 4.",
       "appendOnlyPaths": [
         "supabase/migrations/**"
       ],
@@ -191,8 +192,13 @@
         "supabase/migrations/**",
         "supabase/tests/**"
       ],
-      "expectPgtapDeltaMin": 0,
-      "frozenFiles": {}
+      "expectPgtapDeltaMin": 7,
+      "_rehash": "2026-08-08: se actualizo el hash de essential_reports_contract.sql. La primera version comparaba pg_get_function_identity_arguments contra 'uuid, integer', y esa funcion devuelve tambien los nombres de los parametros, asi que la asercion no podia pasar con ninguna implementacion posible. Instrumento roto, no codigo: la funcion siempre fue security definer. Corregido por el autor del contrato, nunca por el ejecutor. Hash anterior: 2cd1b6603a6d729e28ea24a7c2acd977357d7b3b5f388736d8cba3dd04d5f444",
+      "frozenFiles": {
+        "supabase/tests/essential_reports_contract.sql": "c10f9167116899280d759d7d019e4c70e6bf496a03d5324b75fb864952fe63c6",
+        "src/features/payments/services/payment-reports-contract.test.ts": "41ac92c2bd2332d7663ed682d71e891ceab9f7d5627ae8a630082494eb9a2455",
+        "src/features/entries/services/entry-reports-contract.test.ts": "439f775def15cbc81878cbfbcfef1d862812146fab213e2ac9b1b85f8ccfe1c5"
+      }
     },
     {
       "id": "V1",
