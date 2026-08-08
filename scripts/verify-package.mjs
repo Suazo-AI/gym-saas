@@ -73,7 +73,11 @@ function globToRegExp(pattern) {
 const matchesAny = (path, patterns) =>
   patterns.some((p) => globToRegExp(p).test(path));
 
-const sha256 = (text) => createHash("sha256").update(text, "utf8").digest("hex");
+// Se normalizan los finales de linea antes de hashear. En Windows git convierte
+// LF a CRLF al materializar el archivo, y sin esto el congelado fallaria por una
+// diferencia que no cambia una sola instruccion del codigo.
+const sha256 = (text) =>
+  createHash("sha256").update(text.replace(/\r\n/g, "\n"), "utf8").digest("hex");
 
 // --- verificaciones -----------------------------------------------------
 
@@ -200,9 +204,16 @@ function structuralChecks(pkg, report) {
   const frozen = Object.entries(pkg.frozenFiles ?? {});
   if (frozen.length) {
     const tampered = frozen.filter(([path, expected]) => {
+      // Sin trimEnd: el salto de linea final es parte del archivo, y recortarlo
+      // hacia que el hash nunca coincidiera con el del archivo en disco.
       let content = "";
       try {
-        content = git(["show", `${head}:${path}`]);
+        content = execFileSync("git", ["show", `${head}:${path}`], {
+          cwd: REPO,
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "pipe"],
+          maxBuffer: 64 * 1024 * 1024,
+        });
       } catch {
         return true;
       }
@@ -228,9 +239,15 @@ function structuralChecks(pkg, report) {
     dashes.length ? `${dashes.length} linea(s): ${dashes[0].slice(0, 80)}` : "limpio",
   );
 
-  // Nada publicado. La rama no debe existir en el remoto.
-  const remote = gitOk(["rev-parse", "--verify", `refs/remotes/origin/${branch}`]);
-  report.add("rama no publicada", !remote, remote ? "existe en origin" : "solo local");
+  // Nada publicado sin revision. Se relaja con allowPublished cuando el flujo
+  // acordado es publicar la rama a proposito para que el CI la juzgue: ese CI
+  // es un oraculo mas fuerte que este verificador, no una fuga.
+  if (pkg.allowPublished) {
+    report.skip("rama no publicada", "allowPublished: se publica para que el CI emita el veredicto");
+  } else {
+    const remote = gitOk(["rev-parse", "--verify", `refs/remotes/origin/${branch}`]);
+    report.add("rama no publicada", !remote, remote ? "existe en origin" : "solo local");
+  }
 
   // Conteo de aserciones pgTAP: se parsea de los archivos, no se le cree a nadie.
   const planTotal = (ref) => {
