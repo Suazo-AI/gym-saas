@@ -4,10 +4,19 @@ import { redirect } from "next/navigation";
 import { ModuleHeader } from "@/features/app/components/module-header";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
+import { MemberFilters } from "@/features/members/components/member-filters";
+import { parseBooleanFilter } from "@/features/members/member-filter-query";
 import { canManageMembers, listMembers } from "@/features/members/services/member.repository";
 
 type MembersPageProps = {
-  searchParams: Promise<{ notice?: string; page?: string; search?: string }>;
+  searchParams: Promise<{
+    notice?: string;
+    page?: string;
+    search?: string;
+    status?: string;
+    membershipStatus?: string;
+    hasOverdueCharges?: string;
+  }>;
 };
 
 export default async function MembersPage({ searchParams }: MembersPageProps) {
@@ -23,6 +32,9 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
     gymId: activeGym.gymId,
     page: params.page ? Number(params.page) : 1,
     search: params.search,
+    status: params.status,
+    membershipStatus: params.membershipStatus,
+    hasOverdueCharges: parseBooleanFilter(params.hasOverdueCharges),
   }).catch((error: unknown) => ({ error }));
 
   return (
@@ -46,6 +58,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
       <section className="mt-6 rounded-lg border border-charcoal bg-paper shadow-sm">
         <h2 className="sr-only">Miembros del gimnasio activo</h2>
         <PersistedSearchForm placeholder="Buscar por nombre o código" storageKey="fitmanager.members.search" />
+        <MemberFilters />
 
         {"error" in result ? (
           <p className="p-5 text-sm font-semibold text-red-700">

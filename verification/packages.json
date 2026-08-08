@@ -1,0 +1,99 @@
+{
+  "_comment": [
+    "Contrato de verificacion. Cada entrada declara lo que un paquete de trabajo",
+    "TIENE PERMITIDO hacer, escrito ANTES de que el ejecutor empiece.",
+    "El verificador (scripts/verify-package.mjs) juzga el commit contra esto.",
+    "El ejecutor no reporta su propio estado y no edita este archivo.",
+    "",
+    "allowedPaths     rutas que el paquete puede tocar. Todo lo demas es fuera de alcance.",
+    "appendOnlyPaths  rutas donde solo se pueden AGREGAR archivos, nunca modificar.",
+    "frozenFiles      criterios de aceptacion escritos de antemano, con su sha256.",
+    "                 Si el ejecutor los toca para que pasen, el verificador lo detecta."
+  ],
+  "packages": [
+    {
+      "id": "P1",
+      "name": "Bloquear escritura directa a member_payments",
+      "branch": "fix/member-payments-direct-write",
+      "base": "origin/main",
+      "maxCommits": 1,
+      "allowedPaths": ["supabase/migrations/**", "supabase/tests/**"],
+      "appendOnlyPaths": ["supabase/migrations/**"],
+      "expectPgtapDeltaMin": 5,
+      "frozenFiles": {}
+    },
+    {
+      "id": "P2",
+      "name": "Eliminar el estado overdue almacenado",
+      "branch": "refactor/overdue-derived-state",
+      "base": "origin/main",
+      "maxCommits": 1,
+      "_ampliado": "2026-08-07: se agrego supabase/seed.sql al alcance. El verificador lo marco fuera de alcance y con razon: el plan no lo autorizaba. Revisado a mano, el cambio es una sola linea, 'overdue' -> 'pending', y es forzado: sin eso el seed viola el check constraint nuevo y no carga. Ampliacion deliberada, no relajacion del criterio.",
+      "allowedPaths": ["supabase/migrations/**", "supabase/tests/**", "supabase/seed.sql"],
+      "appendOnlyPaths": ["supabase/migrations/**"],
+      "expectPgtapDeltaMin": 4,
+      "frozenFiles": {}
+    },
+    {
+      "id": "P3",
+      "name": "Unificar las dos RPC de cobro",
+      "branch": "refactor/unify-payment-rpc",
+      "base": "origin/main",
+      "maxCommits": 1,
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "src/features/payments/**"
+      ],
+      "appendOnlyPaths": ["supabase/migrations/**"],
+      "expectPgtapDeltaMin": 1,
+      "frozenFiles": {}
+    },
+    {
+      "id": "P4",
+      "name": "Pantalla de alertas y alertas de entrada",
+      "branch": "feat/alerts-screen",
+      "base": "origin/main",
+      "maxCommits": 1,
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "src/app/(gym)/alerts/**",
+        "src/features/alerts/**",
+        "src/features/app/**"
+      ],
+      "appendOnlyPaths": ["supabase/migrations/**"],
+      "expectPgtapDeltaMin": 1,
+      "frozenFiles": {}
+    },
+    {
+      "id": "P5",
+      "name": "Cablear los filtros de miembros",
+      "branch": "feat/member-filters-ui",
+      "base": "origin/main",
+      "maxCommits": 1,
+      "allowedPaths": ["src/app/(gym)/members/**", "src/features/members/**"],
+      "appendOnlyPaths": ["supabase/migrations/**"],
+      "expectPgtapDeltaMin": 0,
+      "frozenFiles": {}
+    },
+    {
+      "id": "P6",
+      "name": "Hacer desplegable el servicio de reconocimiento facial",
+      "branch": "feat/face-service-deployable",
+      "base": "origin/main",
+      "maxCommits": 1,
+      "allowedPaths": [
+        "services/face-recognition/**",
+        "src/lib/**",
+        "src/instrumentation.ts",
+        "src/features/entries/services/**",
+        ".github/workflows/**",
+        ".env.example"
+      ],
+      "appendOnlyPaths": ["supabase/migrations/**"],
+      "expectPgtapDeltaMin": 0,
+      "frozenFiles": {}
+    }
+  ]
+}
