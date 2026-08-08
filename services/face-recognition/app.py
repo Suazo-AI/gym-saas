@@ -16,13 +16,13 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 
-MODEL_CODE = os.getenv("FACE_MODEL_CODE", "insightface-buffalo-l-w600k-r50")
-MODEL_VERSION = "buffalo_l"
+MODEL_CODE = os.getenv("FACE_MODEL_CODE", "opencv-sface")
+MODEL_VERSION = "2021dec"
 MODEL_DIR = Path(os.getenv("FACE_MODEL_DIR", str(Path(__file__).resolve().parent / "models")))
 YUNET_PATH = MODEL_DIR / "face_detection_yunet_2023mar.onnx"
-RECOGNITION_PATH = MODEL_DIR / "w600k_r50.onnx"
+RECOGNITION_PATH = MODEL_DIR / "face_recognition_sface_2021dec.onnx"
 YUNET_SHA256 = "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
-RECOGNITION_SHA256 = "4c06341c33c2ca1f86781dab0e829f88ad5b64be9fba56e56bc9ebdefc619e43"
+RECOGNITION_SHA256 = "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79"
 PROVIDERS = ["CPUExecutionProvider"]
 
 SERVICE_TOKEN = os.getenv("FACE_RECOGNITION_SERVICE_TOKEN", "")
@@ -172,8 +172,7 @@ def assess_face_quality(image: np.ndarray, face: np.ndarray) -> float:
 
 def create_embedding(image: np.ndarray, face: np.ndarray) -> np.ndarray:
   aligned = align_face(image, face)
-  rgb = cv2.cvtColor(aligned, cv2.COLOR_BGR2RGB)
-  blob = ((rgb.astype(np.float32) - 127.5) / 127.5).transpose(2, 0, 1)
+  blob = aligned.astype(np.float32).transpose(2, 0, 1)
   blob = np.expand_dims(blob, axis=0)
   session = get_recognition_session()
   feature = session.run(None, {session.get_inputs()[0].name: blob})[0]
@@ -197,7 +196,7 @@ def align_face(image: np.ndarray, face: np.ndarray) -> np.ndarray:
 
 def normalise_embedding(feature: np.ndarray) -> np.ndarray:
   embedding = np.asarray(feature, dtype=np.float32).reshape(-1)
-  if embedding.shape[0] != 512:
+  if embedding.shape[0] != 128:
     raise HTTPException(status_code=500, detail="Face model returned an invalid embedding size.")
   norm = float(np.linalg.norm(embedding))
   if not np.isfinite(norm) or norm <= 0:
@@ -216,7 +215,7 @@ def get_detector():
 def get_recognition_session() -> ort.InferenceSession:
   global _recognition_session
   if _recognition_session is None:
-    require_model_file(RECOGNITION_PATH, RECOGNITION_SHA256, "InsightFace recognition model")
+    require_model_file(RECOGNITION_PATH, RECOGNITION_SHA256, "OpenCV SFace recognition model")
     _recognition_session = ort.InferenceSession(str(RECOGNITION_PATH), providers=PROVIDERS)
   return _recognition_session
 

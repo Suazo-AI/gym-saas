@@ -13,11 +13,11 @@ const enrollMemberFaceSchema = z.object({
   widthPixels: z.number().int().min(1).nullable().optional(),
   heightPixels: z.number().int().min(1).nullable().optional(),
   sha256Hex: z.string().regex(/^[a-f0-9]{64}$/).nullable().optional(),
-  embedding: z.array(z.number()).length(512, "El embedding facial debe tener 512 dimensiones."),
+  embedding: z.array(z.number()).length(128, "El embedding facial debe tener 128 dimensiones."),
   qualityScore: z.number().min(0).max(1).nullable().optional(),
   biometricConsentGranted: z.literal(true),
   consentVersion: z.string().min(1).default("2026-07-22"),
-  modelCode: z.string().min(1).default("insightface-buffalo-l-w600k-r50"),
+  modelCode: z.string().min(1).default("opencv-sface"),
 });
 
 export type EnrollMemberFaceInput = z.input<typeof enrollMemberFaceSchema> & {

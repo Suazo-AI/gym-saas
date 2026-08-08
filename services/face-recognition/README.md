@@ -1,13 +1,13 @@
 # FitManager Face Recognition Service
 
-Servicio privado para generar embeddings faciales de 512 dimensiones con FastAPI, ONNXRuntime CPU y OpenCV.
+Servicio privado para generar embeddings faciales de 128 dimensiones con FastAPI, ONNXRuntime CPU y OpenCV.
 
-La imagen Docker incluye el detector YuNet y el modelo `buffalo_l` de InsightFace. Los modelos se descargan y verifican durante `docker build`. El contenedor no descarga archivos al arrancar.
+La imagen Docker incluye el detector YuNet y el modelo SFace de OpenCV. Los modelos se descargan y verifican durante `docker build`. El contenedor no descarga archivos al arrancar.
 
 ## Requisitos
 
 - Docker Desktop o un motor compatible con Docker.
-- Acceso a GitHub y Hugging Face durante el build para descargar los modelos fijados.
+- Acceso a Hugging Face durante el build para descargar los modelos fijados.
 - Un token aleatorio de al menos 32 caracteres compartido solamente entre Next.js y este servicio.
 
 ## Construir la imagen
@@ -21,8 +21,7 @@ docker build --tag fitmanager-face-service:local .
 El build verifica estos artefactos antes de copiarlos a la imagen final:
 
 - `face_detection_yunet_2023mar.onnx`
-- `buffalo_l.zip`
-- `w600k_r50.onnx`
+- `face_recognition_sface_2021dec.onnx`
 
 Si una descarga cambia o queda incompleta, el build falla por checksum.
 
@@ -42,7 +41,7 @@ El proceso carga ambos modelos antes de aceptar tráfico. Si un modelo falta, es
 Servicio Python:
 
 - `FACE_RECOGNITION_SERVICE_TOKEN`: obligatoria, mínimo 32 caracteres.
-- `FACE_MODEL_CODE`: opcional. Por defecto `insightface-buffalo-l-w600k-r50`.
+- `FACE_MODEL_CODE`: opcional. Por defecto `opencv-sface`.
 - `FACE_MODEL_DIR`: opcional. La imagen usa `/app/models`.
 
 Next.js:
@@ -78,7 +77,7 @@ $result = Invoke-RestMethod http://127.0.0.1:8010/embed -Method Post -Headers $h
 $result.embedding.Count
 ```
 
-El último comando debe devolver `512`.
+El último comando debe devolver `128`.
 
 ## Despliegue
 
@@ -91,7 +90,7 @@ Publicar la imagen en una plataforma que ejecute contenedores Linux y configurar
 5. Acceso de red restringido al backend de Next.js cuando la plataforma lo permita.
 6. Reinicio automático cuando falle el healthcheck.
 
-Después, configurar en el entorno de Next.js la URL privada y el mismo token. No desplegar si `/health` no devuelve `modelReady: true`, una llamada sin token no devuelve `401`, o un POST autenticado con una foto válida no devuelve 512 dimensiones.
+Después, configurar en el entorno de Next.js la URL privada y el mismo token. No desplegar si `/health` no devuelve `modelReady: true`, una llamada sin token no devuelve `401`, o un POST autenticado con una foto válida no devuelve 128 dimensiones.
 
 La elección del host, la creación de cuentas, el medio de pago y la carga de secretos reales quedan fuera de este repositorio.
 
