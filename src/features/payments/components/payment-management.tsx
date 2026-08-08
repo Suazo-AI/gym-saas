@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import {
@@ -131,7 +132,13 @@ function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
     <article className="p-4">
       <div className="flex flex-wrap justify-between gap-3">
         <div>
-          <strong className="text-ink">{payment.receiptNumber}</strong>
+          <Link
+            className="mb-2 inline-block text-sm font-black text-brand-green underline"
+            href={`/payments/${payment.id}/receipt`}
+          >
+            Recibo
+          </Link>
+          <strong className="block text-ink">{payment.receiptNumber}</strong>
           <p className="text-sm text-gray">
             {payment.currency} {payment.amount} · {payment.status} · tasa C${payment.appliedNioPerUsd}
           </p>
