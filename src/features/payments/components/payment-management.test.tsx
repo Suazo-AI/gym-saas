@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../actions/payment.actions", () => ({
   recordPaymentAction: vi.fn(),
+  refundPaymentAction: vi.fn(),
   voidPaymentAction: vi.fn(),
 }));
 
@@ -39,6 +40,9 @@ describe("PaymentManagement", () => {
     expect(html).toContain("Puedes cobrar un abono");
     expect(html).toContain("generar recibo");
     expect(html).toContain("Anular");
+    expect(html).toContain("Reembolsar");
+    expect(html).toContain('name="amount"');
+    expect(html).toContain("Confirmar reembolso");
     expect(html).toContain("C$36.600000");
   });
 });

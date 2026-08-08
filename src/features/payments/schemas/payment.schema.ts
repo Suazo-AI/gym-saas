@@ -36,3 +36,12 @@ export const registerPaymentSchema = z
     },
   );
 export const voidPaymentSchema = z.object({ paymentId: z.string().uuid(), reason: z.string().trim().min(3, "Indica el motivo de anulación.") });
+
+export const refundPaymentSchema = z.object({
+  paymentId: z.string().uuid(),
+  amount: registerAmountSchema.refine(
+    (value) => decimalToCents(value) > 0,
+    "El monto debe ser mayor que cero.",
+  ),
+  reason: z.string().trim().min(3, "Indica el motivo del reembolso."),
+});
