@@ -54,3 +54,4 @@ verification/results/
 Docs/plans/*reporte-codex.err.log
 Docs/plans/*reporte-codex.log
 Docs/plans/*.prompt.txt
+verification/watch.log
