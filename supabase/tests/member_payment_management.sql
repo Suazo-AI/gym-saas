@@ -114,7 +114,7 @@ select isnt_empty(
     where n.nspname = 'public'
       and p.proname = 'refund_member_payment'
       and p.prosecdef
-      and p.proconfig @> array['search_path=']::text[]$$,
+      and p.proconfig @> array['search_path=""']::text[]$$,
   'refund payment is security definer with an empty search path'
 );
 
@@ -126,6 +126,11 @@ select ok(
   ),
   'authenticated can execute refund_member_payment'
 );
+
+create temp table _recibo_antes as
+  select receipt_number
+  from public.member_payments
+  where id = '90000000-0000-4000-8000-000000000001';
 
 select lives_ok(
   $$select public.refund_member_payment(
@@ -192,7 +197,7 @@ select is(
 select is(
   (select receipt_number from public.member_payments
    where id = '90000000-0000-4000-8000-000000000001'),
-  'R-LOCAL-0001',
+  (select receipt_number from _recibo_antes),
   'a refund preserves the original receipt number'
 );
 
