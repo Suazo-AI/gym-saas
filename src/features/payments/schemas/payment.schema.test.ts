@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { registerPaymentSchema } from "./payment.schema";
+import { refundPaymentSchema, registerPaymentSchema } from "./payment.schema";
 
 const baseInput = {
   gymId: "11111111-1111-4111-8111-111111111111",
@@ -38,5 +38,31 @@ describe("registerPaymentSchema", () => {
 
     expect(result.success).toBe(false);
     expect(result.error?.issues[0]?.message).toBe("El monto debe ser decimal.");
+  });
+});
+
+describe("refundPaymentSchema", () => {
+  const refund = {
+    paymentId: "55555555-5555-4555-8555-555555555555",
+    amount: "125.50",
+    reason: "Devolución solicitada",
+  };
+
+  it("acepta un reembolso con monto decimal y motivo", () => {
+    expect(refundPaymentSchema.parse(refund)).toEqual(refund);
+  });
+
+  it("rechaza un monto igual a cero", () => {
+    const result = refundPaymentSchema.safeParse({ ...refund, amount: "0" });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe("El monto debe ser mayor que cero.");
+  });
+
+  it("rechaza un motivo menor de tres caracteres", () => {
+    const result = refundPaymentSchema.safeParse({ ...refund, reason: "no" });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe("Indica el motivo del reembolso.");
   });
 });

@@ -1,8 +1,16 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
-import { registerPaymentSchema, voidPaymentSchema } from "../schemas/payment.schema";
-import { registerMemberPayment, voidPayment } from "../services/payment.repository";
+import {
+  refundPaymentSchema,
+  registerPaymentSchema,
+  voidPaymentSchema,
+} from "../schemas/payment.schema";
+import {
+  refundPayment,
+  registerMemberPayment,
+  voidPayment,
+} from "../services/payment.repository";
 
 export type PaymentActionState = { ok: boolean; message?: string };
 export async function recordPaymentAction(_: PaymentActionState, form: FormData): Promise<PaymentActionState> {
@@ -30,6 +38,24 @@ export async function recordPaymentAction(_: PaymentActionState, form: FormData)
 }
 export async function voidPaymentAction(_: PaymentActionState, form: FormData): Promise<PaymentActionState> {
   try { const input=voidPaymentSchema.parse({paymentId:form.get("paymentId"),reason:form.get("reason")}); await voidPayment(input.paymentId,input.reason); refresh(); return {ok:true,message:"Pago anulado. El cargo fue reabierto."}; } catch(e) { return {ok:false,message:message(e)}; }
+}
+
+export async function refundPaymentAction(
+  _: PaymentActionState,
+  form: FormData,
+): Promise<PaymentActionState> {
+  try {
+    const input = refundPaymentSchema.parse({
+      paymentId: form.get("paymentId"),
+      amount: form.get("amount"),
+      reason: form.get("reason"),
+    });
+    await refundPayment(input.paymentId, input.amount, input.reason);
+    refresh();
+    return { ok: true, message: "Reembolso registrado. El saldo del cargo fue actualizado." };
+  } catch (error) {
+    return { ok: false, message: message(error) };
+  }
 }
 
 export async function registerPaymentAction(_: PaymentActionState, form: FormData): Promise<PaymentActionState> {

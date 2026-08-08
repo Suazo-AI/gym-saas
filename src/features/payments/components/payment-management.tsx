@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 
 import {
   recordPaymentAction,
+  refundPaymentAction,
   voidPaymentAction,
   type PaymentActionState,
 } from "../actions/payment.actions";
@@ -120,7 +121,12 @@ function PaymentList({ payments }: { payments: PaymentSummaryDto[] }) {
 }
 
 function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
-  const [state, action, pending] = useActionState(voidPaymentAction, initial);
+  const [voidState, voidAction, voidPending] = useActionState(voidPaymentAction, initial);
+  const [refundState, refundAction, refundPending] = useActionState(
+    refundPaymentAction,
+    initial,
+  );
+  const canRefund = payment.status === "settled" || payment.status === "partially_refunded";
   return (
     <article className="p-4">
       <div className="flex flex-wrap justify-between gap-3">
@@ -133,17 +139,42 @@ function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
         {payment.status === "settled" ? (
           <details>
             <summary className="cursor-pointer text-sm font-black text-red-700">Anular</summary>
-            <form action={action} className="mt-2 flex gap-2">
+            <form action={voidAction} className="mt-2 flex gap-2">
               <input name="paymentId" type="hidden" value={payment.id} />
               <input className={input} name="reason" placeholder="Motivo" required />
-              <button className="rounded-lg bg-red-700 px-3 text-sm font-black text-white" disabled={pending}>
+              <button className="rounded-lg bg-red-700 px-3 text-sm font-black text-white" disabled={voidPending}>
                 Confirmar
               </button>
             </form>
           </details>
         ) : null}
+        {canRefund ? (
+          <details>
+            <summary className="cursor-pointer text-sm font-black text-amber-700">Reembolsar</summary>
+            <form action={refundAction} className="mt-2 grid gap-2 sm:grid-cols-2">
+              <input name="paymentId" type="hidden" value={payment.id} />
+              <input
+                className={input}
+                inputMode="decimal"
+                max={payment.amount}
+                name="amount"
+                pattern="^\d+(\.\d{1,2})?$"
+                placeholder="Monto"
+                required
+              />
+              <input className={input} name="reason" placeholder="Motivo" required />
+              <button
+                className="rounded-lg bg-amber-700 px-3 py-2 text-sm font-black text-white disabled:opacity-60 sm:col-span-2"
+                disabled={refundPending}
+              >
+                {refundPending ? "Registrando..." : "Confirmar reembolso"}
+              </button>
+            </form>
+          </details>
+        ) : null}
       </div>
-      <Message state={state} />
+      <Message state={voidState} />
+      <Message state={refundState} />
     </article>
   );
 }

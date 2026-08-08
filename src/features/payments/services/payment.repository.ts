@@ -2,7 +2,7 @@ import { mapSupabaseError } from "@/lib/api/map-supabase-error";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/types";
 
-import { registerPaymentSchema } from "../schemas/payment.schema";
+import { refundPaymentSchema, registerPaymentSchema } from "../schemas/payment.schema";
 import { registerDayPassSchema, type RegisterDayPassInput } from "../schemas/day-pass.schema";
 import { mapPendingChargeRows, mapRegisteredPayment } from "../mappers/payment.mapper";
 import type {
@@ -123,6 +123,18 @@ export async function listPayableCharges(gymId: string): Promise<PayableChargeDt
 export async function voidPayment(paymentId: string, reason: string) {
   const supabase = await createClient(); const { data, error } = await supabase.rpc("void_member_payment" as never, { p_payment_id: paymentId, p_reason: reason } as never);
   if (error) throw mapSupabaseError(error); return data;
+}
+
+export async function refundPayment(paymentId: string, amount: string, reason: string) {
+  const parsed = refundPaymentSchema.parse({ paymentId, amount, reason });
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("refund_member_payment" as never, {
+    p_payment_id: parsed.paymentId,
+    p_amount: parsed.amount,
+    p_reason: parsed.reason,
+  } as never);
+  if (error) throw mapSupabaseError(error);
+  return data;
 }
 
 function mapPaymentMethod(row: Pick<
