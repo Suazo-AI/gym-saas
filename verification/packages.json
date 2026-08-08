@@ -17,8 +17,13 @@
       "branch": "fix/member-payments-direct-write",
       "base": "origin/main",
       "maxCommits": 1,
-      "allowedPaths": ["supabase/migrations/**", "supabase/tests/**"],
-      "appendOnlyPaths": ["supabase/migrations/**"],
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
       "expectPgtapDeltaMin": 5,
       "frozenFiles": {}
     },
@@ -29,8 +34,14 @@
       "base": "origin/main",
       "maxCommits": 1,
       "_ampliado": "2026-08-07: se agrego supabase/seed.sql al alcance. El verificador lo marco fuera de alcance y con razon: el plan no lo autorizaba. Revisado a mano, el cambio es una sola linea, 'overdue' -> 'pending', y es forzado: sin eso el seed viola el check constraint nuevo y no carga. Ampliacion deliberada, no relajacion del criterio.",
-      "allowedPaths": ["supabase/migrations/**", "supabase/tests/**", "supabase/seed.sql"],
-      "appendOnlyPaths": ["supabase/migrations/**"],
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "supabase/seed.sql"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
       "expectPgtapDeltaMin": 4,
       "frozenFiles": {}
     },
@@ -45,7 +56,9 @@
         "supabase/tests/**",
         "src/features/payments/**"
       ],
-      "appendOnlyPaths": ["supabase/migrations/**"],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
       "expectPgtapDeltaMin": 1,
       "frozenFiles": {}
     },
@@ -62,7 +75,9 @@
         "src/features/alerts/**",
         "src/features/app/**"
       ],
-      "appendOnlyPaths": ["supabase/migrations/**"],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
       "expectPgtapDeltaMin": 1,
       "frozenFiles": {}
     },
@@ -72,8 +87,13 @@
       "branch": "feat/member-filters-ui",
       "base": "origin/main",
       "maxCommits": 1,
-      "allowedPaths": ["src/app/(gym)/members/**", "src/features/members/**"],
-      "appendOnlyPaths": ["supabase/migrations/**"],
+      "allowedPaths": [
+        "src/app/(gym)/members/**",
+        "src/features/members/**"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
       "expectPgtapDeltaMin": 0,
       "frozenFiles": {}
     },
@@ -91,7 +111,86 @@
         ".github/workflows/**",
         ".env.example"
       ],
-      "appendOnlyPaths": ["supabase/migrations/**"],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "expectPgtapDeltaMin": 0,
+      "frozenFiles": {}
+    },
+    {
+      "base": "origin/main",
+      "maxCommits": 4,
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "id": "S1",
+      "name": "Reembolso de pagos y prueba real de la anulacion",
+      "branch": "feat/payment-refund",
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "src/features/payments/**"
+      ],
+      "expectPgtapDeltaMin": 12,
+      "frozenFiles": {}
+    },
+    {
+      "base": "origin/main",
+      "maxCommits": 4,
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "id": "S2",
+      "name": "Completar el modulo de ingresos",
+      "branch": "feat/income-module",
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "src/features/income/**",
+        "src/app/(gym)/income/**"
+      ],
+      "expectPgtapDeltaMin": 4,
+      "frozenFiles": {}
+    },
+    {
+      "base": "origin/main",
+      "maxCommits": 4,
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "id": "S3",
+      "name": "Exportar datos a CSV",
+      "branch": "feat/data-export",
+      "allowedPaths": [
+        "src/app/api/export/**",
+        "src/features/export/**"
+      ],
+      "expectPgtapDeltaMin": 0,
+      "frozenFiles": {
+        "src/app/api/export/export-contract.test.ts": "d6f10c2b38127c4e45d3446078d054f196b399d95a20b09cd72f7dd648ccefe6"
+      }
+    },
+    {
+      "base": "origin/main",
+      "maxCommits": 4,
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "id": "S4",
+      "name": "Reportes esenciales",
+      "branch": "feat/essential-reports",
+      "allowedPaths": [
+        "src/features/payments/**",
+        "src/features/entries/**",
+        "src/features/members/**",
+        "src/app/(gym)/**",
+        "supabase/migrations/**",
+        "supabase/tests/**"
+      ],
       "expectPgtapDeltaMin": 0,
       "frozenFiles": {}
     }
