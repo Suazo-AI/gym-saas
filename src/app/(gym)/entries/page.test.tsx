@@ -59,6 +59,11 @@ describe("EntriesPage", () => {
     expect(html).toContain("Escribe un nombre o código para comenzar.");
     expect(html).toContain("Todavía no hay entradas registradas.");
     expect(html).toContain("Entrada facial");
+    expect(mocks.listGymEntries).toHaveBeenCalledWith({
+      gymId: "20000000-0000-4000-8000-000000000001",
+      from: undefined,
+      to: undefined,
+    });
     expect(mocks.listMembers).not.toHaveBeenCalled();
   });
 
