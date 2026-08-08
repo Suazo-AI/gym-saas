@@ -34,20 +34,62 @@ export async function listPaymentMethods(): Promise<PaymentMethodDto[]> {
   return (data ?? []).map(mapPaymentMethod);
 }
 
-export async function listRecentPayments(gymId: string, limit = 20): Promise<PaymentSummaryDto[]> {
+export async function listRecentPayments(input: {
+  gymId: string;
+  from?: string | null;
+  to?: string | null;
+  limit?: number;
+}): Promise<PaymentSummaryDto[]> {
+  const range = parseDateRange(input.from, input.to);
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("member_payments")
     .select("id, gym_member_id, amount, currency, status, receipt_number, paid_at, applied_nio_per_usd")
-    .eq("gym_id", gymId)
+    .eq("gym_id", input.gymId);
+
+  if (range.from) query = query.gte("paid_at", range.from);
+  if (range.to) query = query.lte("paid_at", range.to);
+
+  const { data, error } = await query
     .order("paid_at", { ascending: false })
-    .limit(Math.max(1, Math.min(limit, 100)));
+    .limit(normalizeReportLimit(input.limit));
 
   if (error) {
     throw mapSupabaseError(error);
   }
 
   return (data ?? []).map(mapPayment);
+}
+
+function parseDateRange(from?: string | null, to?: string | null) {
+  const normalizedFrom = normalizeDateBound(from, false);
+  const normalizedTo = normalizeDateBound(to, true);
+
+  if (normalizedFrom && normalizedTo && Date.parse(normalizedFrom) > Date.parse(normalizedTo)) {
+    throw new Error("El rango de fechas no es valido.");
+  }
+
+  return { from: normalizedFrom, to: normalizedTo };
+}
+
+function normalizeDateBound(value: string | null | undefined, endOfDay: boolean) {
+  const clean = value?.trim();
+  if (!clean) return null;
+
+  const normalized = /^\d{4}-\d{2}-\d{2}$/.test(clean)
+    ? `${clean}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`
+    : new Date(clean).toISOString();
+
+  if (Number.isNaN(Date.parse(normalized))) {
+    throw new Error("El rango de fechas no es valido.");
+  }
+
+  return normalized;
+}
+
+function normalizeReportLimit(limit = 20) {
+  if (!Number.isFinite(limit)) return 20;
+  return Math.max(1, Math.min(Math.trunc(limit), 100));
 }
 
 export async function listMemberPendingCharges(input: {

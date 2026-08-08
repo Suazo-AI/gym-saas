@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { PersistedDateRangeForm } from "@/app/(gym)/_components/persisted-date-range-form";
 import { ModuleHeader } from "@/features/app/components/module-header";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { getEntryDecisionState } from "@/features/entries/entry-decision-state";
@@ -11,7 +12,7 @@ import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { getMember, listMembers } from "@/features/members/services/member.repository";
 
 type EntriesPageProps = {
-  searchParams: Promise<{ search?: string; gymMemberId?: string }>;
+  searchParams: Promise<{ search?: string; gymMemberId?: string; from?: string; to?: string }>;
 };
 
 const dateFormatter = new Intl.DateTimeFormat("es-NI", {
@@ -25,7 +26,11 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
 
   const params = await searchParams;
   const [entriesResult, membersResult, selectedMemberResult] = await Promise.all([
-    listGymEntries(activeGym.gymId).catch((error: unknown) => ({ error })),
+    listGymEntries({
+      gymId: activeGym.gymId,
+      from: params.from,
+      to: params.to,
+    }).catch((error: unknown) => ({ error })),
     params.search
       ? listMembers({
           gymId: activeGym.gymId,
@@ -100,7 +105,15 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
             {membersResult.data.map((member) => (
               <Link
                 className="flex min-h-11 items-center justify-between gap-4 px-5 py-3 hover:bg-gray-light"
-                href={`/entries?search=${encodeURIComponent(params.search ?? "")}&gymMemberId=${member.gymMemberId}`}
+                href={{
+                  pathname: "/entries",
+                  query: {
+                    search: params.search ?? "",
+                    gymMemberId: member.gymMemberId,
+                    ...(params.from ? { from: params.from } : {}),
+                    ...(params.to ? { to: params.to } : {}),
+                  },
+                }}
                 key={member.gymMemberId}
               >
                 <span>
@@ -139,11 +152,13 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
 
       <section className="mt-6 rounded-lg border border-gray-300 bg-paper shadow-sm">
         <div className="border-b border-gray p-5">
-          <h2 className="text-xl font-black text-ink">Entradas recientes</h2>
+          <h2 className="text-xl font-black text-ink">Entradas por periodo</h2>
           <p className="mt-1 text-sm text-gray-300">
             Historial manual y facial visible para tu gimnasio.
           </p>
         </div>
+
+        <PersistedDateRangeForm from={params.from} storageKey="fitmanager:entries-date-range" to={params.to} />
 
         {"error" in entriesResult ? (
           <p className="p-5 text-sm font-semibold text-brand-red" role="alert">
