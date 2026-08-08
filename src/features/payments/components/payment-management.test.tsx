@@ -44,5 +44,7 @@ describe("PaymentManagement", () => {
     expect(html).toContain('name="amount"');
     expect(html).toContain("Confirmar reembolso");
     expect(html).toContain("C$36.600000");
+    expect(html).toContain('href="/payments/p/receipt"');
+    expect(html).toContain("Recibo");
   });
 });
