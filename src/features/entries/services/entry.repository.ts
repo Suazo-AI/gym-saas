@@ -18,6 +18,8 @@ type EntryQueryResult<T> = Promise<{ data: T | null; error: unknown }>;
 type EntryViewQuery<T> = {
   select: (columns: string) => EntryViewQuery<T>;
   eq: (column: string, value: unknown) => EntryViewQuery<T>;
+  gte: (column: string, value: unknown) => EntryViewQuery<T>;
+  lte: (column: string, value: unknown) => EntryViewQuery<T>;
   order: (column: string, options?: { ascending?: boolean }) => EntryViewQuery<T>;
   limit: (value: number) => EntryQueryResult<T[]>;
 };
@@ -43,20 +45,62 @@ export async function registerMemberEntry(input: RegisterEntryInput): Promise<Re
   return mapRegisteredEntry(data as unknown as RegisteredEntryRow);
 }
 
-export async function listGymEntries(gymId: string, limit = 20): Promise<MemberEntryDto[]> {
+export async function listGymEntries(input: {
+  gymId: string;
+  from?: string | null;
+  to?: string | null;
+  limit?: number;
+}): Promise<MemberEntryDto[]> {
+  const range = parseDateRange(input.from, input.to);
   const supabase = (await createClient()) as unknown as EntryViewsClient;
-  const { data, error } = await supabase
+  let query = supabase
     .from<MemberEntryRow>("v_gym_entries")
     .select("*")
-    .eq("gym_id", gymId)
+    .eq("gym_id", input.gymId);
+
+  if (range.from) query = query.gte("occurred_at", range.from);
+  if (range.to) query = query.lte("occurred_at", range.to);
+
+  const { data, error } = await query
     .order("occurred_at", { ascending: false })
-    .limit(Math.max(1, Math.min(limit, 100)));
+    .limit(normalizeReportLimit(input.limit));
 
   if (error) {
     throw mapSupabaseError(error);
   }
 
   return mapMemberEntryRows(data ?? []);
+}
+
+function parseDateRange(from?: string | null, to?: string | null) {
+  const normalizedFrom = normalizeDateBound(from, false);
+  const normalizedTo = normalizeDateBound(to, true);
+
+  if (normalizedFrom && normalizedTo && Date.parse(normalizedFrom) > Date.parse(normalizedTo)) {
+    throw new Error("El rango de fechas no es valido.");
+  }
+
+  return { from: normalizedFrom, to: normalizedTo };
+}
+
+function normalizeDateBound(value: string | null | undefined, endOfDay: boolean) {
+  const clean = value?.trim();
+  if (!clean) return null;
+
+  const normalized = /^\d{4}-\d{2}-\d{2}$/.test(clean)
+    ? `${clean}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`
+    : new Date(clean).toISOString();
+
+  if (Number.isNaN(Date.parse(normalized))) {
+    throw new Error("El rango de fechas no es valido.");
+  }
+
+  return normalized;
+}
+
+function normalizeReportLimit(limit = 20) {
+  if (!Number.isFinite(limit)) return 20;
+  return Math.max(1, Math.min(Math.trunc(limit), 100));
 }
 
 export async function listRecentEntryEvents(gymId: string, limit = 20): Promise<EntryEventDto[]> {
