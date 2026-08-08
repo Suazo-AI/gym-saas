@@ -29,10 +29,10 @@ select throws_ok(
     320,
     240,
     repeat('a', 64),
-    array_fill(0.0::real, array[512])::extensions.vector,
+    array_fill(0.0::real, array[128])::extensions.vector,
     0.8,
     '2026-07-22',
-    'insightface-buffalo-l-w600k-r50'
+    'opencv-sface'
   )$$,
   '42501',
   null,

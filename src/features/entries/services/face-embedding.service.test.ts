@@ -21,18 +21,18 @@ describe("generateFaceEmbedding", () => {
     });
   });
 
-  it("sends the shared token and accepts a 512 dimension embedding", async () => {
+  it("sends the shared token and accepts a 128 dimension embedding", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
-      embedding: Array.from({ length: 512 }, () => 0.01),
+      embedding: Array.from({ length: 128 }, () => 0.01),
       faceCount: 1,
       qualityScore: 0.9,
-      modelCode: "insightface-buffalo-l-w600k-r50",
+      modelCode: "opencv-sface",
       processingMs: 25,
     }), { status: 200, headers: { "content-type": "application/json" } }));
 
     const result = await generateFaceEmbedding("base64-image");
 
-    expect(result.embedding).toHaveLength(512);
+    expect(result.embedding).toHaveLength(128);
     expect(fetchMock).toHaveBeenCalledWith(
       new URL("http://face-service:8010/embed"),
       expect.objectContaining({
