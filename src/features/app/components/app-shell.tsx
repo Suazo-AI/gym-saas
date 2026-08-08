@@ -5,7 +5,7 @@ import type { ActiveGymDto } from "@/features/gyms/types/gym.dto";
 import { listCurrentUserScreens } from "../services/navigation.repository";
 import { LocalizedNav, PreferencesControls } from "./preferences-controls";
 
-const supportedRoutes = new Set(["/dashboard","/members","/memberships","/payments","/entries","/income","/staff","/settings"]);
+const supportedRoutes = new Set(["/dashboard","/members","/memberships","/payments","/entries","/alerts","/income","/staff","/settings"]);
 
 type AppShellProps = {
   activeGym: ActiveGymDto;
