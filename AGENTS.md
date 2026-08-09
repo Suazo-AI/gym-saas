@@ -416,7 +416,7 @@ Consecuencia que importa: hay fotografías biométricas en `gym-media` y este ar
 
 Módulo implementado. El esquema cubre fotografías, consentimiento biométrico, modelos faciales, embeddings, eventos, dispositivos, alertas y búsqueda por similitud con `pgvector`.
 
-**Los embeddings son de 512 dimensiones y ese número vive hoy en cuatro lugares editables por separado:** `services/face-recognition/app.py`, el `zod .length(512)` de `member-face-enrollment.repository.ts`, el chequeo de `face-verification.repository.ts` y el tipo `vector(512)` del esquema. Cambiar la dimensión exige migración completa, decisión sobre el modelo facial, y tocar los cuatro. Ya se rompió una vez (`4865e98`, el servicio pasó a 128 y hubo que revertirlo).
+**Los embeddings son de 128 dimensiones y usan OpenCV YuNet + SFace.** La decisión fue aprobada por el supervisor el 8 de agosto de 2026 porque Buffalo/InsightFace requiere una licencia incompatible con el despliegue actual. El número vive en cuatro contratos editables por separado: `services/face-recognition/app.py`, el `zod .length(128)` de `member-face-enrollment.repository.ts`, el chequeo de `face-verification.repository.ts` y el tipo `vector(128)` establecido por `20260808050000_sface_128_dimensions.sql`. Cambiar la dimensión exige otra decisión explícita sobre el modelo, migración completa y actualización coordinada de los cuatro contratos.
 
 Antes de crear un embedding debe existir consentimiento biométrico válido.
 

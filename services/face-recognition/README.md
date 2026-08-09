@@ -81,7 +81,9 @@ El último comando debe devolver `128`.
 
 ## Despliegue
 
-Publicar la imagen en una plataforma que ejecute contenedores Linux y configurar:
+Publicar la imagen en una plataforma que ejecute contenedores Linux. En Render este repositorio debe usar `services/face-recognition` como Root Directory y `Docker` como Runtime; el runtime nativo de Python no incluye los modelos ignorados por Git. El contenedor respeta la variable `PORT` de Render y usa `8010` como valor local por defecto.
+
+Configurar:
 
 1. Puerto interno `8010`.
 2. `FACE_RECOGNITION_SERVICE_TOKEN` como secreto del servicio.
