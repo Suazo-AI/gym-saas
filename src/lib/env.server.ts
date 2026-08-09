@@ -12,6 +12,10 @@ const faceServiceEnvSchema = z.object({
   FACE_RECOGNITION_SERVICE_TOKEN: z.string().min(32),
 });
 
+const storageWorkerEnvSchema = z.object({
+  STORAGE_DELETION_WORKER_TOKEN: z.string().min(32),
+});
+
 export function parseServerEnv(input: Record<string, string | undefined>) {
   return serverEnvSchema.parse(input);
 }
@@ -31,5 +35,15 @@ export function getFaceServiceEnv() {
   return parseFaceServiceEnv({
     FACE_RECOGNITION_SERVICE_URL: process.env.FACE_RECOGNITION_SERVICE_URL,
     FACE_RECOGNITION_SERVICE_TOKEN: process.env.FACE_RECOGNITION_SERVICE_TOKEN,
+  });
+}
+
+export function parseStorageWorkerEnv(input: Record<string, string | undefined>) {
+  return storageWorkerEnvSchema.parse(input);
+}
+
+export function getStorageWorkerEnv() {
+  return parseStorageWorkerEnv({
+    STORAGE_DELETION_WORKER_TOKEN: process.env.STORAGE_DELETION_WORKER_TOKEN,
   });
 }
