@@ -30,6 +30,7 @@ type WorkerClient = {
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const RETRY_AFTER_SECONDS = 300;
+const STORAGE_BUCKET = "gym-media";
 
 export async function runStorageDeletionWorker(
   input: { limit?: number } = {},
@@ -92,6 +93,10 @@ export async function runStorageDeletionWorker(
  * y no habria RLS que lo frenara.
  */
 function tenantViolation(job: StorageDeletionJob): string | null {
+  if (job.bucket_name !== STORAGE_BUCKET) {
+    return "El bucket del trabajo no esta permitido.";
+  }
+
   if (!job.gym_id || !job.object_path) {
     return "El trabajo no declara gimnasio o ruta de objeto.";
   }

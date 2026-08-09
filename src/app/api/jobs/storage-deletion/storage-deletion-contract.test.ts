@@ -207,3 +207,80 @@ describe("worker de eliminacion de Storage: procesamiento", () => {
     expect(rpcArgs(rpc, "fail_storage_deletion_job")).toHaveLength(1);
   });
 });
+
+// F004. El worker le cree a la fila cual es el bucket y llama
+// storage.from(job.bucket_name) sin validarlo. Corre con service_role, que
+// saltea RLS por completo: una fila con otro bucket lo convierte en un borrado
+// fuera de gym-media, que es el unico bucket del producto segun AGENTS.md.
+//
+// La validacion del prefijo de gimnasio ya existe y no cubre esto: una ruta
+// puede empezar por el gym_id correcto y aun asi apuntar a otro bucket.
+//
+// El contrato exige lista blanca, no lista negra, y comparacion exacta. Un
+// bucket desconocido se rechaza antes de tocar Storage, no despues.
+describe("worker de eliminacion de Storage: lista blanca de bucket", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getStorageWorkerEnv.mockReturnValue({
+      STORAGE_DELETION_WORKER_TOKEN: TOKEN,
+    });
+  });
+
+  const enBucket = (base: Job, bucket: string): Job => ({
+    ...base,
+    bucket_name: bucket,
+  });
+
+  it("rechaza un trabajo que declara otro bucket, sin tocar Storage", async () => {
+    const ajeno = enBucket(job("job-1", GYM_A, `${GYM_A}/members/abc/foto.webp`), "otro-bucket");
+    const { rpc, remove, from } = adminDouble({ jobs: [ajeno] });
+
+    await POST(request(TOKEN));
+
+    expect(from).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+    expect(rpcNames(rpc)).not.toContain("complete_storage_deletion_job");
+    expect(rpcArgs(rpc, "fail_storage_deletion_job")).toHaveLength(1);
+  });
+
+  it.each(["", "  ", "GYM-MEDIA", " gym-media", "gym-media/", "storage/gym-media"])(
+    "rechaza el bucket %j: la comparacion es exacta, no aproximada",
+    async (bucket) => {
+      const ajeno = enBucket(job("job-1", GYM_A, `${GYM_A}/members/abc/foto.webp`), bucket);
+      const { rpc, from } = adminDouble({ jobs: [ajeno] });
+
+      await POST(request(TOKEN));
+
+      expect(from).not.toHaveBeenCalled();
+      expect(rpcArgs(rpc, "fail_storage_deletion_job")).toHaveLength(1);
+    },
+  );
+
+  it("un bucket ajeno no impide procesar el resto del lote", async () => {
+    const ajeno = enBucket(job("job-malo", GYM_A, `${GYM_A}/members/abc/foto.webp`), "otro-bucket");
+    const sano = job("job-bueno", GYM_A, `${GYM_A}/members/def/foto.webp`);
+    const { rpc, remove, from } = adminDouble({ jobs: [ajeno, sano] });
+
+    await POST(request(TOKEN));
+
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenCalledWith("gym-media");
+    expect(remove).toHaveBeenCalledWith([sano.object_path]);
+    expect(rpcArgs(rpc, "complete_storage_deletion_job")).toContainEqual({
+      p_job_id: sano.id,
+    });
+    expect(rpcArgs(rpc, "fail_storage_deletion_job")).toHaveLength(1);
+  });
+
+  it("el motivo del rechazo queda escrito en la cola y nombra al bucket", async () => {
+    const ajeno = enBucket(job("job-1", GYM_A, `${GYM_A}/members/abc/foto.webp`), "otro-bucket");
+    const { rpc } = adminDouble({ jobs: [ajeno] });
+
+    await POST(request(TOKEN));
+
+    const failures = rpcArgs(rpc, "fail_storage_deletion_job") as Array<Record<string, unknown>>;
+    expect(failures).toHaveLength(1);
+    expect(failures[0].p_job_id).toBe(ajeno.id);
+    expect(String(failures[0].p_error)).toContain("bucket");
+  });
+});
