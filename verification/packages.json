@@ -280,6 +280,27 @@
       "frozenFiles": {
         "supabase/tests/biometric_revocation_contract.sql": "59e5fe91c85e0dc7c13b59c82a5166164a89ee782078b1ceb804ea4defb769a3"
       }
+    },
+    {
+      "id": "M1",
+      "name": "Los ingresos se muestran netos de reembolsos",
+      "branch": "fix/income-refund-netting",
+      "base": "origin/main",
+      "maxCommits": 3,
+      "_autor": "Implementado por el mismo autor del contrato, no delegado: es una redefinicion de vista de veinte lineas y el traspaso costaba mas que el arreglo. El criterio se congelo y se corrio en rojo antes de escribir la migracion.",
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "verification/packages.json"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "expectPgtapDeltaMin": 4,
+      "frozenFiles": {
+        "supabase/tests/income_refund_contract.sql": "399236cbc6144347851106d962caa33a0382b341f9dc7e91876d4f2631ab50bd"
+      }
     }
   ]
 }
