@@ -302,6 +302,31 @@
         "supabase/tests/income_refund_contract.sql": "edd3f315becfc6213d92af4df947ead32e7bc20b30910ec342c6c26b56d7c18a"
       },
       "_rehash": "2026-08-09: el hash registrado era el de la copia en disco, que Windows dejo con CRLF al rematerializar el archivo en el rebase. El verificador compara el blob de git, que esta en LF. El contenido de la prueba no cambio ni una linea: cambio el hash del mismo contenido bajo otro final de linea. Corregido por el autor del contrato."
+    },
+    {
+      "id": "W2",
+      "name": "Cola de borrado de Storage segura de correr sola",
+      "branch": "feat/storage-queue-hardening",
+      "base": "origin/main",
+      "maxCommits": 4,
+      "_hallazgos": "F002 reclamo de trabajos trabados en processing, F003 tope de intentos con estado terminal, F004 lista blanca de bucket en el worker, F005 cobertura pgTAP de la cola y sus tres RPC.",
+      "_contrato": "Escrito y congelado por el autor del contrato antes de delegar, en el commit da6c5b2. Corrido en rojo sobre origin/main: 9 de 26 aserciones pgTAP y 9 de 16 de vitest fallan. El ejecutor recibe la suite roja y no puede tocar ninguno de los dos archivos congelados.",
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "src/features/storage/**",
+        "src/app/api/jobs/storage-deletion/**",
+        "verification/packages.json"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "expectPgtapDeltaMin": 26,
+      "frozenFiles": {
+        "supabase/tests/storage_deletion_queue_contract.sql": "4971caee59a082c23d44198466744f410e6b20435d9921cdb2124919d4371d38",
+        "src/app/api/jobs/storage-deletion/storage-deletion-contract.test.ts": "90d7df2e91439551880f3a82bdc9ab38ca2473821c5e052f04c58eeeb1983053"
+      }
     }
   ]
 }
