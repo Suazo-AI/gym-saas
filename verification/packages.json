@@ -238,6 +238,27 @@
       "frozenFiles": {
         "supabase/tests/subscription_delete_protection.sql": "430dfa588d1886868f5765e40bb3c0b0f020c147f0b436a7f8d019dc78d4ef23"
       }
+    },
+    {
+      "id": "W4",
+      "name": "Facturacion por la duracion real del plan",
+      "branch": "feat/billing-duration",
+      "base": "origin/main",
+      "maxCommits": 4,
+      "_maxCommits": "El primer commit es el contrato congelado, escrito por el autor del contrato antes de delegar. Al ejecutor le quedan 3.",
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "verification/packages.json"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "expectPgtapDeltaMin": 12,
+      "frozenFiles": {
+        "supabase/tests/billing_duration_contract.sql": "e9641f34ac974ec3ff534b44c775fa94dee9e86ef7bc87b7d03b8eeb361e2c58"
+      }
     }
   ]
 }
