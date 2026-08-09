@@ -259,6 +259,27 @@
       "frozenFiles": {
         "supabase/tests/billing_duration_contract.sql": "e9641f34ac974ec3ff534b44c775fa94dee9e86ef7bc87b7d03b8eeb361e2c58"
       }
+    },
+    {
+      "id": "W1",
+      "name": "Revocacion biometrica como unico punto de estrangulamiento",
+      "branch": "feat/biometric-revocation",
+      "base": "origin/main",
+      "maxCommits": 4,
+      "_maxCommits": "El primer commit es el contrato congelado, escrito por el autor del contrato antes de delegar. Al ejecutor le quedan 3.",
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "verification/packages.json"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "expectPgtapDeltaMin": 12,
+      "frozenFiles": {
+        "supabase/tests/biometric_revocation_contract.sql": "59e5fe91c85e0dc7c13b59c82a5166164a89ee782078b1ceb804ea4defb769a3"
+      }
     }
   ]
 }
