@@ -216,6 +216,28 @@
       "allowPublished": true,
       "expectPgtapDeltaMin": 0,
       "frozenFiles": {}
+    },
+    {
+      "id": "F018",
+      "name": "Proteger member_subscriptions del borrado fisico",
+      "branch": "fix/subscription-delete-protection",
+      "base": "origin/main",
+      "maxCommits": 4,
+      "_maxCommits": "El primer commit es el contrato congelado mas el ledger de auditoria, escritos por el autor del contrato antes de delegar. Al ejecutor le quedan 3.",
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "verification/packages.json",
+        "verification/audit/**"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "expectPgtapDeltaMin": 10,
+      "frozenFiles": {
+        "supabase/tests/subscription_delete_protection.sql": "430dfa588d1886868f5765e40bb3c0b0f020c147f0b436a7f8d019dc78d4ef23"
+      }
     }
   ]
 }
