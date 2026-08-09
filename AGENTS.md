@@ -407,16 +407,26 @@ Validar:
 
 Eliminar el registro de PostgreSQL no elimina el objeto de Storage. No modificar ni eliminar directamente registros de `storage.objects`.
 
-**El worker que procesa la cola no existe todavía.** El esquema tiene `storage_deletion_queue` y sus tres RPC (`claim`/`complete`/`fail_storage_deletion_job`, que requieren `service_role`), pero nada en `src/` las llama y no hay `supabase/functions/`. Los objetos borrados lógicamente siguen ocupando Storage.
+La cola es `storage_deletion_queue` y se opera con tres RPC que exigen `service_role`: `claim_storage_deletion_jobs`, `complete_storage_deletion_job` y `fail_storage_deletion_job`.
 
-Consecuencia que importa: hay fotografías biométricas en `gym-media` y este archivo promete que el consentimiento se puede revocar con retención. Hoy no hay camino para que esa fotografía muera. Construir el worker cuando exista su disparador real (revocación de consentimiento o baja de miembro con foto), no antes: sin caso de uso no se puede probar.
+**El worker que las consume existe desde el PR #59:** `src/features/storage/services/storage-deletion.worker.ts`, expuesto en `src/app/api/jobs/storage-deletion/route.ts`. No es una Edge Function y no hay `supabase/functions/`: vive como ruta de servidor de Next.js, que es donde el `service_role` ya está disponible sin exponerlo al navegador. Con esto, una fotografía biométrica borrada lógicamente sí tiene camino para morir en Storage.
 
 
 ## Reconocimiento facial
 
 Módulo implementado. El esquema cubre fotografías, consentimiento biométrico, modelos faciales, embeddings, eventos, dispositivos, alertas y búsqueda por similitud con `pgvector`.
 
-**Los embeddings son de 512 dimensiones y ese número vive hoy en cuatro lugares editables por separado:** `services/face-recognition/app.py`, el `zod .length(512)` de `member-face-enrollment.repository.ts`, el chequeo de `face-verification.repository.ts` y el tipo `vector(512)` del esquema. Cambiar la dimensión exige migración completa, decisión sobre el modelo facial, y tocar los cuatro. Ya se rompió una vez (`4865e98`, el servicio pasó a 128 y hubo que revertirlo).
+**Los embeddings son de 128 dimensiones** desde el PR #56 (`1bc290b`), que reemplazó `buffalo_l` de InsightFace, de licencia no comercial, por SFace de OpenCV, Apache 2.0. Las migraciones anteriores a `20260808050000_sface_128_dimensions.sql` siguen diciendo 512 porque son historia y no se reescriben: la que manda es la última.
+
+Ese número vive hoy en cinco lugares editables por separado:
+
+* `services/face-recognition/app.py`;
+* el `zod .length(128)` de `member-face-enrollment.repository.ts`;
+* el chequeo de `face-verification.repository.ts`;
+* el chequeo de `face-embedding.service.ts`;
+* el tipo `vector(128)` del esquema, más el `check (vector_dimensions = 128)` de `face_models`.
+
+Cambiar la dimensión exige migración completa, decisión sobre el modelo facial, y tocar los cinco. Ya se rompió una vez (`4865e98`, un cambio a 128 sin migración que hubo que revertir). Ningún embedding InsightFace histórico de 512 puede compararse con uno SFace de 128.
 
 Antes de crear un embedding debe existir consentimiento biométrico válido.
 
