@@ -299,8 +299,9 @@
       "allowPublished": true,
       "expectPgtapDeltaMin": 4,
       "frozenFiles": {
-        "supabase/tests/income_refund_contract.sql": "399236cbc6144347851106d962caa33a0382b341f9dc7e91876d4f2631ab50bd"
-      }
+        "supabase/tests/income_refund_contract.sql": "edd3f315becfc6213d92af4df947ead32e7bc20b30910ec342c6c26b56d7c18a"
+      },
+      "_rehash": "2026-08-09: el hash registrado era el de la copia en disco, que Windows dejo con CRLF al rematerializar el archivo en el rebase. El verificador compara el blob de git, que esta en LF. El contenido de la prueba no cambio ni una linea: cambio el hash del mismo contenido bajo otro final de linea. Corregido por el autor del contrato."
     }
   ]
 }
