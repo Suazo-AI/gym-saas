@@ -201,6 +201,20 @@ export async function assignMemberSubscription(
   return mapAssignedSubscription(data as AssignedSubscriptionRow);
 }
 
+export async function cancelMemberSubscription(
+  input: { subscriptionId: string; reason: string; cancelAtPeriodEnd: boolean },
+  injectedRpc?: Rpc,
+) {
+  const rpc = injectedRpc ?? await serverRpc();
+  const { data, error } = await rpc("cancel_member_subscription", {
+    p_member_subscription_id: input.subscriptionId,
+    p_reason: input.reason,
+    p_cancel_at_period_end: input.cancelAtPeriodEnd,
+  });
+  if (error) throw mapSupabaseError(error);
+  return data;
+}
+
 function mapPlan(row: Pick<
   Tables<"membership_plans">,
   "id" | "code" | "name" | "description" | "price" | "currency" | "billing_cycle_months" | "grace_days" | "is_active"

@@ -5,6 +5,7 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 import {
   createMembershipPlan,
   canManageMembershipPlans,
+  cancelMemberSubscription,
   createMembershipPlanBenefit,
   listDeletedMembershipPlans,
   restoreMembershipPlan,
@@ -60,6 +61,20 @@ describe("membership plan repository", () => {
     await restoreMembershipPlan(planId, rpc);
     expect(rpc).toHaveBeenNthCalledWith(1, "soft_delete_entity", { p_entity: "membership_plan", p_id: planId, p_reason: "Plan descontinuado" });
     expect(rpc).toHaveBeenNthCalledWith(2, "restore_entity", { p_entity: "membership_plan", p_id: planId });
+  });
+
+  it("cancela una membresía mediante la RPC atómica", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: {}, error: null });
+    await cancelMemberSubscription({
+      subscriptionId: "50000000-0000-4000-8000-000000000001",
+      reason: "Solicitud del miembro",
+      cancelAtPeriodEnd: false,
+    }, rpc);
+    expect(rpc).toHaveBeenCalledWith("cancel_member_subscription", {
+      p_member_subscription_id: "50000000-0000-4000-8000-000000000001",
+      p_reason: "Solicitud del miembro",
+      p_cancel_at_period_end: false,
+    });
   });
 
   it("consulta la papelera del gimnasio activo", async () => {

@@ -51,6 +51,16 @@ describe("mapSupabaseError", () => {
     expect(result.message).toBe("No encontramos el miembro en este gimnasio.");
   });
 
+  it("muestra reglas de negocio P0001 sin filtrar diagnósticos del motor", () => {
+    const result = mapSupabaseError({
+      code: "P0001",
+      message: "Cancel or expire the active membership before deleting the member",
+    });
+
+    expect(result.code).toBe("BUSINESS_RULE_VIOLATION");
+    expect(result.message).toBe("Cancel or expire the active membership before deleting the member");
+  });
+
   it("no filtra diagnósticos crudos de PostgreSQL aunque compartan código", () => {
     const result = mapSupabaseError({
       code: "23503",

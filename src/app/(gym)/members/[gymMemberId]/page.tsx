@@ -8,7 +8,7 @@ import { MemberDetailView } from "@/features/members/components/member-detail-vi
 import { MemberAdministration } from "@/features/members/components/member-administration";
 import { canManageMembers, getMember } from "@/features/members/services/member.repository";
 import { listBranches } from "@/features/settings/services/branch.repository";
-import { assignMembershipAction } from "@/features/memberships/actions/membership.actions";
+import { assignMembershipAction, cancelMembershipAction } from "@/features/memberships/actions/membership.actions";
 import { listMembershipPlans } from "@/features/memberships/services/membership.repository";
 
 type MemberDetailPageProps = {
@@ -26,6 +26,16 @@ async function assignMembershipFormAction(formData: FormData) {
     redirect(`/members/${id}?error=${encodeURIComponent(result.message ?? "No pudimos asignar la membresía.")}`);
   }
   redirect(`/members/${id}?notice=${encodeURIComponent("Membresía asignada.")}`);
+}
+
+async function cancelMembershipFormAction(formData: FormData) {
+  "use server";
+  const result = await cancelMembershipAction({ ok: false }, formData);
+  const id = String(formData.get("gymMemberId") ?? "");
+  if (!result.ok) {
+    redirect(`/members/${id}?error=${encodeURIComponent(result.message ?? "No pudimos cancelar la membresía.")}`);
+  }
+  redirect(`/members/${id}?notice=${encodeURIComponent(result.message ?? "Membresía cancelada.")}`);
 }
 
 export default async function MemberDetailPage({
@@ -92,6 +102,7 @@ export default async function MemberDetailPage({
       ) : null}
       <MemberDetailView
         assignMembershipAction={assignMembershipFormAction}
+        cancelMembershipAction={cancelMembershipFormAction}
         gymId={activeGym.gymId}
         member={member}
         membershipPlans={plansResult.plans}

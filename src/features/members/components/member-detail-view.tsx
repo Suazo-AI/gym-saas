@@ -9,6 +9,7 @@ type MemberDetailViewProps = {
   membershipPlans?: MembershipPlanDto[];
   plansLoadFailed?: boolean;
   assignMembershipAction?: (formData: FormData) => Promise<void>;
+  cancelMembershipAction?: (formData: FormData) => Promise<void>;
 };
 
 export function MemberDetailView({
@@ -17,6 +18,7 @@ export function MemberDetailView({
   membershipPlans = [],
   plansLoadFailed = false,
   assignMembershipAction,
+  cancelMembershipAction,
 }: MemberDetailViewProps) {
   const operationalState = getMemberOperationalState({
     memberStatus: member.status,
@@ -55,28 +57,50 @@ export function MemberDetailView({
             {canAssignMembership ? "Asignar membresía" : "Membresía actual"}
           </h2>
           {!canAssignMembership && member.currentSubscription ? (
-            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Detail label="Plan" value={member.currentSubscription.planName} />
-              <Detail label="Estado" value={member.currentSubscription.status} />
-              <Detail
-                label="Monto recurrente"
-                value={`${member.currentSubscription.currency} ${member.currentSubscription.recurringAmount}`}
-              />
-              <Detail
-                label="Inicio"
-                value={formatDate(member.currentSubscription.startDate)}
-              />
-              <Detail
-                label="Próximo pago"
-                value={member.nextPaymentDate ? formatDate(member.nextPaymentDate) : "Sin fecha registrada"}
-              />
-              <Detail
-                label="Fin"
-                value={member.currentSubscription.endDate
-                  ? formatDate(member.currentSubscription.endDate)
-                  : "Sin fecha de finalización"}
-              />
-            </dl>
+            <div>
+              <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+                <Detail label="Plan" value={member.currentSubscription.planName} />
+                <Detail label="Estado" value={member.currentSubscription.status} />
+                <Detail
+                  label="Monto recurrente"
+                  value={`${member.currentSubscription.currency} ${member.currentSubscription.recurringAmount}`}
+                />
+                <Detail
+                  label="Inicio"
+                  value={formatDate(member.currentSubscription.startDate)}
+                />
+                <Detail
+                  label="Próximo pago"
+                  value={member.nextPaymentDate ? formatDate(member.nextPaymentDate) : "Sin fecha registrada"}
+                />
+                <Detail
+                  label="Fin"
+                  value={member.currentSubscription.endDate
+                    ? formatDate(member.currentSubscription.endDate)
+                    : "Sin fecha de finalización"}
+                />
+              </dl>
+              {cancelMembershipAction ? (
+                <details className="mt-5 rounded-md border border-red-200 bg-red-50 p-4">
+                  <summary className="cursor-pointer text-sm font-black text-red-800">Cancelar membresía</summary>
+                  <form action={cancelMembershipAction} className="mt-4 grid gap-3">
+                    <input name="gymMemberId" type="hidden" value={member.gymMemberId} />
+                    <input name="subscriptionId" type="hidden" value={member.currentSubscription.id} />
+                    <label className="text-sm font-bold text-ink">
+                      Motivo de cancelación
+                      <input className="mt-2 min-h-11 w-full rounded-md border border-red-200 bg-paper px-3" name="reason" required />
+                    </label>
+                    <label className="flex min-h-11 items-center gap-3 text-sm font-bold text-ink">
+                      <input className="size-5 accent-brand-red" name="cancelAtPeriodEnd" type="checkbox" />
+                      Cancelar al terminar el período actual
+                    </label>
+                    <button className="min-h-11 rounded-md bg-red-700 px-4 py-2 text-sm font-black text-white" type="submit">
+                      Confirmar cancelación
+                    </button>
+                  </form>
+                </details>
+              ) : null}
+            </div>
           ) : plansLoadFailed ? (
             <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800">
               No pudimos cargar los planes. Intenta nuevamente.

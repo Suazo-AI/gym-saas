@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
 
-import { deleteStaffUser, inviteStaffUser, listStaffUsers, restoreStaffUser, updateStaffUser } from "./staff.repository";
+import { deleteStaffUser, inviteStaffUser, listDeletedStaffUsers, listStaffUsers, restoreStaffUser, updateStaffUser } from "./staff.repository";
 
 const gymId = "20000000-0000-4000-8000-000000000001";
 const gymUserId = "30000000-0000-4000-8000-000000000001";
@@ -14,6 +14,25 @@ describe("staff repository", () => {
     const rpc = vi.fn().mockResolvedValue({ data: [{ id: gymUserId }], error: null });
     await expect(listStaffUsers(gymId, rpc)).resolves.toEqual([{ id: gymUserId }]);
     expect(rpc).toHaveBeenCalledWith("list_gym_staff", { p_gym_id: gymId });
+  });
+
+  it("loads retired staff from the shared recycle-bin RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: [{ id: gymUserId, label: "Ana", deleted_at: "2026-08-09T00:00:00Z", deletion_reason: "Fin de contrato" }],
+      error: null,
+    });
+    await expect(listDeletedStaffUsers(gymId, rpc)).resolves.toEqual([{
+      id: gymUserId,
+      label: "Ana",
+      deletedAt: "2026-08-09T00:00:00Z",
+      reason: "Fin de contrato",
+    }]);
+    expect(rpc).toHaveBeenCalledWith("list_deleted_entities", {
+      p_gym_id: gymId,
+      p_entity: "gym_user",
+      p_limit: 50,
+      p_offset: 0,
+    });
   });
 
   it("updates staff through the atomic RPC", async () => {

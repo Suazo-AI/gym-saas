@@ -18,6 +18,13 @@ export type StaffUserDto = {
   permissions: string[];
 };
 
+export type DeletedStaffUserDto = {
+  id: string;
+  label: string;
+  deletedAt: string;
+  reason: string | null;
+};
+
 export type RoleScreenAccessDto = {
   screens: Array<{ id: string; code: string; name: string; route: string; permissionCodes: string[] }>;
   roles: Array<{ id: string; code: string; name: string; isOwner: boolean; screenIds: string[]; permissionCodes: string[] }>;

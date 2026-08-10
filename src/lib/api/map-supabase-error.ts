@@ -47,6 +47,7 @@ export function mapSupabaseError(error: unknown): ApiError {
   }
 
   if (
+    supabaseError.code === "P0001" ||
     supabaseError.code === "22023" ||
     supabaseError.code === "23503" ||
     supabaseError.code === "23514"

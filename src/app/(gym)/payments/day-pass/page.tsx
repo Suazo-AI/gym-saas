@@ -36,6 +36,6 @@ export default async function DayPassPage({ searchParams }: Props) {
   if (!member) return <p className="mt-6 rounded-lg border border-charcoal bg-paper p-5 font-bold text-charcoal">No encontramos el miembro en este gimnasio.</p>;
   return <>
     <ModuleHeader eyebrow="Pagos" title="Pase diario" description={`Cobro independiente para ${member.fullName}.`} action={<Link className="min-h-11 rounded-md border border-paper px-5 py-3 text-center text-sm font-black text-paper" href="/payments/day-pass">Cambiar miembro</Link>} />
-    <div className="mt-6"><RegisterDayPassForm defaultCurrency={activeGym.defaultCurrency} gymMemberId={member.gymMemberId} passes={passes} paymentMethods={methods} /></div>†
+    <div className="mt-6"><RegisterDayPassForm defaultCurrency={activeGym.defaultCurrency} gymMemberId={member.gymMemberId} passes={passes} paymentMethods={methods} /></div>
   </>;
 }

@@ -69,13 +69,14 @@ const member: MemberDetailDto = {
 
 describe("MemberDetailView", () => {
   it("renders observed operational, membership, charge and payment data", () => {
-    const html = renderToStaticMarkup(createElement(MemberDetailView, { member }));
+    const html = renderToStaticMarkup(createElement(MemberDetailView, { member, cancelMembershipAction: async () => {} }));
 
     expect(html).toContain("Membresía en mora");
     expect(html).toContain("Ana Martínez");
     expect(html).toContain("NIO 900.00");
     expect(html).toContain("USD 15.00");
     expect(html).toContain("Total pagado registrado");
+    expect(html).toContain("Cancelar membresía");
     expect(html).not.toContain("Acceso permitido");
   });
 });

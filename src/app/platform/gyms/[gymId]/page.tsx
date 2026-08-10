@@ -7,15 +7,16 @@ import { getPlatformGymDetail } from "@/features/platform/services/platform.repo
 
 type PlatformGymDetailPageProps = {
   params: Promise<{ gymId: string }>;
+  searchParams: Promise<{ created?: string }>;
 };
 
-export default async function PlatformGymDetailPage({ params }: PlatformGymDetailPageProps) {
+export default async function PlatformGymDetailPage({ params, searchParams }: PlatformGymDetailPageProps) {
   const user = await requireUser();
   if (user.app_metadata?.platform_role !== "admin") {
     redirect("/dashboard");
   }
 
-  const { gymId } = await params;
+  const [{ gymId }, query] = await Promise.all([params, searchParams]);
   const detail = await getPlatformGymDetail(gymId);
 
   return (
@@ -25,6 +26,12 @@ export default async function PlatformGymDetailPage({ params }: PlatformGymDetai
         title={detail.gym.trade_name}
         description={`${detail.gym.legal_name} / ${detail.gym.slug}`}
       />
+
+      {query.created === "1" ? (
+        <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm font-bold text-green-800" role="status">
+          Gimnasio creado y dueño invitado correctamente.
+        </div>
+      ) : null}
 
       <section className="mt-6 grid gap-4 md:grid-cols-4">
         <Card label="Estado" value={detail.gym.status} />
@@ -48,7 +55,7 @@ export default async function PlatformGymDetailPage({ params }: PlatformGymDetai
         </Panel>
 
         <Panel title="Sucursales">
-          <div className="grid gap-3">
+          <div className="min-w-0 grid gap-3">
             {detail.branches.map((branch) => (
               <article className="rounded-md border border-slate-200 p-4" key={branch.id}>
                 <strong className="block text-[#061f46]">{branch.name}</strong>
@@ -59,10 +66,10 @@ export default async function PlatformGymDetailPage({ params }: PlatformGymDetai
         </Panel>
 
         <Panel title="Personal">
-          <div className="grid gap-3">
+          <div className="min-w-0 grid gap-3">
             {detail.staff.map((staff) => (
               <article className="rounded-md border border-slate-200 p-4" key={staff.gymUserId}>
-                <strong className="block text-[#061f46]">{staff.employeeCode ?? staff.authUserId}</strong>
+                <strong className="block break-all text-[#061f46]">{staff.employeeCode ?? staff.authUserId}</strong>
                 <span className="text-sm text-slate-500">{staff.status} / {staff.roles.join(", ") || "sin rol"}</span>
               </article>
             ))}
@@ -70,12 +77,12 @@ export default async function PlatformGymDetailPage({ params }: PlatformGymDetai
         </Panel>
 
         <Panel title="Auditoria reciente">
-          <div className="grid gap-3">
+          <div className="min-w-0 grid gap-3">
             {detail.recentAuditLogs.length === 0 ? (
               <p className="text-sm font-semibold text-slate-500">Sin eventos recientes.</p>
             ) : detail.recentAuditLogs.map((log) => (
-              <article className="rounded-md border border-slate-200 p-4" key={log.auditLogId}>
-                <strong className="block text-[#061f46]">{log.action}</strong>
+              <article className="min-w-0 rounded-md border border-slate-200 p-4" key={log.auditLogId}>
+                <strong className="block break-all text-[#061f46]">{log.action}</strong>
                 <span className="text-sm text-slate-500">{log.entityTable} / {formatDate(log.occurredAt)}</span>
               </article>
             ))}
@@ -97,7 +104,7 @@ function Card({ label, value }: { label: string; value: number | string }) {
 
 function Panel({ children, title }: { children: React.ReactNode; title: string }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="mb-4 text-xl font-black text-[#061f46]">{title}</h2>
       {children}
     </section>

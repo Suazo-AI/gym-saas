@@ -18,7 +18,7 @@ vi.mock("../services/staff.repository", () => ({
   restoreStaffUser: mocks.restoreStaffUser,
 }));
 
-import { inviteStaffAction, updateStaffAction } from "./staff.actions";
+import { inviteStaffAction, restoreStaffAction, updateStaffAction } from "./staff.actions";
 
 const gymId = "20000000-0000-4000-8000-000000000001";
 const gymUserId = "30000000-0000-4000-8000-000000000001";
@@ -45,5 +45,13 @@ describe("staff actions", () => {
     form.set("roleIds", roleId);
     await expect(updateStaffAction({ ok: false }, form)).resolves.toMatchObject({ ok: true });
     expect(mocks.updateStaffUser).toHaveBeenCalledWith({ gymId, gymUserId, employeeCode: null, status: "suspended", roleIds: [roleId] });
+  });
+
+  it("restores retired staff through the authenticated action", async () => {
+    const form = new FormData();
+    form.set("gymUserId", gymUserId);
+    await expect(restoreStaffAction({ ok: false }, form)).resolves.toMatchObject({ ok: true });
+    expect(mocks.restoreStaffUser).toHaveBeenCalledWith(gymUserId);
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/staff");
   });
 });
