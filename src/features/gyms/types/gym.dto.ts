@@ -10,5 +10,5 @@ export type UserGymDto = {
 };
 
 export type ActiveGymDto = UserGymDto & {
-  selectionSource: "single_membership" | "first_membership";
+  selectionSource: "single_membership" | "first_membership" | "cookie";
 };

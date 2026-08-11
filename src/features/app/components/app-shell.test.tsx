@@ -25,4 +25,10 @@ describe("AppShell theme contrast", () => {
     const source = readFileSync("src/features/app/components/app-shell.tsx", "utf8");
     expect(source).toContain('"/facial-access"');
   });
+
+  it("renders the server-authorized active gym switcher", () => {
+    const source = readFileSync("src/features/app/components/app-shell.tsx", "utf8");
+    expect(source).toContain("ActiveGymSwitcher");
+    expect(source).toContain("availableGyms={availableGyms}");
+  });
 });

@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { signOutAction } from "@/features/auth/actions/auth.actions";
-import type { ActiveGymDto } from "@/features/gyms/types/gym.dto";
+import { ActiveGymSwitcher } from "@/features/gyms/components/active-gym-switcher";
+import type { ActiveGymDto, UserGymDto } from "@/features/gyms/types/gym.dto";
 import { listCurrentUserScreens } from "../services/navigation.repository";
 import { LocalizedNav, PreferencesControls } from "./preferences-controls";
 
@@ -9,12 +10,13 @@ const supportedRoutes = new Set(["/dashboard","/members","/memberships","/paymen
 
 type AppShellProps = {
   activeGym: ActiveGymDto;
+  availableGyms: UserGymDto[];
   currentPath?: string;
   userEmail?: string | null;
   children: React.ReactNode;
 };
 
-export async function AppShell({ activeGym, currentPath, userEmail, children }: AppShellProps) {
+export async function AppShell({ activeGym, availableGyms, currentPath, userEmail, children }: AppShellProps) {
   const screens=await listCurrentUserScreens(activeGym.gymId).catch(()=>[]);
   const nav=screens.filter((screen)=>supportedRoutes.has(screen.route));
   return (
@@ -28,13 +30,7 @@ export async function AppShell({ activeGym, currentPath, userEmail, children }: 
         </Link>
 
         <div className="mt-8 rounded-xl border border-white/10 bg-white/5 p-4">
-          <small className="font-black uppercase tracking-[0.16em] text-brand-sand">
-            Gimnasio activo
-          </small>
-          <strong className="mt-2 block text-xl">{activeGym.tradeName}</strong>
-          <span className="mt-1 block text-sm text-gray-light">
-            {activeGym.defaultCurrency} / {activeGym.timezone}
-          </span>
+          <ActiveGymSwitcher activeGym={activeGym} availableGyms={availableGyms} />
         </div>
 
         <LocalizedNav currentPath={currentPath} screens={nav} />
