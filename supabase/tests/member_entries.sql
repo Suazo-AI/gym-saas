@@ -1,6 +1,6 @@
 begin;
 
-select plan(24);
+select plan(25);
 
 select has_table('public', 'member_entries', 'member_entries table exists');
 
@@ -126,6 +126,15 @@ select is_empty(
       and p.proname = 'search_entry_members'
       and argument_name ilike '%phone%'$$,
   'entry member search does not return a phone column'
+);
+
+select throws_ok(
+  $$select * from public.search_entry_members(
+    '20000000-0000-4000-8000-000000000001', 'Ana', 10
+  )$$,
+  '42501',
+  'Insufficient permission: entries.read',
+  'entry member search rejects a caller without entries.read'
 );
 
 -- ============================================================================
