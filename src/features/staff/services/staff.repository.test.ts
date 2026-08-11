@@ -69,7 +69,15 @@ describe("staff repository", () => {
   it("removes a newly invited auth user when tenant linking fails", async () => {
     const inviteUserByEmail = vi.fn().mockResolvedValue({ data: { user: { id: "auth-1" } }, error: null });
     const deleteUser = vi.fn().mockResolvedValue({ data: {}, error: null });
-    const rpc = vi.fn().mockResolvedValue({ data: null, error: { code: "23505" } });
+    // El doble distingue las dos llamadas: primero se consulta el permiso, que
+    // se concede, y despues falla la vinculacion. Un mockResolvedValue unico
+    // devolveria error tambien para el permiso, la invitacion fallaria cerrada
+    // antes de crear al usuario, y esta prueba dejaria de medir lo suyo.
+    const rpc = vi.fn(async (name: string) =>
+      name === "current_user_has_gym_permission"
+        ? { data: true, error: null }
+        : { data: null, error: { code: "23505" } },
+    );
 
     await expect(inviteStaffUser(
       { gymId, email: "staff@gym.com", employeeCode: null, roleIds: [roleId] },
@@ -189,7 +197,12 @@ describe("F020: invitar personal exige staff.manage antes de tocar el cliente ad
   it("una respuesta que no es exactamente true tampoco autoriza", async () => {
     // null, undefined y cualquier valor ambiguo se tratan como negativa. Un
     // permiso que se concede por omision no es un permiso.
-    for (const respuesta of [null, undefined, "", 0]) {
+    //
+    // La lista incluye a proposito valores que son verdaderos por conversion:
+    // la cadena "false", el numero 1 y un objeto vacio. Sin ellos, un chequeo
+    // laxo del tipo if (!permiso) pasaria esta prueba igual que la comparacion
+    // estricta, y la asercion no distinguiria una implementacion de la otra.
+    for (const respuesta of [null, undefined, "", 0, "false", 1, {}]) {
       const d = dobles({ permitido: respuesta });
       await expect(inviteStaffUser(entrada, d)).rejects.toThrow();
       expect(d.inviteUserByEmail).not.toHaveBeenCalled();
