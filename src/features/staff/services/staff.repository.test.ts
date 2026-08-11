@@ -3,13 +3,32 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
 
-import { deleteStaffUser, inviteStaffUser, listDeletedStaffUsers, listStaffUsers, restoreStaffUser, updateStaffUser } from "./staff.repository";
+import { deleteStaffUser, inviteStaffUser, listDeletedStaffUsers, listStaffUsers, mapStaffRoles, restoreStaffUser, updateStaffUser } from "./staff.repository";
 
 const gymId = "20000000-0000-4000-8000-000000000001";
 const gymUserId = "30000000-0000-4000-8000-000000000001";
 const roleId = "40000000-0000-4000-8000-000000000001";
 
 describe("staff repository", () => {
+  it("maps role permissions from the approved database matrix", () => {
+    expect(mapStaffRoles([{
+      id: roleId,
+      code: "receptionist",
+      name: "Recepción",
+      description: "Atención diaria",
+      role_permissions: [
+        { permissions: { code: "payments.manage" } },
+        { permissions: { code: "members.read" } },
+      ],
+    }])).toEqual([{
+      id: roleId,
+      code: "receptionist",
+      name: "Recepción",
+      description: "Atención diaria",
+      permissionCodes: ["members.read", "payments.manage"],
+    }]);
+  });
+
   it("loads the protected staff directory", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: [{ id: gymUserId }], error: null });
     await expect(listStaffUsers(gymId, rpc)).resolves.toEqual([{ id: gymUserId }]);
