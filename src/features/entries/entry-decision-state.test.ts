@@ -7,6 +7,24 @@ describe("getEntryDecisionState", () => {
     expect(getEntryDecisionState({ decision: "allowed" }).label).toBe("Permitida");
   });
 
+  it("shows an allowed renewal in grace as a warning", () => {
+    expect(getEntryDecisionState({
+      decision: "allowed",
+      financialAccessStatus: "grace",
+    })).toMatchObject({ label: "En gracia", tone: "warning" });
+  });
+
+  it("distinguishes initial payment from overdue renewal", () => {
+    expect(getEntryDecisionState({
+      decision: "denied",
+      financialAccessStatus: "initial_payment_required",
+    }).label).toBe("Pago pendiente");
+    expect(getEntryDecisionState({
+      decision: "denied",
+      financialAccessStatus: "overdue",
+    }).label).toBe("Morosa");
+  });
+
   it("labels manual reviews as Permitida and keeps the reason", () => {
     expect(getEntryDecisionState({
       decision: "manual_review",

@@ -15,6 +15,7 @@ describe("searchEntryMembers", () => {
         status: "active",
         membership_status: "active",
         has_overdue_charges: false,
+        financial_access_status: "grace",
       }],
       error: null,
     });
@@ -36,6 +37,7 @@ describe("searchEntryMembers", () => {
       status: "active",
       membershipStatus: "active",
       hasOverdueCharges: false,
+      financialAccessStatus: "grace",
     }]);
     expect(result[0]).not.toHaveProperty("phone");
   });

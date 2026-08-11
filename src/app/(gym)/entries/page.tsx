@@ -27,7 +27,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
   if (!activeGym) redirect("/login");
 
   const params = await searchParams;
-  const [entriesResult, membersResult, selectedMemberResult] = await Promise.all([
+  const [entriesResult, membersResult, selectedMemberResult, selectedAccessResult] = await Promise.all([
     listGymEntries({
       gymId: activeGym.gymId,
       from: params.from,
@@ -45,11 +45,35 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
           gymMemberId: params.gymMemberId,
         }).catch((error: unknown) => ({ error }))
       : Promise.resolve(null),
+    params.gymMemberId
+      ? searchEntryMembers({
+          gymId: activeGym.gymId,
+          search: params.gymMemberId,
+        }).catch((error: unknown) => ({ error }))
+      : Promise.resolve(null),
   ]);
 
-  const selectedMember = selectedMemberResult
+  const selectedMemberBase = selectedMemberResult
     && !("error" in selectedMemberResult)
     ? selectedMemberResult
+    : null;
+  const selectedAccess = selectedAccessResult
+    && !("error" in selectedAccessResult)
+    ? selectedAccessResult.find((member) => member.gymMemberId === params.gymMemberId) ?? null
+    : null;
+  const selectedAccessFailed = Boolean(
+    params.gymMemberId
+    && (
+      !selectedAccessResult
+      || "error" in selectedAccessResult
+      || !selectedAccess
+    )
+  );
+  const selectedMember = selectedMemberBase && selectedAccess
+    ? {
+        ...selectedMemberBase,
+        financialAccessStatus: selectedAccess.financialAccessStatus,
+      }
     : null;
 
   return (
@@ -129,7 +153,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
         )}
       </section>
 
-      {selectedMemberResult && "error" in selectedMemberResult ? (
+      {(selectedMemberResult && "error" in selectedMemberResult) || selectedAccessFailed ? (
         <p
           className="mt-6 rounded-lg border border-brand-red bg-red-50 p-5 text-sm font-semibold text-brand-red"
           role="alert"

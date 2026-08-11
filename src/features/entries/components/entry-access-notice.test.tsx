@@ -48,4 +48,20 @@ describe("EntryAccessNotice", () => {
     expect(html).not.toContain("vencida");
     expect(html).not.toContain("morosa");
   });
+
+  it("allows grace with a clear warning and no financial details", () => {
+    const html = renderToStaticMarkup(createElement(EntryAccessNotice, {
+      member: {
+        status: "active",
+        membershipStatus: "active",
+        hasOverdueCharges: true,
+        financialAccessStatus: "grace",
+      },
+    }));
+
+    expect(html).toContain('role="status"');
+    expect(html).toContain("Acceso permitido");
+    expect(html).toContain("Período de gracia");
+    expect(html).not.toContain("saldo");
+  });
 });

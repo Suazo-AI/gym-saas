@@ -13,6 +13,7 @@ describe("entry mapper", () => {
       decision_reason: null,
       membership_status: "active",
       has_overdue_charges: false,
+      financial_access_status: "grace",
       occurred_at: "2026-07-30T15:00:00.000Z",
     })).toEqual({
       gymId: "gym-1",
@@ -23,6 +24,7 @@ describe("entry mapper", () => {
       decisionReason: null,
       membershipStatus: "active",
       hasOverdueCharges: false,
+      financialAccessStatus: "grace",
       occurredAt: "2026-07-30T15:00:00.000Z",
     });
   });
@@ -37,6 +39,7 @@ describe("entry mapper", () => {
       decision_reason: null,
       membership_status: null,
       has_overdue_charges: null,
+      financial_access_status: null,
       occurred_at: "2026-07-30T15:00:00.000Z",
     });
 
@@ -56,6 +59,7 @@ describe("entry mapper", () => {
       memberFullName: "Ana Martínez",
       membershipStatus: "past_due",
       hasOverdueCharges: true,
+      financialAccessStatus: "overdue" as const,
     };
 
     expect(mapRegisteredEntry(row)).toEqual(row);

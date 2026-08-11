@@ -1,7 +1,7 @@
-import type { EntryDecision } from "./types/entry.dto";
+import type { EntryDecision, FinancialAccessStatus } from "./types/entry.dto";
 
 export type EntryDecisionState = {
-  label: "Permitida" | "Sin membresía" | "Vencida" | "Morosa" | "Bloqueada";
+  label: "Permitida" | "En gracia" | "Pago pendiente" | "Sin membresía" | "Vencida" | "Morosa" | "Bloqueada";
   description: string;
   icon: "✓" | "!" | "×";
   tone: "success" | "warning" | "danger";
@@ -12,11 +12,21 @@ type EntryDecisionStateInput = {
   decisionReason?: string | null;
   membershipStatus?: string | null;
   hasOverdueCharges?: boolean;
+  financialAccessStatus?: FinancialAccessStatus | null;
 };
 
 export function getEntryDecisionState(
   input: EntryDecisionStateInput,
 ): EntryDecisionState {
+  if (input.decision === "allowed" && input.financialAccessStatus === "grace") {
+    return {
+      label: "En gracia",
+      description: input.decisionReason ?? "La renovación está pendiente dentro del período de gracia.",
+      icon: "!",
+      tone: "warning",
+    };
+  }
+
   if (input.decision === "allowed" || input.decision === "manual_review") {
     return {
       label: "Permitida",
@@ -28,7 +38,20 @@ export function getEntryDecisionState(
     };
   }
 
-  if (input.hasOverdueCharges || input.membershipStatus === "past_due") {
+  if (input.financialAccessStatus === "initial_payment_required") {
+    return {
+      label: "Pago pendiente",
+      description: input.decisionReason ?? "El pago inicial está pendiente.",
+      icon: "!",
+      tone: "warning",
+    };
+  }
+
+  if (
+    input.financialAccessStatus === "overdue"
+    || input.hasOverdueCharges
+    || input.membershipStatus === "past_due"
+  ) {
     return {
       label: "Morosa",
       description: input.decisionReason ?? "El miembro tiene cargos vencidos.",
