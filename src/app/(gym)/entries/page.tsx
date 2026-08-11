@@ -6,10 +6,12 @@ import { ModuleHeader } from "@/features/app/components/module-header";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { getEntryDecisionState } from "@/features/entries/entry-decision-state";
 import { FaceAccessModal } from "@/features/entries/components/face-access-modal";
+import { EntryAccessNotice } from "@/features/entries/components/entry-access-notice";
 import { ManualEntryForm } from "@/features/entries/components/manual-entry-form";
+import { searchEntryMembers } from "@/features/entries/services/entry-member-search.repository";
 import { listGymEntries } from "@/features/entries/services/entry.repository";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
-import { getMember, listMembers } from "@/features/members/services/member.repository";
+import { getMember } from "@/features/members/services/member.repository";
 
 type EntriesPageProps = {
   searchParams: Promise<{ search?: string; gymMemberId?: string; from?: string; to?: string }>;
@@ -32,13 +34,9 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
       to: params.to,
     }).catch((error: unknown) => ({ error })),
     params.search
-      ? listMembers({
+      ? searchEntryMembers({
           gymId: activeGym.gymId,
-          page: 1,
-          pageSize: 10,
           search: params.search,
-          orderBy: "fullName",
-          orderDirection: "asc",
         }).catch((error: unknown) => ({ error }))
       : Promise.resolve(null),
     params.gymMemberId
@@ -67,11 +65,11 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
         <div className="border-b border-gray p-5">
           <h2 className="text-xl font-black text-ink">Registrar entrada manual</h2>
           <p className="mt-1 text-sm text-gray-300">
-            Busca por nombre o código y selecciona al miembro correcto.
+            Busca por nombre, teléfono o código y selecciona al miembro correcto.
           </p>
         </div>
 
-        <PersistedSearchForm placeholder="Buscar por nombre o código" storageKey="fitmanager.entries.search" />
+        <PersistedSearchForm placeholder="Buscar por nombre, teléfono o código" storageKey="fitmanager.entries.search" />
         {/* Legacy form markup is replaced by the client search above. */}
         <form className="hidden">
           <label className="sr-only" htmlFor="entry-member-search">
@@ -82,7 +80,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
             defaultValue={params.search ?? ""}
             id="entry-member-search"
             name="search"
-            placeholder="Buscar por nombre o código"
+            placeholder="Buscar por nombre, teléfono o código"
           />
           <button
             className="min-h-11 rounded-md bg-ink px-5 py-3 text-sm font-black text-paper hover:bg-charcoal"
@@ -96,13 +94,13 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
           <p className="p-5 text-sm font-semibold text-brand-red" role="alert">
             No pudimos buscar miembros. Intenta nuevamente.
           </p>
-        ) : membersResult && membersResult.data.length === 0 ? (
+        ) : membersResult && membersResult.length === 0 ? (
           <p className="p-5 text-sm text-gray-300">
             No encontramos miembros con esa búsqueda.
           </p>
         ) : membersResult ? (
           <div className="divide-y divide-gray">
-            {membersResult.data.map((member) => (
+            {membersResult.map((member) => (
               <Link
                 className="flex min-h-11 items-center justify-between gap-4 px-5 py-3 hover:bg-gray-light"
                 href={{
@@ -126,7 +124,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
           </div>
         ) : (
           <p className="p-5 text-sm text-gray-300">
-            Escribe un nombre o código para comenzar.
+            Escribe un nombre, teléfono o código para comenzar.
           </p>
         )}
       </section>
@@ -139,7 +137,8 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
           No pudimos cargar el miembro seleccionado.
         </p>
       ) : selectedMember ? (
-        <div className="mt-6">
+        <div className="mt-6 grid gap-4">
+          <EntryAccessNotice member={selectedMember} />
           <ManualEntryForm
             branchId={selectedMember.branchId}
             gymId={activeGym.gymId}

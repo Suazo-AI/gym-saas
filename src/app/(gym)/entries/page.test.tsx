@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   getMember: vi.fn(),
   listGymEntries: vi.fn(),
-  listMembers: vi.fn(),
+  searchEntryMembers: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ redirect: vi.fn(), useRouter: () => ({ replace: vi.fn() }), usePathname: () => "/entries", useSearchParams: () => new URLSearchParams() }));
@@ -22,7 +22,9 @@ vi.mock("@/features/entries/services/entry.repository", () => ({
 }));
 vi.mock("@/features/members/services/member.repository", () => ({
   getMember: mocks.getMember,
-  listMembers: mocks.listMembers,
+}));
+vi.mock("@/features/entries/services/entry-member-search.repository", () => ({
+  searchEntryMembers: mocks.searchEntryMembers,
 }));
 vi.mock("@/features/entries/components/face-access-modal", () => ({
   FaceAccessModal: () => <button>Entrada facial</button>,
@@ -47,7 +49,7 @@ describe("EntriesPage", () => {
   beforeEach(() => {
     mocks.getMember.mockReset();
     mocks.listGymEntries.mockReset();
-    mocks.listMembers.mockReset();
+    mocks.searchEntryMembers.mockReset();
   });
 
   it("renders the empty search and history states", async () => {
@@ -56,7 +58,7 @@ describe("EntriesPage", () => {
     const element = await EntriesPage({ searchParams: Promise.resolve({}) });
     const html = renderToStaticMarkup(element);
 
-    expect(html).toContain("Escribe un nombre o código para comenzar.");
+    expect(html).toContain("Escribe un nombre, teléfono o código para comenzar.");
     expect(html).toContain("Todavía no hay entradas registradas.");
     expect(html).toContain("Entrada facial");
     expect(mocks.listGymEntries).toHaveBeenCalledWith({
@@ -64,7 +66,60 @@ describe("EntriesPage", () => {
       from: undefined,
       to: undefined,
     });
-    expect(mocks.listMembers).not.toHaveBeenCalled();
+    expect(mocks.searchEntryMembers).not.toHaveBeenCalled();
+  });
+
+  it("searches by the submitted term and renders only name and code", async () => {
+    mocks.listGymEntries.mockResolvedValue([]);
+    mocks.searchEntryMembers.mockResolvedValue([{
+      gymMemberId: "member-1",
+      memberCode: "M-001",
+      fullName: "Ana Pérez",
+      status: "active",
+      membershipStatus: "active",
+      hasOverdueCharges: false,
+    }]);
+
+    const element = await EntriesPage({
+      searchParams: Promise.resolve({ search: "8888-0001" }),
+    });
+    const html = renderToStaticMarkup(element);
+
+    expect(mocks.searchEntryMembers).toHaveBeenCalledWith({
+      gymId: "20000000-0000-4000-8000-000000000001",
+      search: "8888-0001",
+    });
+    expect(html).toContain("Ana Pérez");
+    expect(html).toContain("M-001");
+    expect(html).not.toContain("8888-0001</span>");
+    expect(html).toContain("Buscar por nombre, teléfono o código");
+  });
+
+  it("shows private access guidance for the selected member", async () => {
+    mocks.listGymEntries.mockResolvedValue([]);
+    mocks.getMember.mockResolvedValue({
+      gymMemberId: "member-1",
+      branchId: "branch-1",
+      memberCode: "M-001",
+      fullName: "Ana Pérez",
+      status: "active",
+      membershipStatus: "past_due",
+      hasOverdueCharges: true,
+      contacts: [{ type: "phone", value: "8888-0001" }],
+      overdueAmount: "900.00",
+      nextPaymentDate: "2026-08-15",
+    });
+
+    const element = await EntriesPage({
+      searchParams: Promise.resolve({ gymMemberId: "member-1" }),
+    });
+    const html = renderToStaticMarkup(element);
+
+    expect(html).toContain("Acceso no permitido");
+    expect(html).toContain("Revisar membresía en recepción");
+    expect(html).not.toContain("8888-0001");
+    expect(html).not.toContain("900.00");
+    expect(html).not.toContain("2026-08-15");
   });
 
   it("renders unified entries with Spanish source, decision and formatted date", async () => {
