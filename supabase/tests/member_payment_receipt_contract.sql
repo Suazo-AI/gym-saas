@@ -122,19 +122,29 @@ select matches(
   'day pass payment path uses the unified receipt format'
 );
 
+select set_config(
+  'test.cash_payment_method_id',
+  (select id::text from public.payment_methods where code = 'cash'),
+  true
+);
+
+set local role service_role;
+
 select lives_ok(
   $$
     select public.start_member_subscription(
       '60000000-0000-4000-8000-000000000096',
       '40000000-0000-4000-8000-000000000001',
       current_date,
-      (select id from public.payment_methods where code = 'cash'),
+      current_setting('test.cash_payment_method_id')::uuid,
       900.00,
       'NIO'
     )
   $$,
   'paid subscription path registers a payment'
 );
+
+set local role authenticated;
 
 select matches(
   (
