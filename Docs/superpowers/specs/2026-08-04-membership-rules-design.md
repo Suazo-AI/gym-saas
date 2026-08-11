@@ -1,5 +1,7 @@
 # Reglas de planes, membresías y tipo de cambio
 
+> Sustituido para estados y transiciones de membresías por `2026-08-10-membership-state-rules-design.md`. Este documento conserva el contexto histórico y las reglas de tipo de cambio.
+
 **Fecha:** 2026-08-04  
 **Tarjeta:** Módulo de planes y membresías  
 **Estado:** diseño aprobado por Producto; pendiente de plan técnico e implementación
@@ -30,7 +32,7 @@ Los códigos serán únicos por gimnasio entre planes no retirados. Un plan util
 
 Una suscripción nueva genera el cargo completo del período por adelantado. No habilita acceso hasta que el cargo esté pagado completamente.
 
-No se admitirán pagos parciales. Un pago deberá cubrir el total exigible de la operación. Los descuentos aprobados forman parte del importe final antes del pago.
+La decisión original de exigir pago completo fue sustituida el 10 de agosto de 2026. Los pagos parciales están permitidos según `2026-08-10-membership-state-rules-design.md`; el acceso inicial continúa bloqueado hasta cubrir completamente el primer cargo.
 
 La renovación puede ser automática o manual según el plan. Una renovación genera un nuevo período y su cargo completo. Los días de gracia aplican únicamente a renovaciones de miembros previamente activos: durante la gracia se permite entrada con advertencia de pago pendiente. Una membresía nueva nunca obtiene gracia antes del primer pago.
 
