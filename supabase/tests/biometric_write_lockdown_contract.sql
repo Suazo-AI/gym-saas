@@ -43,12 +43,15 @@ set local role authenticated;
 
 select throws_ok(
   $$
-    insert into public.biometric_consents (gym_id, person_id, granted_at, status)
+    -- status, purpose y obtained_at tienen default. consent_version no, y es
+    -- obligatoria. Nombrar una columna inexistente haria que PostgreSQL
+    -- devuelva 42703 al analizar la sentencia, antes de mirar permisos, y la
+    -- asercion no podria pasar con ninguna implementacion.
+    insert into public.biometric_consents (gym_id, person_id, consent_version)
     values (
       '20000000-0000-4000-8000-000000000001',
       '50000000-0000-4000-8000-000000000001',
-      timezone('utc', now()),
-      'granted'
+      'v1'
     )
   $$,
   '42501',

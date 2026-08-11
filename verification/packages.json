@@ -348,8 +348,10 @@
       "allowPublished": true,
       "expectPgtapDeltaMin": 15,
       "frozenFiles": {
-        "supabase/tests/biometric_write_lockdown_contract.sql": "41236cc4106c53fc7ab02fb3f01871aea3a64b3428128db266eb73bad96a2d77"
-      }
+        "supabase/tests/biometric_write_lockdown_contract.sql": "a81f6683c972b180f893a45066c8ca0a924ef13fb543377af7192a52fea0f1b9"
+      },
+      "_rehash": "2026-08-10: el hash se rehizo despues de que el ejecutor entregara, y hay que decirlo. La asercion del consentimiento nombraba granted_at, columna que no existe: es obtained_at y tiene default. PostgreSQL responde 42703 al analizar, antes de evaluar permisos, asi que esa asercion no podia pasar con ninguna implementacion. El ejecutor lo reporto en vez de aflojar la prueba. Se corrigio a las columnas reales sin cambiar lo que exige.",
+      "_rojo": "La linea base roja que se midio antes de delegar, 9 de 15, estaba viciada: se midio contra la base local, que estaba atrasada respecto de main. El rojo real sobre main actual es 8 de 15, reconstruido revirtiendo la migracion sobre la base al dia. La diferencia es la asercion de facial_access, que main ya satisface por la migracion 20260810150000."
     }
   ]
 }
