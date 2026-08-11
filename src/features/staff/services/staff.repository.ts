@@ -1,3 +1,4 @@
+import { ApiError } from "@/lib/api/api-error";
 import { mapSupabaseError } from "@/lib/api/map-supabase-error";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -116,6 +117,16 @@ export async function inviteStaffUser(
   injected?: InviteDependencies,
 ) {
   const dependencies = injected ?? await invitationDependencies();
+  const { data: hasPermission, error: permissionError } = await dependencies.rpc(
+    "current_user_has_gym_permission",
+    {
+      p_gym_id: input.gymId,
+      p_permission_code: "staff.manage",
+    },
+  );
+  if (permissionError) throw mapSupabaseError(permissionError);
+  if (hasPermission !== true) throw new ApiError("FORBIDDEN", "No tienes permiso.");
+
   const redirectTo = process.env.NEXT_PUBLIC_SITE_URL
     ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/reset-password`
     : undefined;
