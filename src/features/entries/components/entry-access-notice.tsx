@@ -2,12 +2,16 @@ type EntryAccessNoticeMember = {
   status: string;
   membershipStatus: string | null;
   hasOverdueCharges: boolean;
+  financialAccessStatus?: "paid" | "initial_payment_required" | "grace" | "overdue" | null;
 };
 
 export function EntryAccessNotice({ member }: { member: EntryAccessNoticeMember }) {
+  const inGrace = member.financialAccessStatus === "grace";
   const allowed = member.status === "active"
     && (member.membershipStatus === "active" || member.membershipStatus === "trialing")
-    && !member.hasOverdueCharges;
+    && (inGrace || !member.hasOverdueCharges)
+    && member.financialAccessStatus !== "initial_payment_required"
+    && member.financialAccessStatus !== "overdue";
 
   return (
     <div
@@ -20,7 +24,11 @@ export function EntryAccessNotice({ member }: { member: EntryAccessNoticeMember 
         {allowed ? "Acceso permitido" : "Acceso no permitido"}
       </strong>
       <p className="mt-1 text-sm font-semibold">
-        {allowed ? "Puedes continuar con el registro de entrada." : "Revisar membresía en recepción."}
+        {allowed
+          ? inGrace
+            ? "Período de gracia activo. Puedes continuar y recordar la renovación."
+            : "Puedes continuar con el registro de entrada."
+          : "Revisar membresía en recepción."}
       </p>
     </div>
   );

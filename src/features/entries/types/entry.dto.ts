@@ -10,6 +10,12 @@ export type FaceVerificationDecision = "allowed" | "denied" | "manual_review" | 
 
 export type EntryDecision = "allowed" | "denied" | "manual_review" | "no_match";
 
+export type FinancialAccessStatus =
+  | "paid"
+  | "initial_payment_required"
+  | "grace"
+  | "overdue";
+
 export type EntryMemberSearchResultDto = {
   gymMemberId: string;
   memberCode: string;
@@ -17,6 +23,7 @@ export type EntryMemberSearchResultDto = {
   status: string;
   membershipStatus: string | null;
   hasOverdueCharges: boolean;
+  financialAccessStatus: FinancialAccessStatus;
 };
 
 export type EntrySource = "manual" | "face";
@@ -30,6 +37,7 @@ export type MemberEntryDto = {
   decisionReason: string | null;
   membershipStatus: string | null;
   hasOverdueCharges: boolean;
+  financialAccessStatus: FinancialAccessStatus | null;
   occurredAt: string;
 };
 
@@ -51,6 +59,7 @@ export type RegisteredEntryDto = {
   memberFullName: string;
   membershipStatus: string;
   hasOverdueCharges: boolean;
+  financialAccessStatus: FinancialAccessStatus;
 };
 
 export type MemberEntryRow = {
@@ -62,6 +71,7 @@ export type MemberEntryRow = {
   decision_reason: string | null;
   membership_status: string | null;
   has_overdue_charges: boolean | null;
+  financial_access_status: FinancialAccessStatus | null;
   occurred_at: string;
 };
 
@@ -76,6 +86,7 @@ export type RegisteredEntryRow = {
   memberFullName: string;
   membershipStatus: string;
   hasOverdueCharges: boolean;
+  financialAccessStatus: FinancialAccessStatus;
 };
 
 export type FaceVerificationResultDto = {

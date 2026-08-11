@@ -1,7 +1,7 @@
 import { mapSupabaseError } from "@/lib/api/map-supabase-error";
 import { createClient } from "@/lib/supabase/server";
 
-import type { EntryMemberSearchResultDto } from "../types/entry.dto";
+import type { EntryMemberSearchResultDto, FinancialAccessStatus } from "../types/entry.dto";
 
 type Rpc = (
   name: string,
@@ -15,6 +15,7 @@ type EntryMemberSearchRow = {
   status: string;
   membership_status: string | null;
   has_overdue_charges: boolean;
+  financial_access_status: FinancialAccessStatus;
 };
 
 export async function searchEntryMembers(
@@ -40,6 +41,7 @@ export async function searchEntryMembers(
     status: row.status,
     membershipStatus: row.membership_status,
     hasOverdueCharges: row.has_overdue_charges,
+    financialAccessStatus: row.financial_access_status,
   }));
 }
 

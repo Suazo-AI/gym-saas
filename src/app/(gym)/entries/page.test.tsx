@@ -50,6 +50,7 @@ describe("EntriesPage", () => {
     mocks.getMember.mockReset();
     mocks.listGymEntries.mockReset();
     mocks.searchEntryMembers.mockReset();
+    mocks.searchEntryMembers.mockResolvedValue([]);
   });
 
   it("renders the empty search and history states", async () => {
@@ -97,6 +98,15 @@ describe("EntriesPage", () => {
 
   it("shows private access guidance for the selected member", async () => {
     mocks.listGymEntries.mockResolvedValue([]);
+    mocks.searchEntryMembers.mockResolvedValue([{
+      gymMemberId: "member-1",
+      memberCode: "M-001",
+      fullName: "Ana Pérez",
+      status: "active",
+      membershipStatus: "past_due",
+      hasOverdueCharges: true,
+      financialAccessStatus: "overdue",
+    }]);
     mocks.getMember.mockResolvedValue({
       gymMemberId: "member-1",
       branchId: "branch-1",
@@ -120,6 +130,62 @@ describe("EntriesPage", () => {
     expect(html).not.toContain("8888-0001");
     expect(html).not.toContain("900.00");
     expect(html).not.toContain("2026-08-15");
+  });
+
+  it("uses the canonical initial-payment block in the selected-member preview", async () => {
+    mocks.listGymEntries.mockResolvedValue([]);
+    mocks.getMember.mockResolvedValue({
+      gymMemberId: "member-1",
+      branchId: "branch-1",
+      memberCode: "M-001",
+      fullName: "Ana Pérez",
+      status: "active",
+      membershipStatus: "active",
+      hasOverdueCharges: false,
+    });
+    mocks.searchEntryMembers.mockResolvedValue([{
+      gymMemberId: "member-1",
+      memberCode: "M-001",
+      fullName: "Ana Pérez",
+      status: "active",
+      membershipStatus: "active",
+      hasOverdueCharges: false,
+      financialAccessStatus: "initial_payment_required",
+    }]);
+
+    const element = await EntriesPage({
+      searchParams: Promise.resolve({ gymMemberId: "member-1" }),
+    });
+    const html = renderToStaticMarkup(element);
+
+    expect(html).toContain("Acceso no permitido");
+    expect(mocks.searchEntryMembers).toHaveBeenCalledWith({
+      gymId: "20000000-0000-4000-8000-000000000001",
+      search: "member-1",
+    });
+  });
+
+  it("fails closed when the canonical selected-member state cannot be loaded", async () => {
+    mocks.listGymEntries.mockResolvedValue([]);
+    mocks.getMember.mockResolvedValue({
+      gymMemberId: "member-1",
+      branchId: "branch-1",
+      memberCode: "M-001",
+      fullName: "Ana Pérez",
+      status: "active",
+      membershipStatus: "active",
+      hasOverdueCharges: false,
+    });
+    mocks.searchEntryMembers.mockRejectedValue(new Error("database unavailable"));
+
+    const element = await EntriesPage({
+      searchParams: Promise.resolve({ gymMemberId: "member-1" }),
+    });
+    const html = renderToStaticMarkup(element);
+
+    expect(html).toContain("No pudimos cargar el miembro seleccionado");
+    expect(html).not.toContain("Acceso permitido");
+    expect(html).not.toContain("Registrar entrada de Ana Pérez");
   });
 
   it("renders unified entries with Spanish source, decision and formatted date", async () => {

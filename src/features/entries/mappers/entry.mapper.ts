@@ -15,6 +15,7 @@ export function mapMemberEntryRow(row: MemberEntryRow): MemberEntryDto {
     decisionReason: row.decision_reason,
     membershipStatus: row.membership_status,
     hasOverdueCharges: row.has_overdue_charges ?? false,
+    financialAccessStatus: row.financial_access_status,
     occurredAt: row.occurred_at,
   };
 }
@@ -35,5 +36,6 @@ export function mapRegisteredEntry(row: RegisteredEntryRow): RegisteredEntryDto 
     memberFullName: row.memberFullName,
     membershipStatus: row.membershipStatus,
     hasOverdueCharges: row.hasOverdueCharges,
+    financialAccessStatus: row.financialAccessStatus,
   };
 }
