@@ -1,6 +1,29 @@
 begin;
 
-select plan(11);
+select plan(17);
+
+select is(
+  (select is_active from public.screens where code = 'facial_access'),
+  true,
+  'facial access screen is active'
+);
+
+select is(
+  (select route from public.screens where code = 'facial_access'),
+  '/facial-access',
+  'facial access screen uses its own route'
+);
+
+select results_eq(
+  $$select p.code
+    from public.screens s
+    join public.screen_permissions sp on sp.screen_id = s.id
+    join public.permissions p on p.id = sp.permission_id
+    where s.code = 'facial_access'
+    order by p.code$$,
+  $$values ('faces.read'::text)$$,
+  'facial access screen only carries faces.read'
+);
 
 select has_function(
   'public',
@@ -35,6 +58,58 @@ select ok(
   has_function_privilege('authenticated', 'public.current_user_has_gym_permission(uuid, text)', 'execute'),
   'authenticated can execute current_user_has_gym_permission'
 );
+
+insert into public.gym_users(gym_id, auth_user_id, employee_code, status, accepted_at)
+values (
+  '20000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000003',
+  'FACE-NO-PERMISSION',
+  'active',
+  timezone('utc', now())
+);
+
+insert into public.gym_user_roles(gym_user_id, role_id, assigned_by)
+select gu.id, r.id, '00000000-0000-4000-8000-000000000001'
+from public.gym_users gu
+join public.roles r on r.gym_id = gu.gym_id and r.code = 'trainer'
+where gu.gym_id = '20000000-0000-4000-8000-000000000001'
+  and gu.auth_user_id = '00000000-0000-4000-8000-000000000003';
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}';
+
+select is(
+  public.current_user_has_gym_permission(
+    '20000000-0000-4000-8000-000000000001',
+    'faces.read'
+  ),
+  true,
+  'authorized user has faces.read in the active gym'
+);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-000000000003","role":"authenticated"}';
+
+select is(
+  public.current_user_has_gym_permission(
+    '20000000-0000-4000-8000-000000000001',
+    'faces.read'
+  ),
+  false,
+  'same-gym user without permission cannot read facial access'
+);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-000000000002","role":"authenticated"}';
+
+select is(
+  public.current_user_has_gym_permission(
+    '20000000-0000-4000-8000-000000000001',
+    'faces.read'
+  ),
+  false,
+  'another-gym user cannot read facial access in the target gym'
+);
+
+reset role;
 
 select has_function(
   'public',
