@@ -327,6 +327,25 @@
         "supabase/tests/storage_deletion_queue_contract.sql": "4971caee59a082c23d44198466744f410e6b20435d9921cdb2124919d4371d38",
         "src/app/api/jobs/storage-deletion/storage-deletion-contract.test.ts": "90d7df2e91439551880f3a82bdc9ab38ca2473821c5e052f04c58eeeb1983053"
       }
+    },
+    {
+      "id": "RSECC",
+      "name": "Invitar personal exige staff.manage antes del cliente admin",
+      "branch": "feat/rsec-staff-invite",
+      "base": "origin/main",
+      "maxCommits": 4,
+      "_hallazgos": "F020. inviteStaffUser llama inviteUserByEmail con el cliente admin antes de verificar ningun permiso.",
+      "_contrato": "Congelado antes de delegar. En rojo sobre origin/main: 6 de 15 aserciones del archivo fallan. Paquete sin base de datos: no toca migraciones.",
+      "allowedPaths": [
+        "src/features/staff/**",
+        "verification/packages.json"
+      ],
+      "appendOnlyPaths": [],
+      "allowPublished": true,
+      "expectPgtapDeltaMin": 0,
+      "frozenFiles": {
+        "src/features/staff/services/staff.repository.test.ts": "114e1872825b18ef7bf6fea5de02ae84d2a2e654a087b20819875e22ae91171a"
+      }
     }
   ]
 }
