@@ -329,11 +329,31 @@
       }
     },
     {
+      "id": "RSECC",
+      "name": "Invitar personal exige staff.manage antes del cliente admin",
+      "branch": "feat/rsec-staff-invite",
+      "base": "origin/main",
+      "maxCommits": 5,
+      "_hallazgos": "F020. inviteStaffUser llama inviteUserByEmail con el cliente admin antes de verificar ningun permiso.",
+      "_contrato": "Congelado antes de delegar. En rojo sobre origin/main: 6 de 15 aserciones del archivo fallan. Paquete sin base de datos: no toca migraciones.",
+      "allowedPaths": [
+        "src/features/staff/**",
+        "verification/packages.json"
+      ],
+      "appendOnlyPaths": [],
+      "allowPublished": true,
+      "expectPgtapDeltaMin": 0,
+      "frozenFiles": {
+        "src/features/staff/services/staff.repository.test.ts": "fb96dcfd3344c651559f8aefab5c7852cde2275fcac6e61ca8fde90c44f3b1e3"
+      },
+      "_rehash": "2026-08-10: el hash se rehizo despues de que el ejecutor entregara, y hay que decirlo. Dos correcciones del autor del contrato, ninguna sobre las aserciones nuevas. Una: la prueba preexistente del borrado tras vinculacion fallida usaba un mockResolvedValue unico que devolvia error tambien para la consulta de permiso, asi que el requisito nuevo la contradecia. Se corrigio su doble, no su asercion. Dos: la asercion de respuesta ambigua solo listaba valores falsos por conversion, asi que un chequeo laxo la pasaba igual que el estricto; se agregaron valores verdaderos por conversion. Verificado que con la lista vieja el mutante laxo sobrevivia y con la nueva muere. Las 6 aserciones nuevas se congelaron y se corrieron en rojo ANTES de delegar, y no se tocaron."
+    },
+    {
       "id": "RSECA",
       "name": "Cierre de escritura biometrica y catalogo de pantallas honesto",
       "branch": "feat/rsec-db",
       "base": "origin/main",
-      "maxCommits": 4,
+      "maxCommits": 6,
       "_hallazgos": "F013 escritura directa a face_embeddings y biometric_consents con faces.manage, F034 pantallas ofrecidas sin ruta, F037 RPC muerta ejecutable, mas el espejo de F034: facial_access desactivada aunque el modulo este mergeado.",
       "_contrato": "Escrito y congelado por el autor del contrato antes de delegar. Corrido en rojo sobre origin/main: 9 de 15 aserciones fallan. El ejecutor recibe la suite roja y no puede tocar el archivo congelado.",
       "allowedPaths": [
