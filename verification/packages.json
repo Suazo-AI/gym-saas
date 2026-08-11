@@ -327,6 +327,29 @@
         "supabase/tests/storage_deletion_queue_contract.sql": "4971caee59a082c23d44198466744f410e6b20435d9921cdb2124919d4371d38",
         "src/app/api/jobs/storage-deletion/storage-deletion-contract.test.ts": "90d7df2e91439551880f3a82bdc9ab38ca2473821c5e052f04c58eeeb1983053"
       }
+    },
+    {
+      "id": "RSECA",
+      "name": "Cierre de escritura biometrica y catalogo de pantallas honesto",
+      "branch": "feat/rsec-db",
+      "base": "origin/main",
+      "maxCommits": 4,
+      "_hallazgos": "F013 escritura directa a face_embeddings y biometric_consents con faces.manage, F034 pantallas ofrecidas sin ruta, F037 RPC muerta ejecutable, mas el espejo de F034: facial_access desactivada aunque el modulo este mergeado.",
+      "_contrato": "Escrito y congelado por el autor del contrato antes de delegar. Corrido en rojo sobre origin/main: 9 de 15 aserciones fallan. El ejecutor recibe la suite roja y no puede tocar el archivo congelado.",
+      "allowedPaths": [
+        "supabase/migrations/**",
+        "supabase/tests/**",
+        "src/features/app/components/**",
+        "verification/packages.json"
+      ],
+      "appendOnlyPaths": [
+        "supabase/migrations/**"
+      ],
+      "allowPublished": true,
+      "expectPgtapDeltaMin": 15,
+      "frozenFiles": {
+        "supabase/tests/biometric_write_lockdown_contract.sql": "41236cc4106c53fc7ab02fb3f01871aea3a64b3428128db266eb73bad96a2d77"
+      }
     }
   ]
 }
