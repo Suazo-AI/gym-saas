@@ -1,6 +1,6 @@
 begin;
 
-select plan(17);
+select plan(24);
 
 select has_table('public', 'member_entries', 'member_entries table exists');
 
@@ -101,6 +101,33 @@ select ok(
   'authenticated can select v_gym_entries'
 );
 
+select has_function(
+  'public',
+  'search_entry_members',
+  array['uuid', 'text', 'integer'],
+  'entry member search rpc exists'
+);
+
+select ok(
+  has_function_privilege(
+    'authenticated',
+    'public.search_entry_members(uuid, text, integer)',
+    'execute'
+  ),
+  'authenticated can execute entry member search'
+);
+
+select is_empty(
+  $$select argument_name
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    cross join lateral unnest(p.proargnames) as argument_name
+    where n.nspname = 'public'
+      and p.proname = 'search_entry_members'
+      and argument_name ilike '%phone%'$$,
+  'entry member search does not return a phone column'
+);
+
 -- ============================================================================
 -- La RPC es la unica puerta de escritura
 -- ============================================================================
@@ -137,6 +164,37 @@ limit 1;
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}';
+
+select results_eq(
+  $$select member_code from public.search_entry_members(
+    '20000000-0000-4000-8000-000000000001', 'Ana', 10
+  )$$,
+  $$values ('M-0001'::text)$$,
+  'entry search finds a same-gym member by name'
+);
+
+select results_eq(
+  $$select member_code from public.search_entry_members(
+    '20000000-0000-4000-8000-000000000001', 'M-0002', 10
+  )$$,
+  $$values ('M-0002'::text)$$,
+  'entry search finds a same-gym member by code'
+);
+
+select results_eq(
+  $$select member_code from public.search_entry_members(
+    '20000000-0000-4000-8000-000000000001', '88880001', 10
+  )$$,
+  $$values ('M-0001'::text)$$,
+  'entry search normalizes and matches a same-gym phone'
+);
+
+select is_empty(
+  $$select * from public.search_entry_members(
+    '20000000-0000-4000-8000-000000000001', '88880003', 10
+  )$$,
+  'entry search does not reveal another gym phone'
+);
 
 select is(
   (select count(*) from public.member_entries
