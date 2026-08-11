@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { updateRoleScreenAction, type RoleScreenState } from "../actions/role-screen.actions";
+import { describeEffectivePermissions, describeRoleLimits } from "../services/permission-presentation";
 import type { RoleScreenAccessDto } from "../types/staff.dto";
 
 export function RoleScreenManagement({ access }: { access: RoleScreenAccessDto }) {
@@ -31,7 +32,7 @@ function RoleEditor({ role, access }: { role: RoleScreenAccessDto["roles"][numbe
   return <form action={action} className="mt-5 rounded-xl border border-slate-200 p-4">
     <input name="roleId" type="hidden" value={role.id} />
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <div><h3 className="text-lg font-black text-ink">{role.name}</h3><p className="text-sm text-gray">{selected.length} de {access.screens.length} pantallas seleccionadas</p></div>
+      <div><h3 className="text-lg font-black text-ink">{role.name}</h3><p className="text-sm text-gray">{selected.length} de {access.screens.length} pantallas seleccionadas</p><p className="mt-2 max-w-2xl text-xs font-semibold text-gray">{describeRoleLimits(role.code, role.permissionCodes).join(" ")}</p></div>
       {role.isOwner ? <span className="rounded-full bg-brand-sand px-3 py-1 text-xs font-black text-green-900">Acceso total protegido</span> : <div className="flex gap-2"><button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-black" onClick={() => setSelected(access.screens.map((screen) => screen.id))} type="button">Marcar todas</button><button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-black" onClick={() => setSelected([])} type="button">Limpiar selección</button></div>}
     </div>
     <fieldset className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" disabled={role.isOwner}>
@@ -46,6 +47,5 @@ function RoleEditor({ role, access }: { role: RoleScreenAccessDto["roles"][numbe
 }
 
 function permissionLabel(codes: string[]) {
-  const labels: Record<string, string> = { "dashboard.read": "Ver resumen", "members.read": "Ver miembros", "memberships.read": "Ver membresías", "payments.read": "Ver pagos", "income.read": "Ver ingresos", "faces.read": "Ver entradas", "alerts.read": "Ver alertas", "staff.read": "Ver personal", "roles.manage": "Administrar roles", "gym.read": "Ver configuración", "billing.read": "Ver facturación SaaS", "audit.read": "Ver auditoría" };
-  return codes.map((code) => labels[code] ?? code).join(", ");
+  return describeEffectivePermissions(codes).flatMap((group) => group.items.map((item) => item.label)).join(", ");
 }

@@ -25,6 +25,7 @@ describe("RoleScreenManagement", () => {
 
     expect(html).toContain("Rol que deseas configurar");
     expect(html).toContain("Ver pagos");
+    expect(html).toContain("No puede administrar personal ni configuración del gimnasio.");
     expect(html).toContain("Marcar todas");
     expect(html).toContain("Limpiar selección");
     expect(html).toContain("Guardar 0 pantallas");
