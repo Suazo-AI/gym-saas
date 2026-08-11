@@ -1,20 +1,15 @@
-import { redirect } from "next/navigation";
-
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { PlatformShell } from "@/features/platform/components/platform-shell";
+import { requirePlatformAdmin } from "@/features/platform/services/platform-access";
 import { getPlatformDashboard } from "@/features/platform/services/platform.repository";
 
 export default async function PlatformSubscriptionsPage() {
-  const user = await requireUser();
-  if (user.app_metadata?.platform_role !== "admin") {
-    redirect("/dashboard");
-  }
+  const { user, navigation } = await requirePlatformAdmin();
 
   const dashboard = await getPlatformDashboard();
 
   return (
-    <PlatformShell currentPath="/platform/subscriptions" userEmail={user.email}>
+    <PlatformShell currentPath="/platform/subscriptions" navigation={navigation} userEmail={user.email}>
       <ModuleHeader
         eyebrow="SaaS"
         title="Suscripciones"

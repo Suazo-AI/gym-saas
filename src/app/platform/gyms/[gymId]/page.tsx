@@ -1,8 +1,6 @@
-import { redirect } from "next/navigation";
-
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { PlatformShell } from "@/features/platform/components/platform-shell";
+import { requirePlatformAdmin } from "@/features/platform/services/platform-access";
 import { getPlatformGymDetail } from "@/features/platform/services/platform.repository";
 
 type PlatformGymDetailPageProps = {
@@ -11,16 +9,13 @@ type PlatformGymDetailPageProps = {
 };
 
 export default async function PlatformGymDetailPage({ params, searchParams }: PlatformGymDetailPageProps) {
-  const user = await requireUser();
-  if (user.app_metadata?.platform_role !== "admin") {
-    redirect("/dashboard");
-  }
+  const { user, navigation } = await requirePlatformAdmin();
 
   const [{ gymId }, query] = await Promise.all([params, searchParams]);
   const detail = await getPlatformGymDetail(gymId);
 
   return (
-    <PlatformShell currentPath="/platform/gyms" userEmail={user.email}>
+    <PlatformShell currentPath="/platform/gyms" navigation={navigation} userEmail={user.email}>
       <ModuleHeader
         eyebrow="Cliente SaaS"
         title={detail.gym.trade_name}
