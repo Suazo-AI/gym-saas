@@ -20,4 +20,9 @@ describe("AppShell theme contrast", () => {
     const source = readFileSync("src/features/app/components/app-shell.tsx", "utf8");
     expect(source).toContain('"/alerts"');
   });
+
+  it("allows the facial access catalog route into the gym navigation", () => {
+    const source = readFileSync("src/features/app/components/app-shell.tsx", "utf8");
+    expect(source).toContain('"/facial-access"');
+  });
 });
