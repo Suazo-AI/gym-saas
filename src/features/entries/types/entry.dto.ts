@@ -10,6 +10,15 @@ export type FaceVerificationDecision = "allowed" | "denied" | "manual_review" | 
 
 export type EntryDecision = "allowed" | "denied" | "manual_review" | "no_match";
 
+export type EntryMemberSearchResultDto = {
+  gymMemberId: string;
+  memberCode: string;
+  fullName: string;
+  status: string;
+  membershipStatus: string | null;
+  hasOverdueCharges: boolean;
+};
+
 export type EntrySource = "manual" | "face";
 
 export type MemberEntryDto = {
