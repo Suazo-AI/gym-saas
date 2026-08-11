@@ -141,7 +141,7 @@ function Panel({
   title: string;
 }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-4">
         <h2 className="text-xl font-black text-[#061f46]">{title}</h2>
         <Link className="text-sm font-black text-[#083f88] hover:text-[#ff7a1a]" href={actionHref}>

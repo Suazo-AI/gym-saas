@@ -2,12 +2,22 @@
 
 import { useActionState } from "react";
 
-import { deleteStaffAction, inviteStaffAction, updateStaffAction, type StaffActionState } from "../actions/staff.actions";
-import type { StaffRoleDto, StaffUserDto } from "../types/staff.dto";
+import { deleteStaffAction, inviteStaffAction, restoreStaffAction, updateStaffAction, type StaffActionState } from "../actions/staff.actions";
+import type { DeletedStaffUserDto, StaffRoleDto, StaffUserDto } from "../types/staff.dto";
 
 const initialState: StaffActionState = { ok: false };
 
-export function StaffManagement({ staff, roles }: { staff: StaffUserDto[]; roles: StaffRoleDto[] }) {
+export function StaffManagement({
+  staff,
+  roles,
+  deletedStaff = [],
+  deletedUnavailable = false,
+}: {
+  staff: StaffUserDto[];
+  roles: StaffRoleDto[];
+  deletedStaff?: DeletedStaffUserDto[];
+  deletedUnavailable?: boolean;
+}) {
   const [inviteState, inviteAction, invitePending] = useActionState(inviteStaffAction, initialState);
 
   return (
@@ -39,8 +49,39 @@ export function StaffManagement({ staff, roles }: { staff: StaffUserDto[]; roles
             {staff.map((person) => <StaffEditor key={person.id} person={person} roles={roles} />)}
           </div>
         )}
+        <DeletedStaff staff={deletedStaff} unavailable={deletedUnavailable} />
       </section>
     </div>
+  );
+}
+
+function DeletedStaff({ staff, unavailable }: { staff: DeletedStaffUserDto[]; unavailable: boolean }) {
+  return (
+    <div className="border-t border-slate-200 bg-slate-50 p-5">
+      <h2 className="text-lg font-black text-ink">Personal retirado</h2>
+      {unavailable ? <p className="mt-2 text-sm font-semibold text-red-700">No pudimos cargar el personal retirado.</p> : null}
+      {!unavailable && staff.length === 0 ? <p className="mt-2 text-sm text-gray">No hay personal retirado.</p> : null}
+      <div className="mt-3 grid gap-3">
+        {staff.map((person) => <RestoreStaff key={person.id} person={person} />)}
+      </div>
+    </div>
+  );
+}
+
+function RestoreStaff({ person }: { person: DeletedStaffUserDto }) {
+  const [state, action, pending] = useActionState(restoreStaffAction, initialState);
+  return (
+    <form action={action} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
+      <input name="gymUserId" type="hidden" value={person.id} />
+      <div>
+        <p className="font-black text-ink">{person.label}</p>
+        <p className="text-sm text-gray">{person.reason ?? "Sin motivo registrado"}</p>
+        <ActionMessage state={state} />
+      </div>
+      <button className="min-h-11 rounded-xl border border-brand-green px-4 py-2 text-sm font-black text-brand-green hover:bg-brand-sand disabled:opacity-60" disabled={pending} type="submit">
+        {pending ? "Restaurando…" : "Restaurar"}
+      </button>
+    </form>
   );
 }
 

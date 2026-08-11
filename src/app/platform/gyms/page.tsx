@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ModuleHeader } from "@/features/app/components/module-header";
 import { requireUser } from "@/features/auth/services/auth.service";
 import { PlatformShell } from "@/features/platform/components/platform-shell";
+import { CreatePlatformGymForm } from "@/features/platform/components/create-platform-gym-form";
 import { getPlatformDashboard } from "@/features/platform/services/platform.repository";
 
 export default async function PlatformGymsPage() {
@@ -21,6 +22,8 @@ export default async function PlatformGymsPage() {
         title="Gimnasios del SaaS"
         description="Vista operativa de tenants, planes, sucursales, personal y miembros registrados."
       />
+
+      <CreatePlatformGymForm />
 
       <section className="mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <table className="w-full min-w-[920px] text-left text-sm">

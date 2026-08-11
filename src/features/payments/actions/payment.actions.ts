@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import {
   refundPaymentSchema,
@@ -59,6 +60,7 @@ export async function refundPaymentAction(
 }
 
 export async function registerPaymentAction(_: PaymentActionState, form: FormData): Promise<PaymentActionState> {
+  let receiptPath: string;
   try {
     const gym = await getActiveGym();
     if (!gym) return { ok: false, message: "No hay gimnasio activo." };
@@ -86,10 +88,11 @@ export async function registerPaymentAction(_: PaymentActionState, form: FormDat
     });
     refresh();
     revalidatePath(`/members/${gymMemberId}`);
-    return { ok: true, message: `Pago registrado. Recibo ${payment.receiptNumber}.` };
+    receiptPath = `/payments/${payment.paymentId}/receipt`;
   } catch (error) {
     return { ok: false, message: message(error) };
   }
+  redirect(receiptPath);
 }
 function optional(form:FormData,key:string){const value=form.get(key);return typeof value==="string"&&value.trim()?value.trim():undefined;}
 function refresh(){revalidatePath("/payments");revalidatePath("/dashboard");revalidatePath("/members");}

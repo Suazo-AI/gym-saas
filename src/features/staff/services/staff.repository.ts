@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 import type { InviteStaffInput, UpdateStaffInput } from "../schemas/staff.schema";
-import type { RoleScreenAccessDto, StaffRoleDto, StaffUserDto } from "../types/staff.dto";
+import type { DeletedStaffUserDto, RoleScreenAccessDto, StaffRoleDto, StaffUserDto } from "../types/staff.dto";
 
 type Rpc = (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
 
@@ -12,6 +12,30 @@ export async function listStaffUsers(gymId: string, injectedRpc?: Rpc): Promise<
   const { data, error } = await rpc("list_gym_staff", { p_gym_id: gymId });
   if (error) throw mapSupabaseError(error);
   return (data ?? []) as StaffUserDto[];
+}
+
+export async function listDeletedStaffUsers(gymId: string, injectedRpc?: Rpc): Promise<DeletedStaffUserDto[]> {
+  const rpc = injectedRpc ?? await serverRpc();
+  const { data, error } = await rpc("list_deleted_entities", {
+    p_gym_id: gymId,
+    p_entity: "gym_user",
+    p_limit: 50,
+    p_offset: 0,
+  });
+  if (error) throw mapSupabaseError(error);
+  return ((data ?? []) as Array<{
+    id: string;
+    label: string;
+    deleted_at?: string;
+    deletedAt?: string;
+    deletion_reason?: string | null;
+    reason?: string | null;
+  }>).map((row) => ({
+    id: row.id,
+    label: row.label,
+    deletedAt: row.deleted_at ?? row.deletedAt ?? "",
+    reason: row.deletion_reason ?? row.reason ?? null,
+  }));
 }
 
 export async function listStaffRoles(gymId: string): Promise<StaffRoleDto[]> {

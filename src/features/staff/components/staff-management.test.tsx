@@ -6,6 +6,7 @@ vi.mock("../actions/staff.actions", () => ({
   inviteStaffAction: vi.fn(),
   updateStaffAction: vi.fn(),
   deleteStaffAction: vi.fn(),
+  restoreStaffAction: vi.fn(),
 }));
 
 import { StaffManagement } from "./staff-management";
@@ -34,6 +35,19 @@ describe("StaffManagement", () => {
     expect(html).toContain("Suspender");
     expect(html).toContain("Retirar usuario");
     expect(html).toContain("Motivo del retiro");
+    expect(html).toContain("Personal retirado");
     expect(html).toMatch(/bg-brand-green[^\"]*text-white[^\"]*\"[^>]*>Guardar cambios/);
+  });
+
+  it("renders retired staff with a restore control", () => {
+    const html = renderToStaticMarkup(createElement(StaffManagement, {
+      roles: [],
+      staff: [],
+      deletedStaff: [{ id: "staff-2", label: "Luis — luis@gym.com", deletedAt: "2026-08-09T00:00:00Z", reason: "Fin de contrato" }],
+    }));
+
+    expect(html).toContain("Luis — luis@gym.com");
+    expect(html).toContain("Fin de contrato");
+    expect(html).toContain("Restaurar");
   });
 });
