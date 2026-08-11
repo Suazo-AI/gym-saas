@@ -3,22 +3,14 @@ import Link from "next/link";
 import { signOutAction } from "@/features/auth/actions/auth.actions";
 import { PreferencesControls } from "@/features/app/components/preferences-controls";
 
-const nav = [
-  ["Resumen", "/platform"],
-  ["Gimnasios", "/platform/gyms"],
-  ["Suscripciones", "/platform/subscriptions"],
-  ["Facturas", "/platform/invoices"],
-  ["Pagos", "/platform/payments"],
-  ["Auditoria", "/platform/audit"],
-];
-
 type PlatformShellProps = {
   currentPath: string;
+  navigation: ReadonlyArray<{ label: string; href: string }>;
   userEmail?: string | null;
   children: React.ReactNode;
 };
 
-export function PlatformShell({ currentPath, userEmail, children }: PlatformShellProps) {
+export function PlatformShell({ currentPath, navigation, userEmail, children }: PlatformShellProps) {
   return (
     <main className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[272px_1fr]">
       <aside className="border-b border-white/10 bg-[#111814] p-5 text-white lg:min-h-screen lg:border-b-0 lg:border-r">
@@ -38,7 +30,7 @@ export function PlatformShell({ currentPath, userEmail, children }: PlatformShel
         </div>
 
         <nav className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1">
-          {nav.map(([label, href]) => (
+          {navigation.map(({ label, href }) => (
             <Link
               aria-current={currentPath === href ? "page" : undefined}
               className={`rounded-md px-4 py-3 text-sm font-bold transition ${

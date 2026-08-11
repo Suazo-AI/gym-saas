@@ -1,27 +1,17 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { requireUser } from "@/features/auth/services/auth.service";
 import { PlatformShell } from "@/features/platform/components/platform-shell";
+import { requirePlatformAdmin } from "@/features/platform/services/platform-access";
 import { getPlatformDashboard } from "@/features/platform/services/platform.repository";
 
-type PlatformMetadata = {
-  platform_role?: string;
-};
-
 export default async function PlatformPage() {
-  const user = await requireUser();
-  const metadata = user.app_metadata as PlatformMetadata;
-
-  if (metadata.platform_role !== "admin") {
-    redirect("/dashboard");
-  }
+  const { user, navigation } = await requirePlatformAdmin();
 
   const dashboard = await getPlatformDashboard();
 
   return (
-    <PlatformShell currentPath="/platform" userEmail={user.email}>
+    <PlatformShell currentPath="/platform" navigation={navigation} userEmail={user.email}>
       <ModuleHeader
         eyebrow="Plataforma"
         title="Dashboard SaaS"

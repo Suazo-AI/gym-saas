@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { deleteStaffAction, inviteStaffAction, restoreStaffAction, updateStaffAction, type StaffActionState } from "../actions/staff.actions";
+import { describeEffectivePermissions, describeRoleLimits } from "../services/permission-presentation";
 import type { DeletedStaffUserDto, StaffRoleDto, StaffUserDto } from "../types/staff.dto";
 
 const initialState: StaffActionState = { ok: false };
@@ -102,12 +103,21 @@ function StaffEditor({ person, roles }: { person: StaffUserDto; roles: StaffRole
         <Field defaultValue={person.employeeCode ?? ""} label="Código de empleado" name="employeeCode" />
         <label className="text-sm font-bold text-ink">Estado
           <select className={controlClass} defaultValue={person.status} name="status">
-            <option value="invited">Invitado</option><option value="active">Activo</option>
-            <option value="suspended">Suspender</option><option value="revoked">Revocado</option>
+            <option value="invited">Invitación pendiente</option><option value="active">Reactivar acceso</option>
+            <option value="suspended">Suspender acceso</option><option value="revoked">Revocar acceso</option>
           </select>
         </label>
         <div className="md:col-span-2"><RoleChoices roles={roles} selected={person.roles.map((role) => role.id)} /></div>
-        <div className="md:col-span-2"><p className="text-sm font-bold text-ink">Permisos efectivos</p><div className="mt-2 flex flex-wrap gap-2">{person.permissions.map((permission)=><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-gray-dark" key={permission}>{permission}</span>)}</div></div>
+        <div className="md:col-span-2">
+          <p className="text-sm font-bold text-ink">Permisos efectivos</p>
+          <p className="mt-1 text-xs text-gray">Se calculan en el servidor a partir de todos los roles asignados.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {describeEffectivePermissions(person.permissions).map((group) => <section className="rounded-xl bg-slate-50 p-3" key={group.group}>
+              <h4 className="text-xs font-black uppercase tracking-wide text-brand-green">{group.group}</h4>
+              <div className="mt-2 flex flex-wrap gap-2">{group.items.map((item) => <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-dark" key={item.code}>{item.label}</span>)}</div>
+            </section>)}
+          </div>
+        </div>
         <div className="flex items-center justify-between gap-3 md:col-span-2">
           <ActionMessage state={updateState} />
           <button className="min-h-11 rounded-xl bg-brand-green px-4 py-2 text-sm font-black text-white hover:bg-green-800 disabled:opacity-60" disabled={updatePending} type="submit">Guardar cambios</button>
@@ -131,7 +141,12 @@ function Field(props: { label: string; name: string; type?: string; required?: b
   return <label className="block text-sm font-bold text-ink">{props.label}<input className={controlClass} {...props} /></label>;
 }
 function RoleChoices({ roles, selected = [] }: { roles: StaffRoleDto[]; selected?: string[] }) {
-  return <fieldset><legend className="text-sm font-bold text-ink">Roles</legend><div className="mt-2 flex flex-wrap gap-2">{roles.map((role) => <label className="rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold" key={role.id}><input className="mr-2 accent-brand-green" defaultChecked={selected.includes(role.id)} name="roleIds" type="checkbox" value={role.id} />{role.name}</label>)}</div></fieldset>;
+  return <fieldset><legend className="text-sm font-bold text-ink">Roles</legend><div className="mt-2 grid gap-2">{roles.map((role) => <label className="rounded-xl border border-slate-300 p-3 text-sm" key={role.id}>
+    <span className="font-black"><input className="mr-2 accent-brand-green" defaultChecked={selected.includes(role.id)} name="roleIds" type="checkbox" value={role.id} />{role.name}</span>
+    {role.description ? <span className="mt-1 block text-xs text-gray">{role.description}</span> : null}
+    <span className="mt-2 block text-xs font-bold text-ink">Qué permite este rol</span>
+    <span className="mt-1 block text-xs text-gray">{describeRoleLimits(role.code, role.permissionCodes).join(" ")}</span>
+  </label>)}</div></fieldset>;
 }
 function ActionMessage({ state }: { state: StaffActionState }) { return state.message ? <p aria-live="polite" className={`text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`}>{state.message}</p> : null; }
 function statusLabel(status: StaffUserDto["status"]) { return ({ invited: "Invitado", active: "Activo", suspended: "Suspendido", revoked: "Revocado" })[status]; }

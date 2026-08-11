@@ -3,6 +3,7 @@ export type StaffRoleDto = {
   code: string;
   name: string;
   description: string | null;
+  permissionCodes: string[];
 };
 
 export type StaffUserDto = {

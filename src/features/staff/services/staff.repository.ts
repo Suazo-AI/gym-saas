@@ -40,9 +40,27 @@ export async function listDeletedStaffUsers(gymId: string, injectedRpc?: Rpc): P
 
 export async function listStaffRoles(gymId: string): Promise<StaffRoleDto[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("roles").select("id, code, name, description").eq("gym_id", gymId).is("deleted_at", null).order("name");
+  const { data, error } = await supabase
+    .from("roles")
+    .select("id, code, name, description, role_permissions(permissions(code))")
+    .eq("gym_id", gymId)
+    .is("deleted_at", null)
+    .order("name");
   if (error) throw mapSupabaseError(error);
-  return data ?? [];
+  return mapStaffRoles(data ?? []);
+}
+
+type StaffRoleRow = Omit<StaffRoleDto, "permissionCodes"> & {
+  role_permissions: Array<{ permissions: { code: string } | null }>;
+};
+
+export function mapStaffRoles(rows: StaffRoleRow[]): StaffRoleDto[] {
+  return rows.map(({ role_permissions: rolePermissions, ...role }) => ({
+    ...role,
+    permissionCodes: rolePermissions
+      .flatMap((item) => item.permissions?.code ?? [])
+      .sort(),
+  }));
 }
 
 export async function updateStaffUser(input: UpdateStaffInput, injectedRpc?: Rpc) {

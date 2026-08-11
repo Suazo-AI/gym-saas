@@ -14,7 +14,7 @@ import { StaffManagement } from "./staff-management";
 describe("StaffManagement", () => {
   it("renders invitation, roles, lifecycle and logical deletion controls", () => {
     const html = renderToStaticMarkup(createElement(StaffManagement, {
-      roles: [{ id: "role-1", code: "receptionist", name: "Recepcionista", description: null }],
+      roles: [{ id: "role-1", code: "receptionist", name: "Recepcionista", description: "Atención diaria", permissionCodes: ["members.read", "payments.manage"] }],
       staff: [{
         id: "staff-1",
         authUserId: "auth-1",
@@ -32,7 +32,12 @@ describe("StaffManagement", () => {
     expect(html).toContain("Invitar personal");
     expect(html).toContain("Ana López");
     expect(html).toContain("Recepcionista");
-    expect(html).toContain("Suspender");
+    expect(html).toContain("Qué permite este rol");
+    expect(html).toContain("No puede administrar personal ni configuración del gimnasio.");
+    expect(html).toContain("Ver miembros");
+    expect(html).toContain("Suspender acceso");
+    expect(html).toContain("Reactivar acceso");
+    expect(html).not.toContain(">members.read<");
     expect(html).toContain("Retirar usuario");
     expect(html).toContain("Motivo del retiro");
     expect(html).toContain("Personal retirado");
