@@ -425,7 +425,7 @@ Lo que todavía no está: el reclamo no emite token de propiedad, así que un wo
 
 Módulo implementado. El esquema cubre fotografías, consentimiento biométrico, modelos faciales, embeddings, eventos, dispositivos, alertas y búsqueda por similitud con `pgvector`.
 
-**Los embeddings son de 128 dimensiones** desde el PR #56 (`1bc290b`), que reemplazó `buffalo_l` de InsightFace, de licencia no comercial, por SFace de OpenCV, Apache 2.0. Las migraciones anteriores a `20260808050000_sface_128_dimensions.sql` siguen diciendo 512 porque son historia y no se reescriben: la que manda es la última.
+**Los embeddings son de 128 dimensiones y usan OpenCV YuNet + SFace** desde el PR #56 (`1bc290b`). La decisión fue aprobada por el supervisor el 8 de agosto de 2026 porque `buffalo_l` de InsightFace tiene una licencia no comercial incompatible con el despliegue actual; SFace de OpenCV usa Apache 2.0. Las migraciones anteriores a `20260808050000_sface_128_dimensions.sql` siguen diciendo 512 porque son historia y no se reescriben: la que manda es la última.
 
 Ese número vive hoy en cinco lugares editables por separado:
 
