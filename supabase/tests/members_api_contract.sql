@@ -166,12 +166,20 @@ select set_config(
   true
 );
 
+select set_config(
+  'test.cash_payment_method_id',
+  (select id::text from public.payment_methods where code = 'cash'),
+  true
+);
+
+set local role service_role;
+
 select throws_ok(
   $$ select public.start_member_subscription(
     '60000000-0000-4000-8000-000000000099'::uuid,
     '40000000-0000-4000-8000-000000000001'::uuid,
     current_date,
-    (select id from public.payment_methods where code = 'cash'),
+    current_setting('test.cash_payment_method_id')::uuid,
     450.00,
     'NIO'
   ) $$,
