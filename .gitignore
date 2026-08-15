@@ -55,3 +55,9 @@ Docs/plans/*reporte-codex.err.log
 Docs/plans/*reporte-codex.log
 Docs/plans/*.prompt.txt
 verification/watch.log
+
+# cgr (code-graph-rag) leaves its parse caches and embedding store in the repo it indexes.
+.cgr-dir-mtimes.json
+.cgr-hash-cache.json
+.cgr-parser-fingerprint
+.qdrant_code_embeddings/
