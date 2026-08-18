@@ -372,6 +372,44 @@
       },
       "_rehash": "2026-08-10: el hash se rehizo despues de que el ejecutor entregara, y hay que decirlo. La asercion del consentimiento nombraba granted_at, columna que no existe: es obtained_at y tiene default. PostgreSQL responde 42703 al analizar, antes de evaluar permisos, asi que esa asercion no podia pasar con ninguna implementacion. El ejecutor lo reporto en vez de aflojar la prueba. Se corrigio a las columnas reales sin cambiar lo que exige.",
       "_rojo": "La linea base roja que se midio antes de delegar, 9 de 15, estaba viciada: se midio contra la base local, que estaba atrasada respecto de main. El rojo real sobre main actual es 8 de 15, reconstruido revirtiendo la migracion sobre la base al dia. La diferencia es la asercion de facial_access, que main ya satisface por la migracion 20260810150000."
+    },
+    {
+      "id": "T1",
+      "name": "Aislamiento multi-tenant: lectura cruzada",
+      "branch": "test/tenant-isolation-read",
+      "base": "origin/main",
+      "maxCommits": 2,
+      "_tarjeta": "Trello 'Pruebas de aislamiento multi-tenant' (54), item 'Intentar leer datos cruzados'.",
+      "_contrato": "Claim escrito por el orquestador antes de delegar. El ejecutor no edita este archivo y no reporta su propio estado.",
+      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. El veredicto lo da el job db.yml del CI.",
+      "allowedPaths": [
+        "supabase/tests/tenant_isolation_read.sql"
+      ],
+      "appendOnlyPaths": [
+        "supabase/tests/**",
+        "supabase/migrations/**"
+      ],
+      "expectPgtapDeltaMin": 8,
+      "frozenFiles": {}
+    },
+    {
+      "id": "T2",
+      "name": "Aislamiento multi-tenant: insercion con gym_id ajeno",
+      "branch": "test/tenant-isolation-insert",
+      "base": "origin/main",
+      "maxCommits": 2,
+      "_tarjeta": "Trello 'Pruebas de aislamiento multi-tenant' (54), item 'Intentar insertar usando otro gym_id'.",
+      "_contrato": "Claim escrito por el orquestador antes de delegar. El ejecutor no edita este archivo y no reporta su propio estado.",
+      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. El veredicto lo da el job db.yml del CI.",
+      "allowedPaths": [
+        "supabase/tests/tenant_isolation_insert.sql"
+      ],
+      "appendOnlyPaths": [
+        "supabase/tests/**",
+        "supabase/migrations/**"
+      ],
+      "expectPgtapDeltaMin": 6,
+      "frozenFiles": {}
     }
   ]
 }
