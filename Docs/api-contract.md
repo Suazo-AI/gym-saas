@@ -101,6 +101,24 @@ RPC: `public.create_gym_member(...)`
 
 `create_gym_member` es un contrato legado para el alta administrativa del miembro. No debe utilizarse para crear una suscripción activa sin pago. El flujo v2 separará el alta del miembro del inicio atómico de la membresía mediante `public.start_member_subscription(...)`.
 
+#### `p_member_code` es opcional
+
+Si llega vacío, la RPC asigna el siguiente número del gimnasio con
+`private.next_member_code(...)`: `M-` más seis dígitos, por ejemplo `M-000042`.
+
+La numeración es **por gimnasio**. Dos gimnasios distintos pueden tener un
+`M-000001` cada uno y eso no es una colisión: el índice único es
+`(gym_id, lower(member_code)) where deleted_at is null`.
+
+El código sigue siendo para que lo lea una persona, no un identificador
+interno. La identidad es `gym_members.id` y el aislamiento lo da RLS por
+`gym_id`. Se muestra en la búsqueda de pagos, en el recibo, en la lista de
+entradas, en el resultado del reconocimiento facial y en la exportación a CSV.
+
+Se puede seguir mandando un código propio. Si ese código ya existe en el
+gimnasio, la RPC responde `23505` con un mensaje en español en vez del error
+crudo de la restricción.
+
 Puede crear en una transaccion:
 
 - `persons`

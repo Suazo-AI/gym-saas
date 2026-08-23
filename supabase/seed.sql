@@ -418,7 +418,7 @@ values
     '20000000-0000-4000-8000-000000000001',
     '50000000-0000-4000-8000-000000000001',
     '30000000-0000-4000-8000-000000000001',
-    'M-0001',
+    'M-000001',
     'active',
     current_date - 20,
     '00000000-0000-4000-8000-000000000001'
@@ -428,7 +428,7 @@ values
     '20000000-0000-4000-8000-000000000001',
     '50000000-0000-4000-8000-000000000002',
     '30000000-0000-4000-8000-000000000001',
-    'M-0002',
+    'M-000002',
     'active',
     current_date - 45,
     '00000000-0000-4000-8000-000000000001'
@@ -438,7 +438,7 @@ values
     '20000000-0000-4000-8000-000000000002',
     '50000000-0000-4000-8000-000000000003',
     '30000000-0000-4000-8000-000000000002',
-    'M-0001',
+    'M-000001',
     'active',
     current_date - 10,
     '00000000-0000-4000-8000-000000000002'
@@ -580,5 +580,24 @@ where not exists (
     and a.membership_charge_id = '80000000-0000-4000-8000-000000000001'
 )
 on conflict do nothing;
+
+-- El seed inserta miembros con su codigo escrito, sin pasar por
+-- create_gym_member, asi que el contador de private.member_code_counters no se
+-- entera. Sin esta parte el primer alta de la aplicacion pediria M-000001,
+-- lo encontraria ocupado y avanzaria de a uno hasta pasar los del seed: sale
+-- bien igual, pero por reintentos en vez de por saber donde va.
+--
+-- Se deja el contador en el mayor numero realmente usado por cada gimnasio.
+insert into private.member_code_counters (gym_id, last_value)
+select
+  gm.gym_id,
+  max((substring(gm.member_code from 3))::bigint)
+from public.gym_members gm
+where gm.deleted_at is null
+  and gm.member_code ~ '^M-[0-9]+$'
+group by gm.gym_id
+on conflict (gym_id) do update
+  set last_value = greatest(private.member_code_counters.last_value, excluded.last_value),
+      updated_at = timezone('utc', now());
 
 commit;
