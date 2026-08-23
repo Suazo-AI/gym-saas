@@ -607,7 +607,9 @@ Depth is mostly tonal and bordered:
 - Platform navigation uses `Resumen`, `Gimnasios`, `Suscripciones`, `Facturas`, `Pagos`, `Auditoria`.
 - Active link uses `aria-current="page"`, orange fill, and ink text.
 - Inactive links use gray-light text; hover uses charcoal fill and paper text.
-- Mobile shell navigation becomes a multi-column top grid. There is no hamburger, overlay drawer, icon-only rail, or collapsed state.
+- Below `lg` (1024px) the product shell hides the sidebar entirely and renders a sticky top header on ink, 69px tall, holding the brand and a `Menú` disclosure built on native `details`/`summary`. Opening it drops a panel with the same `ShellControls` the sidebar uses: gym switcher, navigation and user block. There is still no icon-only rail and no persistent collapsed state.
+- This replaced the earlier multi-column top grid on 2026-08-21, from hallazgo A2 of `Docs/plans/2026-08-21-prototype-user-test.md`: at 390 by 844 the full sidebar measured 719px and pushed the first form field to 1032px. After the change the title starts at 142px and the first field at 382px.
+- Landing navigation is a separate surface and keeps its own rule, below.
 
 ### Header
 
