@@ -31,4 +31,11 @@ describe("AppShell theme contrast", () => {
     expect(source).toContain("ActiveGymSwitcher");
     expect(source).toContain("availableGyms={availableGyms}");
   });
+
+  it("keeps the full sidebar off the mobile content path", () => {
+    const source = readFileSync("src/features/app/components/app-shell.tsx", "utf8");
+    expect(source).toContain("lg:hidden");
+    expect(source).toContain("hidden border-r border-white/10 bg-[#111814] p-5 text-white lg:block");
+    expect(source).toContain("Abrir menu principal");
+  });
 });
