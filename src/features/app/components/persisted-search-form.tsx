@@ -45,7 +45,13 @@ export function PersistedSearchForm({
   return (
     <form className="flex flex-col gap-3 border-b border-gray p-4 sm:flex-row" onSubmit={submit}>
       <label className="sr-only" htmlFor={`${storageKey}-input`}>{placeholder}</label>
-      <input className="min-h-11 flex-1 rounded-md border border-gray px-3 text-ink outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-sand" id={`${storageKey}-input`} onChange={(event) => setValue(event.target.value)} placeholder={placeholder} value={displayedValue} />
+      <div className="relative flex-1">
+        <input className="min-h-11 w-full rounded-md border border-gray px-3 pr-10 text-ink outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-sand" id={`${storageKey}-input`} onChange={(event) => setValue(event.target.value)} placeholder={placeholder} value={displayedValue} />
+        <svg aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 text-gray" fill="none" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+          <path d="m16 16 4 4" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+        </svg>
+      </div>
       <button className="min-h-11 rounded-md bg-ink px-5 py-3 text-sm font-black text-paper hover:bg-charcoal" type="submit">Buscar</button>
     </form>
   );

@@ -1,4 +1,5 @@
 import type { MembershipPlanDto } from "@/features/memberships/types/membership.dto";
+import { LoadError } from "@/features/app/components/load-error";
 
 import type { MemberDetailDto } from "../types/member.dto";
 import { getMemberOperationalState } from "../member-operational-state";
@@ -102,9 +103,9 @@ export function MemberDetailView({
               ) : null}
             </div>
           ) : plansLoadFailed ? (
-            <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800">
+            <LoadError className="mt-4">
               No pudimos cargar los planes. Intenta nuevamente.
-            </p>
+            </LoadError>
           ) : membershipPlans.length === 0 ? (
             <p className="mt-4 rounded-md bg-gray-light p-4 text-sm font-semibold text-charcoal">
               No hay planes activos disponibles para asignar.

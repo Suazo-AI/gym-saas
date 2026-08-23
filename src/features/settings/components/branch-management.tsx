@@ -2,6 +2,9 @@
 
 import { useActionState } from "react";
 
+import { LoadError } from "@/features/app/components/load-error";
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import {
   createBranchAction,
   restoreBranchAction,
@@ -122,7 +125,7 @@ function DeletedBranches({ branches, unavailable }: { branches: DeletedBranchDto
   return (
     <div className="border-t border-slate-200 bg-slate-50 p-5">
       <h2 className="text-lg font-black text-ink">Papelera</h2>
-      {unavailable ? <p className="mt-2 text-sm font-semibold text-red-700">No pudimos cargar las sucursales retiradas.</p> : null}
+      {unavailable ? <LoadError className="mt-2">No pudimos cargar las sucursales retiradas.</LoadError> : null}
       {!unavailable && branches.length === 0 ? <p className="mt-2 text-sm text-gray">No hay sucursales retiradas.</p> : null}
       <div className="mt-3 grid gap-3">
         {branches.map((branch) => <RestoreBranch branch={branch} key={branch.id} />)}
@@ -158,5 +161,5 @@ function StatusSelect({ defaultValue = "active" }: { defaultValue?: BranchDto["s
 }
 
 function ActionMessage({ state }: { state: BranchActionState }) {
-  return state.message ? <p aria-live="polite" className={`mt-2 text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`}>{state.message}</p> : null;
+  return <ActionFeedback className="mt-2" state={state} />;
 }

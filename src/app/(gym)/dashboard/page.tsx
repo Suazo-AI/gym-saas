@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { LoadError } from "@/features/app/components/load-error";
 import { OwnerDashboard } from "@/features/dashboard/components/owner-dashboard";
 import { getOwnerDashboard } from "@/features/dashboard/services/dashboard.repository";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
@@ -28,7 +29,7 @@ export default async function DashboardPage() {
           </Link>
         }
       />
-      {dashboard ? <OwnerDashboard dashboard={dashboard} /> : <section className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5"><h2 className="font-black text-red-900">No pudimos cargar el resumen</h2><p className="mt-2 text-sm text-red-700">Verifica que tu usuario tenga acceso al dashboard del gimnasio activo e intenta nuevamente.</p></section>}
+      {dashboard ? <OwnerDashboard dashboard={dashboard} /> : <LoadError className="mt-6"><h2 className="font-black">No pudimos cargar el resumen</h2><p className="mt-2">Verifica que tu usuario tenga acceso al dashboard del gimnasio activo e intenta nuevamente.</p></LoadError>}
     </>
   );
 }

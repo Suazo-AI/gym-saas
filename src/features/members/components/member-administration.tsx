@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import type { BranchDto } from "@/features/settings/types/branch.dto";
 import { deleteMemberAction, updateMemberAction, type MemberActionState } from "../actions/member.actions";
 import type { MemberDetailDto } from "../types/member.dto";
@@ -31,6 +33,4 @@ function Field(props: { label: string; name: string; required?: boolean; default
   return <label className="text-sm font-bold text-ink">{label}<input className={controlClass} {...inputProps} /></label>;
 }
 
-function ActionMessage({ state }: { state: MemberActionState }) {
-  return state.message ? <p aria-live="polite" className={`text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`}>{state.message}</p> : null;
-}
+function ActionMessage({ state }: { state: MemberActionState }) { return <ActionFeedback state={state} />; }

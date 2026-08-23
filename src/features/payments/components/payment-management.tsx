@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import {
   recordPaymentAction,
   refundPaymentAction,
@@ -175,7 +177,9 @@ function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
         </div>
         {payment.status === "settled" ? (
           <details>
-            <summary className="cursor-pointer text-sm font-black text-red-700">Anular</summary>
+            <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-amber-50 px-4 py-3 text-sm font-black text-amber-900">
+              Anular
+            </summary>
             <form action={voidAction} className="mt-2 flex gap-2">
               <input name="paymentId" type="hidden" value={payment.id} />
               <input className={input} name="reason" placeholder="Motivo" required />
@@ -187,7 +191,9 @@ function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
         ) : null}
         {canRefund ? (
           <details>
-            <summary className="cursor-pointer text-sm font-black text-amber-700">Reembolsar</summary>
+            <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-amber-50 px-4 py-3 text-sm font-black text-amber-900">
+              Reembolsar
+            </summary>
             <form action={refundAction} className="mt-2 grid gap-2 sm:grid-cols-2">
               <input name="paymentId" type="hidden" value={payment.id} />
               <input
@@ -217,9 +223,5 @@ function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
 }
 
 function Message({ state }: { state: PaymentActionState }) {
-  return state.message ? (
-    <p className={`text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`}>
-      {state.message}
-    </p>
-  ) : null;
+  return <ActionFeedback state={state} />;
 }

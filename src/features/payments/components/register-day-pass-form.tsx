@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import { registerDayPassAction, type DayPassActionState } from "../actions/day-pass.actions";
 import type { MemberDayPassDto, PaymentMethodDto } from "../types/payment.dto";
 
@@ -25,7 +27,7 @@ export function RegisterDayPassForm({ gymMemberId, defaultCurrency, paymentMetho
         <label className="text-sm font-bold text-ink">Moneda<select className={input} defaultValue={defaultCurrency === "USD" ? "USD" : "NIO"} name="currency"><option value="NIO">NIO</option><option value="USD">USD</option></select></label>
         <label className="text-sm font-bold text-ink">Método<select className={input} name="paymentMethodId" required>{paymentMethods.map((method) => <option key={method.id} value={method.id}>{method.name}</option>)}</select></label>
         <label className="text-sm font-bold text-ink">Notas<input className={input} maxLength={500} name="notes" /></label>
-        {state.message ? <p className={state.ok ? "rounded-md bg-green-100 p-3 text-sm font-bold text-green-900" : "rounded-md bg-red-100 p-3 text-sm font-bold text-red-900"} role="status">{state.message}</p> : null}
+        <ActionFeedback className="rounded-md bg-amber-50 p-3" state={state} />
         <button className="min-h-11 rounded-md bg-brand-green px-4 font-black text-white hover:bg-brand-green/90 disabled:opacity-60" disabled={pending} type="submit">{pending ? "Registrando…" : "Registrar pase y generar recibo"}</button>
       </form>
     </section>

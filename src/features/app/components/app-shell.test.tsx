@@ -12,8 +12,9 @@ describe("AppShell theme contrast", () => {
 
   it("keeps muted text dark enough on light surfaces", () => {
     const css = readFileSync("src/app/globals.css", "utf8");
-    expect(css).toContain("--color-gray: #46544b");
-    expect(css).toContain('html[data-theme="light"] .bg-white .text-gray-light');
+    expect(css).toContain("--color-gray: #00513f");
+    expect(css).toContain("--color-paper: #ffffff");
+    expect(css).toContain("--color-surface: #f0f2ee");
   });
 
   it("allows the alerts catalog route into the gym navigation", () => {

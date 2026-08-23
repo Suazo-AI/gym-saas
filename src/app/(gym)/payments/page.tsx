@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { PersistedDateRangeForm } from "@/app/(gym)/_components/persisted-date-range-form";
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { LoadError } from "@/features/app/components/load-error";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { PaymentManagement } from "@/features/payments/components/payment-management";
 import { listPayableCharges, listPaymentMethods, listRecentPayments } from "@/features/payments/services/payment.repository";
@@ -31,7 +32,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         </div>
         <PersistedDateRangeForm from={params.from} storageKey="fitmanager:payments-date-range" to={params.to} />
       </section>
-      {!payments||!charges||!methods?<p className="mt-6 rounded-xl bg-red-50 p-5 font-bold text-red-700">No pudimos cargar el módulo de pagos.</p>:<PaymentManagement charges={charges} methods={methods} payments={payments}/>}
+      {!payments||!charges||!methods?<LoadError className="mt-6">No pudimos cargar el módulo de pagos.</LoadError>:<PaymentManagement charges={charges} methods={methods} payments={payments}/>}
     </>
   );
 }

@@ -2,6 +2,9 @@
 
 import { useActionState } from "react";
 
+import { LoadError } from "@/features/app/components/load-error";
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import {
   createMembershipPlanAction,
   createMembershipPlanBenefitAction,
@@ -115,7 +118,7 @@ function RetirePlan({ planId }: { planId: string }) {
 }
 
 function DeletedPlans({ plans, unavailable }: { plans: DeletedMembershipPlanDto[]; unavailable: boolean }) {
-  return <div className="border-t border-slate-200 bg-slate-50 p-5"><h2 className="text-lg font-black text-ink">Papelera</h2>{unavailable ? <p className="mt-2 text-sm font-semibold text-red-700">No pudimos cargar los planes retirados.</p> : null}{!unavailable && plans.length === 0 ? <p className="mt-2 text-sm text-gray">No hay planes retirados.</p> : null}<div className="mt-3 grid gap-3">{plans.map((plan) => <RestorePlan key={plan.id} plan={plan} />)}</div></div>;
+  return <div className="border-t border-slate-200 bg-slate-50 p-5"><h2 className="text-lg font-black text-ink">Papelera</h2>{unavailable ? <LoadError className="mt-2">No pudimos cargar los planes retirados.</LoadError> : null}{!unavailable && plans.length === 0 ? <p className="mt-2 text-sm text-gray">No hay planes retirados.</p> : null}<div className="mt-3 grid gap-3">{plans.map((plan) => <RestorePlan key={plan.id} plan={plan} />)}</div></div>;
 }
 
 function RestorePlan({ plan }: { plan: DeletedMembershipPlanDto }) {
@@ -132,9 +135,7 @@ function Select({ label, name, defaultValue, options }: { label: string; name: s
   return <label className="block text-sm font-bold text-ink">{label}<select className={controlClass} defaultValue={defaultValue} name={name}>{options.map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select></label>;
 }
 
-function ActionMessage({ state }: { state: MembershipPlanActionState }) {
-  return state.message ? <p aria-live="polite" className={`text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`}>{state.message}</p> : null;
-}
+function ActionMessage({ state }: { state: MembershipPlanActionState }) { return <ActionFeedback state={state} />; }
 
 function formatDuration(count: number, unit: MembershipPlanDto["durationUnit"]) {
   const labels = { day: count === 1 ? "día" : "días", week: count === 1 ? "semana" : "semanas", month: count === 1 ? "mes" : "meses" };

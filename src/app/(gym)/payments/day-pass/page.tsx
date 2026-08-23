@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { LoadError } from "@/features/app/components/load-error";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { getMember, listMembers } from "@/features/members/services/member.repository";
@@ -31,7 +32,7 @@ export default async function DayPassPage({ searchParams }: Props) {
     listPaymentMethods(),
     listMemberDayPasses({ gymId: activeGym.gymId, gymMemberId: params.gymMemberId }),
   ]).catch(() => null);
-  if (!result) return <p className="mt-6 rounded-lg bg-red-50 p-5 font-bold text-red-800">No pudimos cargar el miembro.</p>;
+  if (!result) return <LoadError className="mt-6">No pudimos cargar el miembro.</LoadError>;
   const [member, methods, passes] = result;
   if (!member) return <p className="mt-6 rounded-lg border border-charcoal bg-paper p-5 font-bold text-charcoal">No encontramos el miembro en este gimnasio.</p>;
   return <>
