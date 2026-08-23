@@ -3,7 +3,7 @@
 - Fecha de preparación: 2026-08-21.
 - Tarjeta: [Probar prototipo con usuarios](https://trello.com/c/fLzDjJES/19-probar-prototipo-con-usuarios).
 - Responsable: Vibe Coder + Producto.
-- Estado: las mejoras A1, A2 y A5 están aplicadas; las sesiones reales siguen pendientes.
+- Estado: las mejoras A1, A2, A4 y A5 están aplicadas; las sesiones reales siguen pendientes.
 - Evidencia real: 0 de 4 sesiones.
 - Checklist de Trello: 0 de 5 puntos terminados.
 
@@ -70,6 +70,9 @@ No reemplazan hallazgos humanos ni cambios acordados.
 - A5 corregida: el acceso facial está después de membresía y pago.
 - El acceso facial está cerrado por defecto y se identifica como opcional.
 - Los campos de nombre, apellido, teléfono y correo incluyen datos de autocompletado.
+- A4 corregida el 2026-08-22: `npm run preflight` ahora empieza por `npm run drift`.
+- La barrera vive en `scripts/check-drift.mjs`, sale con código 1 y nombra cada migración versionada que la base local no aplicó junto al comando para aplicarla.
+- Cuando el stack local no responde, la revisión avisa que no hay veredicto y no falla.
 
 ## Verificación de las correcciones
 
