@@ -12,9 +12,11 @@ import type { ActiveGymDto, UserGymDto } from "../types/gym.dto";
 export function ActiveGymSwitcher({
   activeGym,
   availableGyms,
+  selectId = "active-gym-select",
 }: {
   activeGym: ActiveGymDto;
   availableGyms: UserGymDto[];
+  selectId?: string;
 }) {
   const [state, action] = useActionState<ActiveGymActionState, FormData>(
     switchActiveGymAction,
@@ -31,7 +33,7 @@ export function ActiveGymSwitcher({
         Gimnasio activo
       </small>
       <form action={action} className="mt-2">
-        <GymSelect activeGymId={activeGym.gymId} gyms={availableGyms} />
+        <GymSelect activeGymId={activeGym.gymId} gyms={availableGyms} selectId={selectId} />
       </form>
       <p aria-live="polite" className="mt-2 min-h-5 text-xs font-semibold text-gray-light">
         {state?.error ? <span role="alert">{state.error}</span> : null}
@@ -57,18 +59,18 @@ function GymIdentity({ activeGym }: { activeGym: ActiveGymDto }) {
   );
 }
 
-function GymSelect({ activeGymId, gyms }: { activeGymId: string; gyms: UserGymDto[] }) {
+function GymSelect({ activeGymId, gyms, selectId }: { activeGymId: string; gyms: UserGymDto[]; selectId: string }) {
   const { pending } = useFormStatus();
 
   return (
     <>
-      <label className="sr-only" htmlFor="active-gym-select">Cambiar gimnasio activo</label>
+      <label className="sr-only" htmlFor={selectId}>Cambiar gimnasio activo</label>
       <select
         aria-label="Cambiar gimnasio activo"
         className="min-h-11 w-full rounded-md border border-white/20 bg-[#111814] px-3 text-sm font-black text-white outline-none focus:border-brand-lime focus:ring-2 focus:ring-brand-lime/30"
         defaultValue={activeGymId}
         disabled={pending}
-        id="active-gym-select"
+        id={selectId}
         name="gymId"
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
       >

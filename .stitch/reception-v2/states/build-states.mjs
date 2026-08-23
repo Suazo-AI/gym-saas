@@ -5,10 +5,11 @@ const OUT = process.argv[3];
 mkdirSync(OUT, { recursive: true });
 
 const base = readFileSync(SRC, "utf8");
+const sourceEol = base.includes("\r\n") ? "\r\n" : "\n";
 
 const EDGE = '<div aria-hidden="true" class="w-[6px] bg-action-green shrink-0"></div>';
 const AVATAR = '<div aria-hidden="true" class="w-16 h-16 rounded-full bg-lime/20 text-action-green flex items-center justify-center text-headline-lg font-bold border border-lime/30">';
-const VERDICT_RE = /<!-- Verdict Content -->[\s\S]*?<\/button>\n<\/div>/;
+const VERDICT_RE = /<!-- Verdict Content -->[\s\S]*?<\/button>\r?\n<\/div>/;
 
 function assertOnce(html, needle, label) {
   const n = html.split(needle).length - 1;
@@ -105,6 +106,7 @@ for (const v of VARIANTS) {
     `<div aria-hidden="true" class="w-16 h-16 rounded-full ${v.avatar} flex items-center justify-center text-headline-lg font-bold border">`,
   );
   html = html.replace(VERDICT_RE, v.verdict);
-  writeFileSync(`${OUT}/${v.file}`, html, "utf8");
-  console.log(`wrote ${OUT}/${v.file} (${html.length} bytes)`);
+  const output = html.replace(/\r?\n/g, sourceEol);
+  writeFileSync(`${OUT}/${v.file}`, output, "utf8");
+  console.log(`wrote ${OUT}/${v.file} (${output.length} bytes)`);
 }
