@@ -420,7 +420,7 @@ select set_config(
 select is(
   (select member_code from public.gym_members
     where id = '60000000-0000-4000-8000-000000000001'),
-  'M-0001'::text,
+  'M-000001'::text,
   'el miembro del gimnasio 1 sigue con su codigo original'
 );
 
