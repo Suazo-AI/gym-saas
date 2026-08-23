@@ -33,7 +33,10 @@ export function OwnerDashboard({ dashboard }: { dashboard: OwnerDashboardDto }) 
       <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-sand">Siguiente acción</p>
       <div className="mt-3 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div><h2 className="text-xl font-black text-white">Atiende lo importante sin salir del resumen</h2><p className="mt-1 text-sm text-[#dce7df]">Revisa morosidad, vencimientos, ingresos y entradas desde sus módulos operativos.</p></div>
-        <div className="flex flex-wrap gap-2"><DashboardLink href="/members" label="Revisar miembros" /><DashboardLink href="/income" label="Ver ingresos" /><DashboardLink href="/entries" label="Ver entradas" /></div>
+        {/* El enlace a ingresos sale del mismo dato que decide la metrica de arriba.
+            Sin income.read, dashboard.income llega nulo: mostrar el boton igual manda
+            a recepcion a una pantalla que la RPC rechaza con 42501, sin salida. */}
+        <div className="flex flex-wrap gap-2"><DashboardLink href="/members" label="Revisar miembros" />{dashboard.income ? <DashboardLink href="/income" label="Ver ingresos" /> : null}<DashboardLink href="/entries" label="Ver entradas" /></div>
       </div>
     </section>
   </div>;
