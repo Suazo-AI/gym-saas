@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Recepción rápida - Acceso bloqueado - FitManager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&amp;family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-lowest": "#ffffff",
+                      "on-surface": "#18201B",
+                      "inverse-surface": "#2c322c",
+                      "surface-dim": "#d6dcd3",
+                      "surface": "#f6fbf2",
+                      "on-secondary-container": "#5d645f",
+                      "surface-bright": "#f6fbf2",
+                      "outline-variant": "#becabc",
+                      "on-tertiary-container": "#dfffb3",
+                      "surface-variant": "#dfe4db",
+                      "secondary-fixed": "#dde4dd",
+                      "primary-fixed-dim": "#79db8d",
+                      "on-error-container": "#93000a",
+                      "tertiary-container": "#4d7c00",
+                      "on-primary-fixed": "#00210a",
+                      "surface-container-low": "#f0f5ec",
+                      "on-background": "#18201B",
+                      "on-primary-fixed-variant": "#005323",
+                      "on-secondary": "#ffffff",
+                      "primary": "#00652c",
+                      "charcoal-ink": "#18201B",
+                      "surface-container-highest": "#dfe4db",
+                      "on-tertiary": "#ffffff",
+                      "background": "#F3F7F4",
+                      "secondary-fixed-dim": "#c1c8c2",
+                      "operational-gray": "#46544B",
+                      "on-tertiary-fixed": "#102000",
+                      "on-surface-variant": "#3f493f",
+                      "outline": "#6f7a6e",
+                      "on-secondary-fixed-variant": "#414944",
+                      "tertiary-fixed": "#acf847",
+                      "tertiary": "#3b6100",
+                      "quiet-border": "#D5DED8",
+                      "surface-tint": "#006d30",
+                      "on-primary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "on-secondary-fixed": "#161d19",
+                      "on-tertiary-fixed-variant": "#304f00",
+                      "primary-container": "#15803d",
+                      "on-primary-container": "#d3ffd5",
+                      "error-container": "#ffdad6",
+                      "surface-container-high": "#e4eae1",
+                      "primary-fixed": "#95f8a7",
+                      "inverse-on-surface": "#edf2e9",
+                      "warm-paper": "#F3F7F4",
+                      "surface-container": "#eaefe6",
+                      "pure-surface": "#FFFFFF",
+                      "secondary": "#59605b",
+                      "inverse-primary": "#79db8d",
+                      "tertiary-fixed-dim": "#91db2a",
+                      "on-error": "#ffffff",
+                      "secondary-container": "#dae2db",
+                      "deep-forest": "#111814",
+                      "lime": "#84CC16",
+                      "action-green": "#15803D"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px",
+                      "10px": "10px"
+              },
+              "spacing": {
+                      "main-max-width": "1440px",
+                      "margin-mobile": "16px",
+                      "gutter": "24px",
+                      "split-ratio": "7:5",
+                      "sidebar-width": "248px"
+              },
+              "fontFamily": {
+                      "label-md": [
+                              "Geist Mono", "ui-monospace", "monospace"
+                      ],
+                      "headline-md": [
+                              "Geist", "ui-sans-serif", "system-ui", "sans-serif"
+                      ],
+                      "label-sm": [
+                              "Geist Mono", "ui-monospace", "monospace"
+                      ],
+                      "body-md": [
+                              "Geist", "ui-sans-serif", "system-ui", "sans-serif"
+                      ],
+                      "headline-lg": [
+                              "Geist", "ui-sans-serif", "system-ui", "sans-serif"
+                      ],
+                      "body-lg": [
+                              "Geist", "ui-sans-serif", "system-ui", "sans-serif"
+                      ]
+              },
+              "fontSize": {
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; background-color: #F3F7F4; }
+        .font-mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="h-full overflow-hidden flex bg-warm-paper text-charcoal-ink">
+<!-- Sidebar Shell -->
+<aside class="fixed left-0 top-0 h-full w-[248px] bg-deep-forest flex flex-col py-6 px-4 shrink-0 z-20">
+<!-- Logo -->
+<div class="mb-8 px-2 flex items-center gap-3">
+<div aria-hidden="true" class="w-8 h-8 rounded-lg bg-tertiary-fixed flex items-center justify-center text-deep-forest font-bold text-lg">F</div>
+<span class="text-headline-md font-headline-md font-bold text-white">FitManager</span>
+</div>
+<!-- Tenant Card -->
+<div aria-label="Cambiar sucursal" class="bg-white/5 rounded-10px p-3 mb-6 border border-white/10 flex justify-between items-center group cursor-pointer hover:bg-white/10 transition-colors" role="button" tabindex="0">
+<div>
+<p class="text-label-sm font-label-sm text-surface-variant uppercase tracking-wider mb-1">FitManager Centro</p>
+<p class="text-body-md font-body-md text-white font-medium">Sucursal Principal</p>
+</div>
+<span aria-hidden="true" class="material-symbols-outlined text-surface-variant text-sm group-hover:text-white transition-colors">swap_horiz</span>
+</div>
+<!-- Navigation -->
+<nav aria-label="Navegación principal" class="flex-1 flex flex-col gap-1 overflow-y-auto">
+<a class="flex items-center gap-3 px-4 py-3 text-surface-variant hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg min-h-[44px]" href="#">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-body-md font-body-md">Resumen</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-surface-variant hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg min-h-[44px]" href="#">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-body-md font-body-md">Miembros</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-surface-variant hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg min-h-[44px]" href="#">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">card_membership</span>
+<span class="text-body-md font-body-md">Membresías</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-surface-variant hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg min-h-[44px]" href="#">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">payments</span>
+<span class="text-body-md font-body-md">Pagos</span>
+</a>
+<a aria-current="page" class="flex items-center gap-3 px-4 py-3 bg-action-green text-white rounded-lg relative min-h-[44px]" href="#">
+<div aria-hidden="true" class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-tertiary-fixed rounded-r-full"></div>
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">login</span>
+<span class="text-body-md font-body-md font-medium">Entradas</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-surface-variant hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg min-h-[44px]" href="#">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">face</span>
+<span class="text-body-md font-body-md">Acceso facial</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-surface-variant hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg min-h-[44px]" href="#">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="text-body-md font-body-md">Alertas</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-surface-variant hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg min-h-[44px]" href="#">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">trending_up</span>
+<span class="text-body-md font-body-md">Ingresos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-surface-variant hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg min-h-[44px]" href="#">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">badge</span>
+<span class="text-body-md font-body-md">Personal</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-surface-variant hover:text-white hover:bg-white/10 transition-colors duration-200 rounded-lg min-h-[44px]" href="#">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-body-md font-body-md">Configuración</span>
+</a>
+</nav>
+<!-- User Profile -->
+<div class="mt-auto pt-6 border-t border-white/10 flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div aria-hidden="true" class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-charcoal-ink font-bold text-sm">
+                    ML
+                </div>
+<div>
+<p class="text-body-md font-body-md text-white font-medium leading-tight">María López</p>
+<p class="text-label-sm font-label-sm text-surface-variant font-mono">Recepcionista</p>
+</div>
+</div>
+<button aria-label="Cerrar sesión" class="text-surface-variant hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center" title="Cerrar sesión">
+<span aria-hidden="true" class="material-symbols-outlined">logout</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[248px] flex-1 flex flex-col h-full bg-warm-paper overflow-hidden relative">
+<!-- TopAppBar Context -->
+<header class="h-16 px-8 flex items-center justify-between bg-pure-surface border-b border-quiet-border shrink-0 z-10 sticky top-0">
+<div class="flex items-center gap-4">
+<p class="text-label-md font-label-md text-operational-gray font-mono">FitManager Centro <span class="mx-1">/</span> <span class="text-charcoal-ink font-medium">Sucursal Principal</span></p>
+</div>
+<div class="flex items-center gap-6">
+<p class="text-label-md font-label-md text-operational-gray flex items-center gap-2 font-mono">
+<span aria-hidden="true" class="material-symbols-outlined text-[18px]">calendar_today</span>
+                    Martes, 11 de agosto
+                </p>
+<div aria-hidden="true" class="w-px h-6 bg-quiet-border"></div>
+<button aria-label="Ayuda y soporte" class="text-charcoal-ink hover:text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+<span aria-hidden="true" class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+</header>
+<!-- Workspace Scrollable Area -->
+<div class="flex-1 overflow-y-auto p-8">
+<div class="max-w-[1280px] mx-auto space-y-8 pb-12">
+<!-- Page Header -->
+<div class="flex justify-between items-end">
+<div>
+<p class="text-label-sm font-label-sm text-operational-gray uppercase tracking-widest mb-2 font-mono">ENTRADAS</p>
+<h1 class="text-headline-lg font-headline-lg text-charcoal-ink mb-2">Recepción rápida</h1>
+<p class="text-body-lg font-body-lg text-operational-gray max-w-2xl">Busca a un miembro, confirma su estado y registra cada intento de entrada.</p>
+</div>
+<button class="h-[44px] px-4 rounded-lg border border-quiet-border bg-pure-surface text-charcoal-ink hover:bg-surface-variant transition-colors flex items-center gap-2 text-body-md font-body-md font-medium shadow-sm">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px]">photo_camera</span>
+                        Verificar con cámara
+                    </button>
+</div>
+<!-- Main Layout: 7/5 Asymmetric Split -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Left Column: Search & List (Ratio 7) -->
+<div class="lg:col-span-7 flex flex-col gap-6">
+<!-- Search Box -->
+<div class="bg-pure-surface rounded-[10px] border border-quiet-border p-6 shadow-sm">
+<label class="block text-label-md font-label-md text-operational-gray mb-2 font-mono" for="member-search">Buscar miembro (Nombre, teléfono o código)</label>
+<div class="flex gap-3 relative">
+<div class="relative flex-1">
+<span aria-hidden="true" class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-operational-gray">search</span>
+<input aria-activedescendant="result-ana" aria-autocomplete="list" aria-controls="search-results" aria-expanded="true" class="w-full h-[52px] pl-12 pr-12 rounded-[10px] border-quiet-border bg-warm-paper focus:border-lime focus:ring-2 focus:ring-lime text-body-md font-body-md transition-all text-charcoal-ink" id="member-search" placeholder="Nombre, teléfono o código" role="combobox" type="text" value="Ana"/>
+<div aria-hidden="true" class="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 border border-quiet-border rounded bg-pure-surface flex items-center justify-center text-xs text-operational-gray font-mono">/</div>
+</div>
+<button class="min-h-[52px] px-6 bg-charcoal-ink text-white rounded-[10px] text-body-md font-body-md font-medium hover:bg-opacity-90 transition-colors shadow-sm whitespace-nowrap active:scale-95">
+                                    Buscar
+                                </button>
+</div>
+<div aria-live="polite" class="sr-only">3 resultados</div>
+</div>
+<!-- Search Results -->
+<div aria-label="Resultados de búsqueda de miembros" class="bg-pure-surface rounded-[10px] border border-quiet-border overflow-hidden shadow-sm flex flex-col" id="search-results" role="listbox">
+<!-- Selected Row -->
+<div aria-label="Seleccionar a Ana Martínez, código FM-024" aria-selected="true" class="flex items-center justify-between p-4 bg-lime/10 border-l-4 border-l-lime border-b border-quiet-border transition-colors cursor-pointer min-h-[64px]" id="result-ana" role="option" tabindex="0">
+<div class="flex items-center gap-4">
+<div aria-hidden="true" class="w-10 h-10 rounded-full bg-lime/20 text-action-green flex items-center justify-center text-body-md font-medium">
+                                        AM
+                                    </div>
+<div>
+<p class="text-body-md font-body-md font-medium text-charcoal-ink">Ana Martínez</p>
+<p class="text-label-md font-label-md text-operational-gray font-mono mt-0.5">FM-024</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="px-2.5 py-1 rounded-full bg-white text-action-green text-label-sm font-label-sm font-mono border border-lime/30 font-semibold shadow-sm">Seleccionado</span>
+</div>
+</div>
+<!-- Row 2 -->
+<div aria-label="Seleccionar a Carlos Mendoza, código FM-031" aria-selected="false" class="flex items-center justify-between p-4 border-b border-quiet-border hover:bg-warm-paper transition-colors cursor-pointer min-h-[64px] border-l-4 border-l-transparent" id="result-carlos" role="option" tabindex="-1">
+<div class="flex items-center gap-4">
+<div aria-hidden="true" class="w-10 h-10 rounded-full bg-surface-variant text-charcoal-ink flex items-center justify-center text-body-md font-medium">
+                                        CM
+                                    </div>
+<div>
+<p class="text-body-md font-body-md font-medium text-charcoal-ink">Carlos Mendoza</p>
+<p class="text-label-md font-label-md text-operational-gray font-mono mt-0.5">FM-031</p>
+</div>
+</div>
+</div>
+<!-- Row 3 -->
+<div aria-label="Seleccionar a Sofía Ruiz, código FM-053" aria-selected="false" class="flex items-center justify-between p-4 hover:bg-warm-paper transition-colors cursor-pointer min-h-[64px] border-l-4 border-l-transparent" id="result-sofia" role="option" tabindex="-1">
+<div class="flex items-center gap-4">
+<div aria-hidden="true" class="w-10 h-10 rounded-full bg-surface-variant text-charcoal-ink flex items-center justify-center text-body-md font-medium">
+                                        SR
+                                    </div>
+<div>
+<p class="text-body-md font-body-md font-medium text-charcoal-ink">Sofía Ruiz</p>
+<p class="text-label-md font-label-md text-operational-gray font-mono mt-0.5">FM-053</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Selected Member Context (Ratio 5) -->
+<div class="lg:col-span-5 flex flex-col">
+<div class="bg-pure-surface rounded-[12px] border border-quiet-border shadow-sm flex overflow-hidden sticky top-6">
+<!-- Semantic Leading Edge -->
+<div aria-hidden="true" class="w-[6px] bg-[#DC2626] shrink-0"></div>
+<div class="p-6 flex-1">
+<!-- Header Profile -->
+<div class="flex items-start justify-between mb-6">
+<div class="flex gap-4">
+<div aria-hidden="true" class="w-16 h-16 rounded-full bg-[#DC2626]/10 text-[#B91C1C] border-[#DC2626]/30 flex items-center justify-center text-headline-lg font-bold border">
+                                        AM
+                                    </div>
+<div class="mt-1">
+<h2 class="text-headline-md font-headline-md text-charcoal-ink leading-tight">Ana Martínez</h2>
+<p class="text-label-md font-label-md text-operational-gray font-mono mt-1">FM-024</p>
+</div>
+</div>
+</div>
+<!-- Verdict Content -->
+<div aria-atomic="true" aria-live="polite" class="mb-8" role="status">
+<div class="flex items-center gap-2 mb-2">
+<span aria-hidden="true" class="material-symbols-outlined text-[22px] text-[#B91C1C]">block</span>
+<span class="text-label-sm font-label-sm font-mono uppercase tracking-widest text-[#B91C1C] font-semibold">Morosa</span>
+</div>
+<h3 class="text-[28px] font-semibold text-charcoal-ink mb-2">Acceso bloqueado</h3>
+<p class="text-body-lg font-body-lg text-operational-gray">Tiene cargos vencidos fuera del período de gracia.</p>
+</div>
+<!-- Actions -->
+<div class="space-y-3">
+<button class="w-full h-[52px] bg-action-green text-white rounded-[10px] text-body-lg font-body-md font-medium hover:bg-opacity-90 transition-colors shadow-sm flex items-center justify-center gap-2 active:scale-[0.98]">
+<span aria-hidden="true" class="material-symbols-outlined text-[24px]">payments</span>
+Registrar pago
+</button>
+<details class="group rounded-[10px] border border-quiet-border bg-warm-paper overflow-hidden">
+<summary class="px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+<span class="min-h-[20px] flex items-center justify-between gap-2 text-body-md font-body-md font-medium text-charcoal-ink">
+<span class="flex items-center gap-2">
+<span aria-hidden="true" class="material-symbols-outlined text-[20px] text-operational-gray">lock_open</span>
+Permitir con motivo
+</span>
+<span aria-hidden="true" class="material-symbols-outlined text-[20px] text-operational-gray transition-transform group-open:rotate-180">expand_more</span>
+</span>
+</summary>
+<div class="px-4 pb-4 pt-3 border-t border-quiet-border bg-pure-surface">
+<label class="block text-label-md font-label-md font-mono text-operational-gray mb-2" for="override-reason">Motivo para permitir la entrada</label>
+<textarea class="w-full min-h-[88px] rounded-[10px] border-quiet-border bg-warm-paper text-body-md font-body-md text-charcoal-ink focus:border-lime focus:ring-2 focus:ring-lime transition-all" id="override-reason" maxlength="500" placeholder="Explica por qué se autoriza esta entrada" required=""></textarea>
+<p class="mt-2 text-label-md font-label-md font-mono text-operational-gray">Se guarda con tu nombre y la hora.</p>
+<button class="mt-3 w-full min-h-[48px] rounded-[10px] border border-[#B91C1C] bg-pure-surface text-[#B91C1C] text-body-md font-body-md font-medium hover:bg-[#B91C1C]/5 transition-colors">
+Permitir entrada y registrar motivo
+</button>
+</div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity Section -->
+<div class="mt-8">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-body-lg font-body-lg font-semibold text-charcoal-ink">Entradas recientes</h3>
+<a class="text-label-md font-label-md font-mono text-action-green hover:underline font-medium min-h-[44px] flex items-center" href="#">Ver historial completo</a>
+</div>
+<div class="bg-pure-surface rounded-[10px] border border-quiet-border shadow-sm">
+<!-- Table Header -->
+<div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-quiet-border bg-warm-paper/50 text-label-sm font-label-sm font-mono text-operational-gray uppercase tracking-wider">
+<div class="col-span-2">Método</div>
+<div class="col-span-2">Resultado</div>
+<div class="col-span-2">Hora</div>
+<div class="col-span-6">Motivo</div>
+</div>
+<!-- Rows -->
+<div class="flex flex-col">
+<!-- Row 1 -->
+<div class="grid grid-cols-12 gap-4 px-6 py-4 border-b border-quiet-border items-center hover:bg-warm-paper/30 transition-colors">
+<div class="col-span-2 text-body-md font-body-md text-charcoal-ink flex items-center gap-2">
+<span aria-hidden="true" class="material-symbols-outlined text-[18px] text-operational-gray">person_add</span>
+                                    Manual
+                                </div>
+<div class="col-span-2">
+<span class="px-2.5 py-1 rounded-full bg-lime/20 text-action-green text-label-sm font-label-sm font-mono border border-lime/30 font-medium">Permitida</span>
+</div>
+<div class="col-span-2 text-label-md font-mono text-operational-gray">Hace 5 min</div>
+<div class="col-span-6 text-body-md font-body-md text-charcoal-ink">Membresía al día</div>
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-12 gap-4 px-6 py-4 border-b border-quiet-border items-center hover:bg-warm-paper/30 transition-colors">
+<div class="col-span-2 text-body-md font-body-md text-charcoal-ink flex items-center gap-2">
+<span aria-hidden="true" class="material-symbols-outlined text-[18px] text-operational-gray">photo_camera</span>
+                                    Facial
+                                </div>
+<div class="col-span-2">
+<span class="px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-800 text-label-sm font-label-sm font-mono border border-yellow-200 font-medium">En gracia</span>
+</div>
+<div class="col-span-2 text-label-md font-mono text-operational-gray">Hace 12 min</div>
+<div class="col-span-6 text-body-md font-body-md text-charcoal-ink">Renovación pendiente dentro del período de gracia</div>
+</div>
+<!-- Row 3 -->
+<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-warm-paper/30 transition-colors">
+<div class="col-span-2 text-body-md font-body-md text-charcoal-ink flex items-center gap-2">
+<span aria-hidden="true" class="material-symbols-outlined text-[18px] text-operational-gray">person_add</span>
+                                    Manual
+                                </div>
+<div class="col-span-2">
+<span class="px-2.5 py-1 rounded-full bg-red-100 text-red-800 text-label-sm font-label-sm font-mono border border-red-200 font-medium">Morosa</span>
+</div>
+<div class="col-span-2 text-label-md font-mono text-operational-gray">Hace 23 min</div>
+<div class="col-span-6 text-body-md font-body-md text-charcoal-ink">Fuera del período de gracia</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

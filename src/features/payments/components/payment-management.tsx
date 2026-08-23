@@ -27,7 +27,8 @@ export function PaymentManagement({
   methods: PaymentMethodDto[];
   payments: PaymentSummaryDto[];
 }) {
-  const [selected, setSelected] = useState(charges[0]?.chargeId ?? "");
+  const [selected, setSelected] = useState("");
+  const [paymentMethodId, setPaymentMethodId] = useState("");
   const charge = charges.find((candidate) => candidate.chargeId === selected);
   const [state, action, pending] = useActionState(recordPaymentAction, initial);
 
@@ -45,9 +46,13 @@ export function PaymentManagement({
               <select
                 className={input}
                 name="chargeId"
-                onChange={(event) => setSelected(event.target.value)}
+                onChange={(event) => {
+                  setSelected(event.target.value);
+                  setPaymentMethodId("");
+                }}
                 value={selected}
               >
+                <option value="">Selecciona un cargo</option>
                 {charges.map((candidate) => (
                   <option key={candidate.chargeId} value={candidate.chargeId}>
                     {candidate.memberLabel} · {candidate.currency} {candidate.amountDue} · vence {candidate.dueDate}
@@ -62,22 +67,46 @@ export function PaymentManagement({
               <input
                 className={input}
                 defaultValue={charge?.amountDue ?? ""}
+                disabled={!charge}
                 inputMode="decimal"
-                key={selected}
+                key={selected || "no-charge"}
                 name="amount"
                 pattern="^\d+(\.\d{1,2})?$"
-                required
+                required={Boolean(charge)}
               />
             </label>
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="text-sm text-gray">Saldo pendiente</p>
-              <strong className="text-2xl text-ink">
-                {charge?.currency} {charge?.amountDue}
-              </strong>
+            <div
+              aria-live="polite"
+              className={`rounded-xl border p-4 ${charge ? "border-brand-green bg-green-50" : "border-slate-200 bg-slate-50"}`}
+            >
+              {charge ? (
+                <>
+                  <p className="text-xs font-black uppercase tracking-[.16em] text-brand-green">
+                    Miembro y cargo seleccionados
+                  </p>
+                  <strong className="mt-2 block text-lg text-ink">{charge.memberLabel}</strong>
+                  <p className="mt-1 text-sm font-semibold text-gray">
+                    Vence {charge.dueDate} · Saldo {charge.currency} {charge.amountDue}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <strong className="block text-ink">No hay cargo seleccionado</strong>
+                  <p className="mt-1 text-sm text-gray">Elige el miembro y revisa el saldo antes de cobrar.</p>
+                </>
+              )}
             </div>
             <label className="text-sm font-bold">
               Método
-              <select className={input} name="paymentMethodId" required>
+              <select
+                className={input}
+                disabled={!charge}
+                name="paymentMethodId"
+                onChange={(event) => setPaymentMethodId(event.target.value)}
+                required
+                value={paymentMethodId}
+              >
+                <option value="">Selecciona un método</option>
                 {methods.map((method) => (
                   <option key={method.id} value={method.id}>{method.name}</option>
                 ))}
@@ -90,7 +119,8 @@ export function PaymentManagement({
             <Message state={state} />
             <button
               className="min-h-11 rounded-lg bg-brand-green px-4 font-black text-white disabled:opacity-60"
-              disabled={pending}
+              disabled={!charge || !paymentMethodId || pending}
+              type="submit"
             >
               {pending ? "Registrando..." : "Registrar pago y generar recibo"}
             </button>

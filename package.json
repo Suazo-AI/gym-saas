@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:db": "supabase test db",
-    "preflight": "npm run typecheck && npm run lint && npm run test && npm run build"
+    "drift": "node scripts/check-drift.mjs",
+    "preflight": "npm run drift && npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",

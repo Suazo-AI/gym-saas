@@ -56,6 +56,17 @@ describe("ActiveGymSwitcher", () => {
     expect(html).toContain('aria-live="polite"');
   });
 
+  it("accepts a unique select id when the shell renders responsive copies", () => {
+    const html = renderToStaticMarkup(createElement(ActiveGymSwitcher, {
+      activeGym: { ...gyms[1], selectionSource: "cookie" },
+      availableGyms: gyms,
+      selectId: "mobile-active-gym-select",
+    }));
+
+    expect(html).toContain('for="mobile-active-gym-select"');
+    expect(html).toContain('id="mobile-active-gym-select"');
+  });
+
   it("implements pending and error feedback in the client component", () => {
     const source = readFileSync(
       "src/features/gyms/components/active-gym-switcher.tsx",

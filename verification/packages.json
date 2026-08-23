@@ -372,6 +372,85 @@
       },
       "_rehash": "2026-08-10: el hash se rehizo despues de que el ejecutor entregara, y hay que decirlo. La asercion del consentimiento nombraba granted_at, columna que no existe: es obtained_at y tiene default. PostgreSQL responde 42703 al analizar, antes de evaluar permisos, asi que esa asercion no podia pasar con ninguna implementacion. El ejecutor lo reporto en vez de aflojar la prueba. Se corrigio a las columnas reales sin cambiar lo que exige.",
       "_rojo": "La linea base roja que se midio antes de delegar, 9 de 15, estaba viciada: se midio contra la base local, que estaba atrasada respecto de main. El rojo real sobre main actual es 8 de 15, reconstruido revirtiendo la migracion sobre la base al dia. La diferencia es la asercion de facial_access, que main ya satisface por la migracion 20260810150000."
+    },
+    {
+      "id": "T1",
+      "name": "Aislamiento multi-tenant: lectura cruzada",
+      "branch": "test/tenant-isolation-read",
+      "base": "origin/main",
+      "maxCommits": 2,
+      "_tarjeta": "Trello 'Pruebas de aislamiento multi-tenant' (54), item 'Intentar leer datos cruzados'.",
+      "_contrato": "Claim escrito por el orquestador antes de delegar. El ejecutor no edita este archivo y no reporta su propio estado.",
+      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. El veredicto lo da el job db.yml del CI.",
+      "allowedPaths": [
+        "supabase/tests/tenant_isolation_read.sql"
+      ],
+      "appendOnlyPaths": [
+        "supabase/tests/**",
+        "supabase/migrations/**"
+      ],
+      "expectPgtapDeltaMin": 8,
+      "frozenFiles": {}
+    },
+    {
+      "id": "T2",
+      "name": "Aislamiento multi-tenant: insercion con gym_id ajeno",
+      "branch": "test/tenant-isolation-insert",
+      "base": "origin/main",
+      "maxCommits": 2,
+      "_tarjeta": "Trello 'Pruebas de aislamiento multi-tenant' (54), item 'Intentar insertar usando otro gym_id'.",
+      "_contrato": "Claim escrito por el orquestador antes de delegar. El ejecutor no edita este archivo y no reporta su propio estado.",
+      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. El veredicto lo da el job db.yml del CI.",
+      "allowedPaths": [
+        "supabase/tests/tenant_isolation_insert.sql"
+      ],
+      "appendOnlyPaths": [
+        "supabase/tests/**",
+        "supabase/migrations/**"
+      ],
+      "expectPgtapDeltaMin": 6,
+      "frozenFiles": {}
+    },
+    {
+      "id": "T3",
+      "name": "Aislamiento multi-tenant: modificacion y borrado cruzado",
+      "branch": "test/tenant-isolation-mutation",
+      "base": "origin/main",
+      "maxCommits": 2,
+      "_tarjeta": "Trello 'Pruebas de aislamiento multi-tenant' (54), item 'Intentar modificar y eliminar datos cruzados'.",
+      "_contrato": "Claim escrito por el orquestador antes de delegar. El ejecutor no edita este archivo y no reporta su propio estado.",
+      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. El veredicto lo da el job db.yml del CI.",
+      "_trampa": "Un update o delete contra una fila invisible por RLS no lanza excepcion: afecta 0 filas en silencio. Una asercion que espere un error va a fallar, y una que solo verifique que no hubo error pasa trivialmente. La forma correcta es contar filas afectadas y ademas releer la fila con una identidad que si la ve, para probar que no cambio.",
+      "allowedPaths": [
+        "supabase/tests/tenant_isolation_mutation.sql"
+      ],
+      "appendOnlyPaths": [
+        "supabase/tests/**",
+        "supabase/migrations/**"
+      ],
+      "expectPgtapDeltaMin": 8,
+      "frozenFiles": {}
+    },
+    {
+      "id": "T4",
+      "name": "Aislamiento multi-tenant: operaciones con service_role",
+      "branch": "test/tenant-isolation-service-role",
+      "base": "origin/main",
+      "maxCommits": 2,
+      "_tarjeta": "Trello 'Pruebas de aislamiento multi-tenant' (54), item 'Revisar operaciones con service_role'.",
+      "_contrato": "Claim escrito por el orquestador antes de delegar. El ejecutor no edita este archivo y no reporta su propio estado.",
+      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. El veredicto lo da el job db.yml del CI.",
+      "_trampa": "service_role omite RLS por diseno, asi que probar que 'no puede cruzar tenants' seria probar algo falso. Lo que hay que probar es lo que AGENTS.md exige: que las superficies expuestas a service_role validan el gym_id por su cuenta, y que un authenticated no alcanza ninguna de ellas.",
+      "_no_duplicar": "supabase/tests/storage_deletion_queue_contract.sql ya tiene plan(26) sobre la cola de borrado. T4 no repite esas aserciones: mira el angulo de tenancy.",
+      "allowedPaths": [
+        "supabase/tests/tenant_isolation_service_role.sql"
+      ],
+      "appendOnlyPaths": [
+        "supabase/tests/**",
+        "supabase/migrations/**"
+      ],
+      "expectPgtapDeltaMin": 6,
+      "frozenFiles": {}
     }
   ]
 }
