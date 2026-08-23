@@ -3,6 +3,8 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import {
   registerEntryAction,
   type EntryActionState,
@@ -46,14 +48,10 @@ export function ManualEntryForm({
         <SubmitEntryButton />
       </form>
 
-      {state.message && !state.result ? (
-        <p
-          className="mt-4 rounded-md border border-brand-red bg-red-50 px-4 py-3 text-sm font-semibold text-brand-red"
-          role="alert"
-        >
-          {state.message}
-        </p>
-      ) : null}
+      <ActionFeedback
+        className="mt-4 rounded-md bg-amber-50 px-4 py-3"
+        state={state.result && !state.ok ? {} : state}
+      />
 
       {state.result && resultState ? (
         <div

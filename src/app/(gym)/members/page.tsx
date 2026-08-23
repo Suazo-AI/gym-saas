@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { LoadError } from "@/features/app/components/load-error";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { MemberFilters } from "@/features/members/components/member-filters";
@@ -55,22 +56,24 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
           {params.notice}
         </div>
       ) : null}
-      <section className="mt-6 rounded-lg border border-charcoal bg-paper shadow-sm">
+      <section className="mt-6 rounded-lg bg-surface shadow-md">
         <h2 className="sr-only">Miembros del gimnasio activo</h2>
-        <PersistedSearchForm placeholder="Buscar por nombre o código" storageKey="fitmanager.members.search" />
-        <MemberFilters />
+        <div className="grid gap-2 p-2 [&>form]:rounded-md [&>form]:border-b-0 [&>form]:bg-paper">
+          <PersistedSearchForm placeholder="Buscar por nombre o código" storageKey="fitmanager.members.search" />
+          <MemberFilters />
+        </div>
 
         {"error" in result ? (
-          <p className="p-5 text-sm font-semibold text-red-700">
+          <LoadError>
             No pudimos cargar los miembros. Intenta nuevamente.
-          </p>
+          </LoadError>
         ) : result.data.length === 0 ? (
           <p className="p-5 text-slate-600">No hay miembros visibles para este gimnasio.</p>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="grid gap-2 p-2">
             {result.data.map((member) => (
               <div
-                className="grid gap-3 p-4 md:grid-cols-[1.4fr_0.8fr_1fr_0.8fr_auto] md:items-center"
+                className="grid gap-3 rounded-md bg-paper p-4 md:grid-cols-[1.4fr_0.8fr_1fr_0.8fr_auto] md:items-center"
                 key={member.gymMemberId}
               >
                 <div>

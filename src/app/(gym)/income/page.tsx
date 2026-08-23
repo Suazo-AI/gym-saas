@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { LoadError } from "@/features/app/components/load-error";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { IncomeFilters } from "@/features/income/components/income-filters";
 import { RecordOtherIncomeForm } from "@/features/income/components/record-other-income-form";
@@ -39,7 +40,7 @@ export default async function IncomePage({ searchParams }: IncomePageProps) {
         {categories ? (
           <RecordOtherIncomeForm branches={branches} categories={categories} defaultCurrency={activeGym.defaultCurrency} />
         ) : (
-          <p className="rounded-lg border border-red-200 bg-red-50 p-5 text-sm font-semibold text-red-700">No pudimos cargar las categorías de ingresos.</p>
+          <LoadError>No pudimos cargar las categorías de ingresos.</LoadError>
         )}
       </div>
       <section className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -49,7 +50,7 @@ export default async function IncomePage({ searchParams }: IncomePageProps) {
         </div>
         <IncomeFilters currency={currency} from={from} key={`${from ?? ""}:${to ?? ""}:${currency ?? ""}`} to={to} />
         {!dailyIncome || !monthlyIncome ? (
-          <p className="p-5 text-sm font-semibold text-red-700">No pudimos cargar ingresos.</p>
+          <LoadError>No pudimos cargar ingresos.</LoadError>
         ) : dailyIncome.length === 0 && monthlyIncome.length === 0 ? (
           <p className="p-5 text-slate-600">No hay ingresos visibles.</p>
         ) : (

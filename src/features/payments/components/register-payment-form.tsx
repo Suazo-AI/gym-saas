@@ -3,6 +3,8 @@
 import { useActionState, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import { registerPaymentAction } from "../actions/payment.actions";
 import type {
   PaymentMethodDto,
@@ -175,14 +177,7 @@ export function RegisterPaymentForm({
         </label>
       </section>
 
-      {state.message ? (
-        <p
-          className={`rounded-md border px-4 py-3 text-sm font-bold ${state.ok ? "border-green-700 bg-green-50 text-green-900" : "border-red-700 bg-red-50 text-red-900"}`}
-          role={state.ok ? "status" : "alert"}
-        >
-          {state.message}
-        </p>
-      ) : null}
+      <ActionFeedback className="rounded-md bg-amber-50 px-4 py-3" state={state} />
 
       <details className="rounded-lg border border-charcoal bg-brand-sand p-5 shadow-sm">
         <summary className="min-h-11 cursor-pointer py-3 text-base font-black text-ink">

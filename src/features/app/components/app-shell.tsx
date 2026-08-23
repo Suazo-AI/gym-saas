@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 import { signOutAction } from "@/features/auth/actions/auth.actions";
 import { ActiveGymSwitcher } from "@/features/gyms/components/active-gym-switcher";
@@ -23,7 +24,7 @@ export async function AppShell({ activeGym, availableGyms, currentPath, userEmai
     <main className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[272px_1fr]">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#111814] px-4 py-3 text-white lg:hidden">
         <div className="flex items-center justify-between gap-4">
-          <BrandLink />
+          <BrandLink gym={activeGym} />
           <details className="group relative">
             <summary
               aria-label="Abrir menu principal"
@@ -46,7 +47,7 @@ export async function AppShell({ activeGym, availableGyms, currentPath, userEmai
       </header>
 
       <aside className="hidden border-r border-white/10 bg-[#111814] p-5 text-white lg:block lg:min-h-screen">
-        <BrandLink />
+        <BrandLink gym={activeGym} />
         <ShellControls
           activeGym={activeGym}
           availableGyms={availableGyms}
@@ -62,13 +63,13 @@ export async function AppShell({ activeGym, availableGyms, currentPath, userEmai
   );
 }
 
-function BrandLink() {
+function BrandLink({ gym }: { gym: ActiveGymDto }) {
   return (
-    <Link className="flex items-center gap-3 text-lg font-black" href="/">
+    <Link className="flex min-w-0 items-center gap-3 text-lg font-black" href="/dashboard">
       <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-lime text-ink shadow-lg shadow-brand-lime/10">
-        F
+        {gym.logoUrl ? <Image alt={`Logo de ${gym.tradeName}`} className="size-11 rounded-xl object-cover" height={44} src={gym.logoUrl} unoptimized width={44} /> : "F"}
       </span>
-      Fit Manager
+      <span className="truncate">{gym.tradeName}</span>
     </Link>
   );
 }

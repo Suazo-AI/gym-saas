@@ -6,6 +6,7 @@ import { alertStatusSchema } from "@/features/alerts/schemas/alert.schema";
 import { listGymAlerts } from "@/features/alerts/services/alert.repository";
 import type { AlertStatus } from "@/features/alerts/types/alert.dto";
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { LoadError } from "@/features/app/components/load-error";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 
 type AlertsPageProps = { searchParams: Promise<{ status?: string }> };
@@ -36,7 +37,7 @@ export default async function AlertsPage({ searchParams }: AlertsPageProps) {
         })}
       </nav>
       <section className="mt-6 rounded-lg border border-slate-200 bg-white shadow-sm">
-        {!alerts ? <p className="p-5 text-sm font-semibold text-red-700" role="alert">No pudimos cargar las alertas. Intenta nuevamente.</p> : <AlertList alerts={alerts} />}
+        {!alerts ? <LoadError>No pudimos cargar las alertas. Intenta nuevamente.</LoadError> : <AlertList alerts={alerts} />}
       </section>
     </>
   );

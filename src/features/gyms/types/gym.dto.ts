@@ -2,6 +2,8 @@ export type UserGymDto = {
   gymId: string;
   tradeName: string;
   legalName: string;
+  logoMediaAssetId?: string | null;
+  logoUrl?: string | null;
   slug: string;
   defaultCurrency: string;
   timezone: string;

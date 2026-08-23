@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from "react";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import { updateRoleScreenAction, type RoleScreenState } from "../actions/role-screen.actions";
 import { describeEffectivePermissions, describeRoleLimits } from "../services/permission-presentation";
 import type { RoleScreenAccessDto } from "../types/staff.dto";
@@ -42,7 +44,7 @@ function RoleEditor({ role, access }: { role: RoleScreenAccessDto["roles"][numbe
       </label>)}
     </fieldset>
     {role.isOwner ? <p className="mt-4 text-sm text-gray">El rol Dueño conserva acceso total para evitar que el gimnasio quede sin administración.</p> : <button className="mt-4 min-h-11 rounded-lg bg-ink px-5 text-sm font-black text-white disabled:opacity-60" disabled={pending}>{pending ? "Guardando…" : `Guardar ${selected.length} pantallas`}</button>}
-    {state.message ? <p className={`mt-3 text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`}>{state.message}</p> : null}
+    <ActionFeedback className="mt-3" state={state} />
   </form>;
 }
 
