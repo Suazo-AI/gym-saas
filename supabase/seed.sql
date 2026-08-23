@@ -1,5 +1,15 @@
 -- Local development seed only. Do not run in production.
 -- Test users use the fake local password: LocalDev123!
+--
+-- Cuentas locales y su rol efectivo:
+--   owner1@fitmanager.local          dueno de Impulso Fitness (rol owner, por trigger)
+--   owner2@fitmanager.local          dueno de Norte Gym (rol owner, por trigger)
+--   platform-admin@fitmanager.local  administrador de plataforma (sin gym_users)
+--   gym-admin@fitmanager.local       rol admin en Impulso Fitness
+--   reception@fitmanager.local       rol receptionist en Impulso Fitness
+--
+-- La cuenta de recepcion existe para probar los permisos reales de recepcion.
+-- Una cuenta admin ve todo y no ejerce ninguna restriccion de la matriz de roles.
 
 begin;
 
@@ -98,6 +108,25 @@ values
     timezone('utc', now()),
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"name":"Admin Gym Local"}'::jsonb
+  ),
+  (
+    '00000000-0000-4000-8000-000000000005',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'reception@fitmanager.local',
+    extensions.crypt('LocalDev123!', extensions.gen_salt('bf')),
+    timezone('utc', now()),
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    timezone('utc', now()),
+    timezone('utc', now()),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"name":"Recepcion Demo Local"}'::jsonb
   )
 on conflict do nothing;
 
@@ -147,6 +176,16 @@ values
     '00000000-0000-4000-8000-000000000004',
     '00000000-0000-4000-8000-000000000004',
     '{"sub":"00000000-0000-4000-8000-000000000004","email":"gym-admin@fitmanager.local","email_verified":true,"phone_verified":false}'::jsonb,
+    'email',
+    timezone('utc', now()),
+    timezone('utc', now()),
+    timezone('utc', now())
+  ),
+  (
+    '01000000-0000-4000-8000-000000000005',
+    '00000000-0000-4000-8000-000000000005',
+    '00000000-0000-4000-8000-000000000005',
+    '{"sub":"00000000-0000-4000-8000-000000000005","email":"reception@fitmanager.local","email_verified":true,"phone_verified":false}'::jsonb,
     'email',
     timezone('utc', now()),
     timezone('utc', now()),
@@ -231,14 +270,23 @@ insert into public.gym_users (
   invited_by,
   accepted_at
 )
-values (
-  '20000000-0000-4000-8000-000000000001',
-  '00000000-0000-4000-8000-000000000004',
-  'ADM-LOCAL',
-  'active',
-  '00000000-0000-4000-8000-000000000001',
-  timezone('utc', now())
-)
+values
+  (
+    '20000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000004',
+    'ADM-LOCAL',
+    'active',
+    '00000000-0000-4000-8000-000000000001',
+    timezone('utc', now())
+  ),
+  (
+    '20000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000005',
+    'REC-LOCAL',
+    'active',
+    '00000000-0000-4000-8000-000000000001',
+    timezone('utc', now())
+  )
 on conflict do nothing;
 
 insert into public.gym_user_roles (
@@ -253,6 +301,28 @@ select
 from public.gym_users gu
 join public.roles r on r.gym_id = gu.gym_id and r.code = 'admin'
 where gu.auth_user_id = '00000000-0000-4000-8000-000000000004'
+on conflict do nothing;
+
+-- Recepcion local. El rol 'receptionist' y sus permisos los crea
+-- private.bootstrap_new_gym() al insertar el gimnasio; aqui solo se asigna.
+-- Permisos efectivos segun 20260802120000_permissions_realignment.sql:
+--   gym.read, members.read, members.manage, memberships.read,
+--   memberships.manage, payments.read, payments.manage, entries.read,
+--   entries.manage, faces.read, faces.verify, alerts.read, dashboard.read,
+--   media.read, media.manage.
+-- No tiene staff.*, roles.manage, income.*, audit.read, billing.* ni faces.manage.
+insert into public.gym_user_roles (
+  gym_user_id,
+  role_id,
+  assigned_by
+)
+select
+  gu.id,
+  r.id,
+  '00000000-0000-4000-8000-000000000001'
+from public.gym_users gu
+join public.roles r on r.gym_id = gu.gym_id and r.code = 'receptionist'
+where gu.auth_user_id = '00000000-0000-4000-8000-000000000005'
 on conflict do nothing;
 
 insert into public.gym_branches (
@@ -487,15 +557,27 @@ from public.payment_methods pm
 where pm.code = 'cash'
 on conflict do nothing;
 
+-- El guardia `where not exists` no es decorativo. La tabla tiene un trigger
+-- BEFORE INSERT (private.validate_payment_allocation) y en PostgreSQL un
+-- trigger BEFORE corre antes de que `on conflict do nothing` descarte la fila.
+-- Con `values ... on conflict do nothing`, correr el seed una segunda vez sobre
+-- una base que ya lo tiene revienta con 'Allocated amount exceeds payment
+-- amount' y aborta la transaccion entera, porque el seed es un solo begin/commit.
+-- Resultado: ninguna fila nueva del seed llegaba nunca a una base ya poblada.
 insert into public.member_payment_allocations (
   member_payment_id,
   membership_charge_id,
   amount
 )
-values (
+select
   '90000000-0000-4000-8000-000000000001',
   '80000000-0000-4000-8000-000000000001',
   900.00
+where not exists (
+  select 1
+  from public.member_payment_allocations a
+  where a.member_payment_id = '90000000-0000-4000-8000-000000000001'
+    and a.membership_charge_id = '80000000-0000-4000-8000-000000000001'
 )
 on conflict do nothing;
 

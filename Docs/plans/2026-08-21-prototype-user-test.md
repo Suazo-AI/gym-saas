@@ -3,7 +3,7 @@
 - Fecha de preparación: 2026-08-21.
 - Tarjeta: [Probar prototipo con usuarios](https://trello.com/c/fLzDjJES/19-probar-prototipo-con-usuarios).
 - Responsable: Vibe Coder + Producto.
-- Estado: las mejoras A1, A2, A4 y A5 están aplicadas; las sesiones reales siguen pendientes.
+- Estado: las mejoras A1, A2, A3, A4 y A5 están aplicadas; las sesiones reales siguen pendientes.
 - Evidencia real: 0 de 4 sesiones.
 - Checklist de Trello: 0 de 5 puntos terminados.
 
@@ -29,7 +29,8 @@ No se puede sustituir esta evidencia con agentes, tests automáticos o sesiones 
 
 Este recorrido usó AXI contra la aplicación local con datos falsos.
 No fue una sesión con personas y no cambia la evidencia real de 0 de 4 sesiones.
-La cuenta local de administración representó recepción porque los datos de prueba no incluyen una cuenta recepcionista.
+La cuenta local de administración representó recepción porque, ese día, los datos de prueba no incluían una cuenta recepcionista.
+Ese vacío es el hallazgo A3 y ya está corregido en `supabase/seed.sql`.
 La misma cuenta de dueño ejecutó los dos recorridos de dueño.
 
 | Recorrido | Tarea | Resultado | Tiempo | Evidencia visible |
@@ -67,6 +68,18 @@ No reemplazan hallazgos humanos ni cambios acordados.
 - Un encabezado móvil de 69 px contiene el menú plegable.
 - El documento mide 390 px y no tiene desborde horizontal.
 - El título empieza en 142 px y el primer campo empieza en 382 px.
+- A3 corregida el 2026-08-22: `supabase/seed.sql` crea la cuenta local `reception@fitmanager.local`.
+- La cuenta pertenece a Impulso Fitness con código de empleado `REC-LOCAL` y estado `active`.
+- Tiene el rol de sistema `receptionist`, el mismo que crea `private.bootstrap_new_gym()` para todo gimnasio nuevo.
+- No se inventó ningún rol ni ningún permiso: el rol y sus 15 permisos vienen de `20260802120000_permissions_realignment.sql`.
+- Permisos efectivos: `gym.read`, `members.read`, `members.manage`, `memberships.read`, `memberships.manage`, `payments.read`, `payments.manage`, `entries.read`, `entries.manage`, `faces.read`, `faces.verify`, `alerts.read`, `dashboard.read`, `media.read`, `media.manage`.
+- No tiene `staff.read`, `staff.manage`, `roles.manage`, `income.read`, `income.manage`, `audit.read`, `billing.read`, `billing.manage` ni `faces.manage`.
+- Con esa cuenta, recepción ya no ve personal, roles, ingresos, auditoría ni facturación SaaS.
+- La contraseña local sigue siendo la falsa `LocalDev123!`, igual que las otras cuentas del seed.
+- Bug encontrado al verificar A3: el seed no se podía volver a correr sobre una base ya poblada.
+- `member_payment_allocations` tiene un trigger `before insert` y en PostgreSQL un trigger BEFORE corre antes de que `on conflict do nothing` descarte la fila.
+- La segunda corrida abortaba con `Allocated amount exceeds payment amount`, y como el seed es un solo `begin`/`commit`, ninguna fila nueva llegaba nunca.
+- Sin ese arreglo la cuenta de recepción no podía entrar a la base local compartida, así que se corrigió en el mismo commit con un guardia `where not exists`.
 - A5 corregida: el acceso facial está después de membresía y pago.
 - El acceso facial está cerrado por defecto y se identifica como opcional.
 - Los campos de nombre, apellido, teléfono y correo incluyen datos de autocompletado.
@@ -76,6 +89,12 @@ No reemplazan hallazgos humanos ni cambios acordados.
 
 ## Verificación de las correcciones
 
+- A3: el seed completo corrió contra la base local dentro de una transacción con `rollback`, con `psql` en salida 0.
+- Esa corrida en seco comprobó los 15 permisos exactos del rol `receptionist` y la ausencia de `staff.*`, `roles.manage`, `income.*`, `audit.read`, `billing.*` y `faces.manage`.
+- Después se aplicó el seed de verdad a la base local, también en salida 0, y solo insertó cuatro filas nuevas: usuario Auth, identidad, `gym_users` y `gym_user_roles`.
+- No se reinició la base local y ninguna fila existente cambió.
+- Las pantallas visibles para recepción quedaron en `entries`, `dashboard`, `members`, `memberships`, `payments`, `facial_access`, `alerts` y `settings`.
+- Recepción no ve `income`, `staff`, `roles`, `saas_billing` ni `audit`.
 - La prueba completa del workspace pasó con 88 archivos y 316 pruebas.
 - TypeScript pasó sin errores.
 - ESLint pasó sin errores.
@@ -115,6 +134,7 @@ Por eso, este recorrido conserva evidencia textual y no afirma evidencia visual 
 8. Confirmar una sucursal activa, un plan activo y un método de pago en efectivo.
 9. Confirmar al menos un miembro moroso y pagos en NIO y USD durante el mes actual.
 10. Iniciar la sesión correcta antes de entregar el control al participante.
+11. Para los recorridos `R1` y `R2`, iniciar sesión con `reception@fitmanager.local`, no con una cuenta de administración.
 
 No reiniciar la base local si contiene trabajo que debe conservarse.
 
