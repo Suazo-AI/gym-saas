@@ -30,7 +30,7 @@ Romper cualquiera invalida el trabajo entero.
 ### Trampas conocidas, cuestan horas si se redescubren
 
 - Los worktrees no traen `node_modules` ni `.env.local`. Hay que correr `npm ci` y copiar `.env.local` desde `C:\Users\Jason\gym-saas\.env.local`.
-- `npm run preflight` corre typecheck, lint, vitest y build. El build necesita las tres variables `NEXT_PUBLIC_*`.
+- `npm run preflight` corre drift, typecheck, lint, vitest y build. El build necesita las tres variables `NEXT_PUBLIC_*`. El paso `drift` se agregó el 2026-08-22; hasta entonces la cadena empezaba en typecheck.
 - Los tests pgTAP (148 aserciones en 16 archivos) **no** corren en `preflight`. Corren en el job `.github/workflows/db.yml`, que levanta Supabase local. Se ejecutan con `npm run test:db`.
 - Los mensajes de commit con `/` seguido de texto disparan un hook de seguridad. Usar `git commit -F archivo`.
 - No pasar archivos `.sql` por `Get-Content | docker exec -i psql`: corrompe los acentos y produce falsos fallos. Usar `docker cp` y después `psql -f` sobre la ruta interna.

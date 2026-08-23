@@ -173,6 +173,9 @@ Después de aplicarla:
 5. actualizar documentación;
 6. registrar el resultado en la tarjeta correspondiente.
 
+`npm run drift` falla cuando existe una migración versionada que la base local no aplicó.
+Nace del hallazgo A4 del recorrido con usuarios del 2026-08-21: la selección de miembro para entrada quedó rota por una migración pendiente y nada avisó.
+
 ## Uso de Supabase SQL Editor
 
 SQL Editor puede utilizarse para:
@@ -290,6 +293,40 @@ Agregar pruebas proporcionales al riesgo.
 Las pruebas de multi-tenancy deben intentar explícitamente acceder a datos de otro gimnasio.
 
 No afirmar que algo fue probado si no se ejecutó una verificación concreta.
+
+### Antes de integrar
+
+Antes de abrir un Pull Request se ejecuta un solo comando:
+
+```bash
+npm run preflight
+```
+
+Encadena, en este orden, `npm run drift`, `npm run typecheck`, `npm run lint`, `npm run test` y `npm run build`.
+Se detiene en el primero que falla.
+
+`npm run drift` corre `scripts/check-drift.mjs`.
+Hace cuatro revisiones y solamente dos deciden el veredicto, saliendo con código 1:
+
+* la dimensión del embedding facial tiene que coincidir en los cinco archivos donde vive;
+* ninguna migración versionada puede quedar sin aplicar en la base local.
+
+Las otras dos solamente avisan y salen con código 0:
+
+* hay trabajo sin commitear en el árbol;
+* `graphify-out/graph.json` quedó más viejo que el último commit.
+
+`npm run drift -- --strict` convierte los dos avisos en fallas.
+
+La revisión de migraciones locales necesita el stack local de Supabase.
+Cuando no responde, la revisión avisa que no hay veredicto y no falla.
+Ese es el caso de un runner de CI, que levanta la base desde cero y está al día por construcción.
+
+`vitest` excluye `.claude/worktrees/**` y `.worktrees/**`.
+Sin esa exclusión recorría las copias del repositorio y corría las pruebas de otras ramas, así que el conteo dejaba de hablar del código que se va a mergear.
+
+Las pruebas pgTAP no corren en `preflight`.
+Se ejecutan con `npm run test:db` y su veredicto bueno lo da el job `pgtap` de `.github/workflows/db.yml`, que arranca la base desde las migraciones.
 
 ## Forma de trabajo
 

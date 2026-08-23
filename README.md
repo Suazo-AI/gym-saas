@@ -37,6 +37,35 @@ npm test
 npm run build
 ```
 
+Antes de abrir un Pull Request:
+
+```bash
+npm run preflight
+```
+
+`preflight` encadena, en este orden, `drift`, `typecheck`, `lint`, `test` y `build`.
+Se detiene en el primero que falla.
+
+```bash
+npm run drift
+```
+
+`drift` corre `scripts/check-drift.mjs` y hace cuatro revisiones.
+Dos deciden el veredicto y salen con codigo 1:
+
+- la dimension del embedding facial tiene que coincidir en los cinco archivos donde vive;
+- ninguna migracion versionada puede quedar sin aplicar en la base local.
+
+Las otras dos solo avisan y salen con codigo 0:
+
+- hay trabajo sin commitear en el arbol;
+- `graphify-out/graph.json` quedo mas viejo que el ultimo commit.
+
+La revision de migraciones necesita el stack local de Supabase.
+Si no responde, avisa que no hay veredicto y no falla.
+
+`npm run drift -- --strict` convierte los dos avisos en fallas.
+
 Supabase local:
 
 ```bash
