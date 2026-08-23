@@ -437,6 +437,8 @@ Ese número vive hoy en cinco lugares editables por separado:
 
 Cambiar la dimensión exige migración completa, decisión sobre el modelo facial, y tocar los cinco. Ya se rompió una vez (`4865e98`, un cambio a 128 sin migración que hubo que revertir). Ningún embedding InsightFace histórico de 512 puede compararse con uno SFace de 128.
 
+Desde el 2026-08-22 hay barrera: `npm run drift` falla con código 1 si los cinco archivos no declaran el mismo número, y `npm run preflight` lo corre primero. Si alguno de esos archivos se mueve o se reescribe, hay que actualizar `DIMENSION_SITES` en `scripts/check-drift.mjs`, que es donde viven las rutas y los patrones.
+
 Antes de crear un embedding debe existir consentimiento biométrico válido.
 
 El consentimiento debe poder:
