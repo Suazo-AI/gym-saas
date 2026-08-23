@@ -50,11 +50,25 @@ Cada uno de estos es un booleano que un programa resuelve. Cero juicio, cero "pa
 | sin em dash ni en dash | Regla del repositorio |
 | rama no publicada | Nada llegó al remoto sin revisión |
 | aserciones pgTAP aumentaron | Se agregó cobertura de verdad, contada del `plan(N)` de los archivos |
+| dimensión facial alineada | Los cinco archivos que declaran la dimensión del embedding dicen el mismo número |
+| sin migraciones locales pendientes | Ninguna migración versionada quedó sin aplicar en la base local |
 | `npm ci` | Las dependencias instalan desde cero |
-| `npm run preflight` | typecheck, lint, tests y build en verde en un checkout limpio |
+| `npm run preflight` | drift, typecheck, lint, tests y build en verde en un checkout limpio |
 | `npm run test:db` | pgTAP en verde |
 
 Ninguna de esas conclusiones depende de que el agente haya dicho la verdad.
+
+Las dos filas nuevas las resuelve `scripts/check-drift.mjs`, que corre dentro de `preflight` y por lo tanto dentro de `verify-package --full`.
+El job `verify` de `.github/workflows/ci.yml` ejecuta typecheck, lint, pruebas y build por separado y no invoca `drift`.
+
+`check-drift` hace además otras dos revisiones que **no** están en la tabla y no deben estar: avisa si hay trabajo sin commitear y si `graphify-out/graph.json` quedó más viejo que el último commit.
+Las dos salen con código 0.
+Un aviso no es un veredicto, y meterlo en esta tabla convertiría el contrato en una lista de sugerencias.
+`npm run drift -- --strict` las vuelve fallas, y ese modo no se usa para juzgar un paquete.
+
+La revisión de migraciones locales pregunta al stack local de Supabase, que este documento ya declara contaminado.
+Cuando el stack no responde, la revisión avisa "sin veredicto" y no falla.
+Decide por construcción solamente cuando hay una base a la que preguntarle; cuando no la hay, no decide nada y lo dice.
 
 ## Lo que NO se puede decidir por construcción
 
