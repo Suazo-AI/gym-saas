@@ -35,17 +35,76 @@ foreach ($fileName in $requiredFiles) {
 }
 
 $targetStateSql = @'
-select
-  (select count(*) from pg_tables where schemaname = 'public')
-  + (select count(*) from auth.users)
-  + (select count(*) from storage.objects);
+do $restore_gate$
+declare
+  item record;
+  has_rows boolean;
+  sequence_value bigint;
+  sequence_called boolean;
+begin
+  if exists (
+    select 1
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname in ('public', 'private')
+      and c.relkind in ('r', 'p', 'v', 'm', 'S', 'f')
+    union all
+    select 1
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname in ('public', 'private')
+    union all
+    select 1
+    from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where n.nspname in ('public', 'private')
+      and t.typrelid = 0
+      and t.typelem = 0
+      and t.typtype <> 'p'
+  ) then
+    raise exception 'The restore target is not empty.';
+  end if;
+
+  for item in
+    select n.nspname, c.relname
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where c.relkind in ('r', 'p')
+      and n.nspname in ('auth', 'storage', 'supabase_migrations')
+      and (n.nspname, c.relname) not in (
+        ('auth', 'schema_migrations'),
+        ('storage', 'migrations'),
+        ('storage', 'buckets_vectors'),
+        ('storage', 'vector_indexes')
+      )
+  loop
+    execute format('lock table %I.%I in access exclusive mode', item.nspname, item.relname);
+    execute format('select exists(select 1 from %I.%I limit 1)', item.nspname, item.relname)
+      into has_rows;
+
+    if has_rows then
+      raise exception 'The restore target is not empty.';
+    end if;
+  end loop;
+
+  for item in
+    select n.nspname, c.relname, s.seqstart
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    join pg_sequence s on s.seqrelid = c.oid
+    where c.relkind = 'S'
+      and n.nspname in ('auth', 'storage', 'supabase_migrations')
+  loop
+    execute format('select last_value, is_called from %I.%I', item.nspname, item.relname)
+      into sequence_value, sequence_called;
+
+    if sequence_called or sequence_value <> item.seqstart then
+      raise exception 'The restore target is not empty.';
+    end if;
+  end loop;
+end
+$restore_gate$;
 '@
-
-$targetRows = @(Invoke-PostgresDockerQuery -DatabaseUrl $DatabaseUrl -Sql $targetStateSql)
-
-if ($targetRows.Count -ne 1 -or $targetRows[0] -ne '0') {
-  throw 'The restore target is not empty.'
-}
 
 $image = 'public.ecr.aws/supabase/postgres:17.6.1.143'
 $connection = Get-PostgresDockerConnection -DatabaseUrl $DatabaseUrl
@@ -77,27 +136,18 @@ $baseArguments = @(
 )
 
 & docker @baseArguments `
+  '--command' $targetStateSql `
   '--file' '/backup/roles.sql' `
   '--file' '/backup/schema.sql' `
   '--command' 'SET session_replication_role = replica' `
-  '--file' '/backup/data.sql'
-
-if ($LASTEXITCODE -ne 0) {
-  throw 'Main database restore failed.'
-}
-
-& docker @baseArguments `
+  '--file' '/backup/data.sql' `
+  '--command' 'RESET session_replication_role' `
   '--file' '/backup/history-schema.sql' `
-  '--file' '/backup/history-data.sql'
+  '--file' '/backup/history-data.sql' `
+  '--file' '/backup/auth-storage-custom.sql'
 
 if ($LASTEXITCODE -ne 0) {
-  throw 'Migration history restore failed.'
-}
-
-& docker @baseArguments '--file' '/backup/auth-storage-custom.sql'
-
-if ($LASTEXITCODE -ne 0) {
-  throw 'Auth and Storage custom schema restore failed.'
+  throw 'Database restore failed and was rolled back.'
 }
 
 Write-Output 'RESTORE_APPLY=PASS'

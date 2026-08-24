@@ -82,6 +82,12 @@ $env:FITMANAGER_RESTORE_DB_URL = '<RESTORE_CONNECTION_STRING>'
 
 El restaurador usa Docker y exige que el destino esté vacío.
 
+El control bloquea y revisa objetos de `public` y `private`, datos de Auth y Storage, historial de migraciones y secuencias.
+
+Los seis archivos SQL se aplican dentro de una sola transacción.
+
+Si un archivo falla, PostgreSQL revierte la restauración completa.
+
 ```powershell
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\scripts\restore-supabase.ps1 -DatabaseUrl $env:FITMANAGER_RESTORE_DB_URL -BackupDirectory $backupRoot -ConfirmEmptyTarget
 ```
@@ -108,7 +114,9 @@ npx supabase storage ls ss:///gym-media --recursive --linked
 
 ## Verificar la restauración
 
-El verificador compara datos, columnas, relaciones, índices, funciones, políticas, RLS y triggers.
+El verificador rechaza conexiones que apuntan a la misma base.
+
+Compara inventarios, contenido de cada tabla, secuencias, columnas, relaciones, índices, funciones, vistas, tipos, propietarios, privilegios, políticas, RLS y triggers.
 
 Después ejecuta las pruebas SQL completas contra el destino restaurado.
 
