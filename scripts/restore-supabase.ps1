@@ -126,6 +126,7 @@ begin
         ('storage', 'vector_indexes')
       )
   loop
+    execute format('lock table %I.%I in access exclusive mode', item.nspname, item.relname);
     execute format('select exists(select 1 from %I.%I limit 1)', item.nspname, item.relname)
       into has_rows;
 
@@ -220,7 +221,10 @@ if ($LASTEXITCODE -ne 0) {
 if ($LASTEXITCODE -ne 0) {
   # PostgreSQL never rolls back a sequence, so a failed restore would otherwise
   # leave the target permanently rejected by its own empty-target gate.
-  & docker @baseArguments '--command' $sequenceRecoverySql
+  & docker @baseArguments `
+    '--single-transaction' `
+    '--command' $sequenceRecoverySql `
+    '--command' $targetStateSql
 
   if ($LASTEXITCODE -ne 0) {
     throw 'Database restore failed and was rolled back, but the sequence recovery failed. The target rejects a retry until its auth, storage and supabase_migrations sequences are set back to their start value.'
