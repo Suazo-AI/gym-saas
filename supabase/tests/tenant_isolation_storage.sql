@@ -2,13 +2,12 @@
 -- Tarjeta "Pruebas de aislamiento multi-tenant", item "Intentar acceder a
 -- archivos de otro gimnasio".
 --
--- Por que se prueba storage.objects y no una ruta del producto: hoy no existe
--- ningun camino de lectura de archivos en la aplicacion. No hay createSignedUrl,
--- ni getPublicUrl, ni download en todo src/. La unica escritura es la del alta
--- facial, y usa el cliente de clave publica, no service_role. O sea que el
--- control real de quien toca un archivo son las cuatro politicas de RLS sobre
--- storage.objects que instala 20260716010100_storage_only.sql, y eso es lo que
--- este archivo mide.
+-- La aplicacion crea URLs firmadas para logos y sube logos y fotos faciales con
+-- el cliente autenticado. El job pgtap de .github/workflows/db.yml levanta
+-- Postgres, no Storage API, asi que esta suite mide directamente las cuatro
+-- politicas de RLS que protegen storage.objects.
+-- 20260716010100_storage_only.sql las creo y
+-- 20260823210000_safe_storage_path_policies.sql instala su version vigente.
 --
 -- Las cuatro politicas deciden por el primer segmento de la ruta:
 --   <gym_id>/<person_id-o-general>/<uuid>.<extension>

@@ -460,9 +460,9 @@
       "base": "origin/main",
       "maxCommits": 2,
       "_tarjeta": "Trello 'Pruebas de aislamiento multi-tenant' (54), item 'Crear usuarios con distintos roles'.",
-      "_ejecutor": "Lo escribe el orquestador, no un agente delegado. El dominio es cerrado (24 permisos, 5 roles de sistema), es un unico archivo con un fixture compartido, y exige instruccion exacta: no cumple ningun criterio de delegacion. Se declara igual como paquete para que verify-package lo juzgue con la misma vara que a los delegados.",
-      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. El veredicto lo da el job db.yml del CI.",
-      "_trampa": "T1 a T4 solo ejercitaron duenos, que tienen el catalogo completo. Aca la variable no es el gimnasio sino el permiso dentro del mismo gimnasio, asi que el fixture no sale del seed: hay que fabricar el usuario de recepcion en auth.users, gym_users y gym_user_roles.",
+      "_ejecutor": "Lo escribe el orquestador, no un agente delegado. El dominio es cerrado (26 permisos, 5 roles de sistema), es un unico archivo con un fixture compartido, y exige instruccion exacta: no cumple ningun criterio de delegacion. Se declara igual como paquete para que verify-package lo juzgue con la misma vara que a los delegados.",
+      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. verification/CONTRATO.md define el oraculo pgTAP.",
+      "_trampa": "T1 a T4 solo ejercitaron duenos, que tienen el catalogo completo. Aca la variable no es el gimnasio sino el permiso dentro del mismo gimnasio. El seed ya incluye admin y recepcion en Impulso Fitness para probar esa matriz.",
       "allowedPaths": [
         "supabase/tests/intra_gym_permissions.sql"
       ],
@@ -481,9 +481,9 @@
       "maxCommits": 2,
       "_tarjeta": "Trello 'Pruebas de aislamiento multi-tenant' (54), item 'Intentar acceder a archivos de otro gimnasio'.",
       "_contrato": "Claim escrito por el orquestador antes de delegar. El ejecutor no edita este archivo y no reporta su propio estado.",
-      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. El veredicto lo da el job db.yml del CI.",
-      "_hallazgo_previo": "El producto no tiene hoy ningun camino de lectura de archivos: no existe createSignedUrl, getPublicUrl ni download en src/. La unica subida usa el cliente con clave publica, no service_role, asi que RLS sobre storage.objects es el mecanismo real de control y si es probable en pgTAP.",
-      "_trampa": "db.yml corre supabase db start, que levanta solo Postgres. No hay storage-api ni camino HTTP que probar: la prueba ejercita el predicado de las cuatro politicas insertando y consultando storage.objects con distintas identidades.",
+      "_oraculo": "No hay Docker en el entorno del ejecutor: no puede correr test:db y no debe afirmar que lo corrio. verification/CONTRATO.md define el oraculo pgTAP.",
+      "_hallazgo_previo": "El producto crea URLs firmadas para logos y sube logos y fotos faciales con clientes autenticados. RLS sobre storage.objects es el control de datos que comparten esos caminos y se puede probar directamente con pgTAP.",
+      "_trampa": ".github/workflows/db.yml corre supabase db start, que levanta solo Postgres. No hay storage-api ni camino HTTP que probar: la prueba ejercita el predicado de las cuatro politicas insertando y consultando storage.objects con distintas identidades.",
       "allowedPaths": [
         "supabase/tests/tenant_isolation_storage.sql"
       ],
