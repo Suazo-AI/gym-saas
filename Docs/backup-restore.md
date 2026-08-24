@@ -90,7 +90,9 @@ $env:FITMANAGER_RESTORE_DB_URL = '<RESTORE_CONNECTION_STRING>'
 
 El restaurador usa Docker y exige que el destino esté vacío.
 
-El control bloquea y revisa objetos de `public` y `private`, datos de Auth y Storage, historial de migraciones y secuencias.
+El control revisa objetos de `public` y `private`, datos de Auth y Storage, historial de migraciones y secuencias.
+
+Mientras revisa los datos, bloquea las tablas de Auth, Storage y migraciones.
 
 Los siete archivos SQL se aplican dentro de una sola transacción.
 
@@ -109,6 +111,10 @@ Por eso, cuando la restauración falla, el script devuelve las secuencias de `au
 Sin ese paso, un solo intento fallido dejaría el destino rechazado para siempre por su propio control.
 
 Esa recuperación se niega si el destino tiene datos.
+
+Durante la recuperación, esos bloqueos siguen activos hasta restablecer las secuencias y repetir el control completo en la misma transacción.
+
+El reintento solo se acepta si ese segundo control confirma otra vez que el destino está vacío.
 
 Si el destino ya trae el esquema `supabase_migrations` vacío, la restauración lo reemplaza por el del respaldo.
 
