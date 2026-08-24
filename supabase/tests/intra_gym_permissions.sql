@@ -161,29 +161,34 @@ select is(
 -- El caso silencioso. gym_alerts_manage es for update y su using exige
 -- alerts.manage, que recepcion no tiene. La fila igual es visible por
 -- gym_alerts_read, asi que no hay excepcion: el update simplemente no alcanza
--- ninguna fila. Contar las filas afectadas es la unica forma de verlo.
+-- ninguna fila y sigue de largo en silencio.
+--
+-- No se cuentan las filas afectadas con un CTE que modifica datos, porque
+-- PostgreSQL solo lo admite en el nivel superior de la sentencia y no anidado
+-- en una expresion. Se mira el efecto, que es lo que importa: la fila no
+-- cambio.
+update public.gym_alerts
+   set status = 'acknowledged'
+ where id = 'a5000000-0000-4000-8000-000000000001';
+
 select is(
-  (with intento as (
-     update public.gym_alerts
-        set status = 'acknowledged'
-      where id = 'a5000000-0000-4000-8000-000000000001'
-      returning 1
-   )
-   select count(*) from intento),
-  0::bigint,
-  'el update de la alerta hecho por recepcion no alcanza ninguna fila'
+  (select status::text from public.gym_alerts
+    where id = 'a5000000-0000-4000-8000-000000000001'),
+  'open',
+  'la alerta sigue abierta para la propia recepcion que intento reconocerla'
 );
 
 reset role;
 select set_config('request.jwt.claims', '{}', true);
 
--- La segunda mitad del caso silencioso. Un cero por si solo no distingue
--- "la politica lo freno" de "la fila no existia". Se relee sin RLS.
+-- La segunda mitad. Que recepcion la vea abierta no alcanza: hay que
+-- confirmar sin RLS que la fila existe y no cambio, porque si no un "sigue
+-- abierta" podria ser en realidad una fila ausente.
 select is(
   (select status::text from public.gym_alerts
     where id = 'a5000000-0000-4000-8000-000000000001'),
   'open',
-  'la alerta sigue abierta, o sea que el cero fue la politica y no una fila ausente'
+  'sin RLS la alerta tambien sigue abierta, o sea que la freno la politica'
 );
 
 -- ---------------------------------------------------------------------------
@@ -196,40 +201,38 @@ select is(
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-000000000005","role":"authenticated"}', true);
 
+update public.gym_members
+   set blocked_reason = 'anotado por recepcion'
+ where id = '60000000-0000-4000-8000-000000000001';
+
 select is(
-  (with permitido as (
-     update public.gym_members
-        set blocked_reason = 'anotado por recepcion'
-      where id = '60000000-0000-4000-8000-000000000001'
-      returning 1
-   )
-   select count(*) from permitido),
-  1::bigint,
+  (select blocked_reason from public.gym_members
+    where id = '60000000-0000-4000-8000-000000000001'),
+  'anotado por recepcion',
   'recepcion si puede editar un miembro, porque members.manage si la tiene'
 );
 
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-000000000004","role":"authenticated"}', true);
 
-select is(
-  (with permitido as (
-     update public.gym_alerts
-        set status = 'acknowledged'
-      where id = 'a5000000-0000-4000-8000-000000000001'
-      returning 1
-   )
-   select count(*) from permitido),
-  1::bigint,
-  'el admin si gestiona la misma alerta que recepcion no pudo tocar'
-);
+update public.gym_alerts
+   set status = 'acknowledged'
+ where id = 'a5000000-0000-4000-8000-000000000001';
 
 reset role;
 select set_config('request.jwt.claims', '{}', true);
 
 select is(
+  (select blocked_reason from public.gym_members
+    where id = '60000000-0000-4000-8000-000000000001'),
+  'anotado por recepcion',
+  'sin RLS el miembro tambien quedo editado, o sea que la escritura fue real'
+);
+
+select is(
   (select status::text from public.gym_alerts
     where id = 'a5000000-0000-4000-8000-000000000001'),
   'acknowledged',
-  'la alerta quedo reconocida, o sea que el update del admin si escribio'
+  'el admin si gestiono la misma alerta que recepcion no pudo tocar'
 );
 
 select * from finish();
