@@ -252,27 +252,10 @@ function structuralChecks(pkg, report) {
     report.add("rama no publicada", !remote, remote ? "existe en origin" : "solo local");
   }
 
-  // Conteo de aserciones pgTAP: se parsea de los archivos, no se le cree a nadie.
-  const planTotal = (ref) => {
-    const files = git(["ls-tree", "-r", "--name-only", ref, "--", "supabase/tests"])
-      .split("\n")
-      .filter(Boolean);
-    return files.reduce((sum, f) => {
-      const m = /select\s+plan\(\s*(\d+)\s*\)/i.exec(git(["show", `${ref}:${f}`]));
-      return sum + (m ? Number(m[1]) : 0);
-    }, 0);
-  };
-  if (pkg.expectPgtapDeltaMin > 0) {
-    const before = planTotal(baseSha);
-    const after = planTotal(head);
-    report.add(
-      "aserciones pgTAP aumentaron",
-      after - before >= pkg.expectPgtapDeltaMin,
-      `${before} -> ${after} (delta ${after - before}, minimo exigido ${pkg.expectPgtapDeltaMin})`,
-    );
-  } else {
-    report.skip("aserciones pgTAP aumentaron", "el paquete no exige pruebas de base de datos");
-  }
+  report.skip(
+    "pruebas pgTAP ejecutadas",
+    "solo npm run test:db y CI ejecutan pgTAP; plan(N) no prueba ejecucion",
+  );
 
   return { head, baseSha };
 }

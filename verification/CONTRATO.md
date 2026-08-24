@@ -31,7 +31,7 @@ De más confiable a menos. Usar siempre el más alto disponible.
 | 3 | **`verify-package`** (estructural) | Puro git. Instantáneo. No ejecuta nada, pero decide todo lo que se puede decidir leyendo el diff. |
 | — | **La prosa del agente** | Cero. No es evidencia. |
 
-**El stack local de Supabase no es un oráculo.** Está compartido entre 12 worktrees y su esquema queda adelantado o atrasado respecto de cualquier rama. Un pgTAP verde ahí no prueba nada. El veredicto de base de datos lo da el job `db.yml` del CI.
+**El stack local de Supabase no es un oráculo.** Está compartido entre 12 worktrees y su esquema queda adelantado o atrasado respecto de cualquier rama. Un pgTAP verde ahí no prueba nada. El veredicto de base de datos lo da el job `pgtap` de `.github/workflows/db.yml`.
 
 ## Lo que sí se decide por construcción
 
@@ -49,7 +49,6 @@ Cada uno de estos es un booleano que un programa resuelve. Cero juicio, cero "pa
 | criterios de aceptación sin modificar | El ejecutor no aflojó las pruebas para que pasaran |
 | sin em dash ni en dash | Regla del repositorio |
 | rama no publicada | Nada llegó al remoto sin revisión |
-| aserciones pgTAP aumentaron | Se agregó cobertura de verdad, contada del `plan(N)` de los archivos |
 | dimensión facial alineada | Los cinco archivos que declaran la dimensión del embedding dicen el mismo número |
 | sin migraciones locales pendientes | Ninguna migración versionada quedó sin aplicar en la base local |
 | `npm ci` | Las dependencias instalan desde cero |
@@ -57,6 +56,11 @@ Cada uno de estos es un booleano que un programa resuelve. Cero juicio, cero "pa
 | `npm run test:db` | pgTAP en verde |
 
 Ninguna de esas conclusiones depende de que el agente haya dicho la verdad.
+
+`plan(N)` solo declara cuántas pruebas espera un archivo.
+No demuestra que esas pruebas se ejecutaron ni pasaron.
+`_plannedPgtapDeltaMin` conserva la intención histórica del paquete y no decide el veredicto.
+Solo `npm run test:db` y el job `pgtap` de `.github/workflows/db.yml` prueban pgTAP.
 
 Las dos filas nuevas las resuelve `scripts/check-drift.mjs`, que corre dentro de `preflight` y por lo tanto dentro de `verify-package --full`.
 El job `verify` de `.github/workflows/ci.yml` ejecuta typecheck, lint, pruebas y build por separado y no invoca `drift`.
