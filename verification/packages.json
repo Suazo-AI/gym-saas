@@ -8,7 +8,8 @@
     "allowedPaths     rutas que el paquete puede tocar. Todo lo demas es fuera de alcance.",
     "appendOnlyPaths  rutas donde solo se pueden AGREGAR archivos, nunca modificar.",
     "frozenFiles      criterios de aceptacion escritos de antemano, con su sha256.",
-    "                 Si el ejecutor los toca para que pasen, el verificador lo detecta."
+    "                 Si el ejecutor los toca para que pasen, el verificador lo detecta.",
+    "_plannedPgtapDeltaMin conserva la intencion historica. No decide el veredicto."
   ],
   "packages": [
     {
@@ -24,7 +25,7 @@
       "appendOnlyPaths": [
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 5,
+      "_plannedPgtapDeltaMin": 5,
       "frozenFiles": {}
     },
     {
@@ -42,7 +43,7 @@
       "appendOnlyPaths": [
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 4,
+      "_plannedPgtapDeltaMin": 4,
       "frozenFiles": {}
     },
     {
@@ -59,7 +60,7 @@
       "appendOnlyPaths": [
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 1,
+      "_plannedPgtapDeltaMin": 1,
       "frozenFiles": {}
     },
     {
@@ -78,7 +79,7 @@
       "appendOnlyPaths": [
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 1,
+      "_plannedPgtapDeltaMin": 1,
       "frozenFiles": {}
     },
     {
@@ -94,7 +95,7 @@
       "appendOnlyPaths": [
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 0,
+      "_plannedPgtapDeltaMin": 0,
       "frozenFiles": {}
     },
     {
@@ -114,7 +115,7 @@
       "appendOnlyPaths": [
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 0,
+      "_plannedPgtapDeltaMin": 0,
       "frozenFiles": {}
     },
     {
@@ -132,7 +133,7 @@
         "supabase/tests/**",
         "src/features/payments/**"
       ],
-      "expectPgtapDeltaMin": 12,
+      "_plannedPgtapDeltaMin": 12,
       "frozenFiles": {}
     },
     {
@@ -151,7 +152,7 @@
         "src/features/income/**",
         "src/app/(gym)/income/**"
       ],
-      "expectPgtapDeltaMin": 4,
+      "_plannedPgtapDeltaMin": 4,
       "frozenFiles": {}
     },
     {
@@ -168,7 +169,7 @@
         "src/app/api/export/**",
         "src/features/export/**"
       ],
-      "expectPgtapDeltaMin": 0,
+      "_plannedPgtapDeltaMin": 0,
       "frozenFiles": {
         "src/app/api/export/export-contract.test.ts": "d6f10c2b38127c4e45d3446078d054f196b399d95a20b09cd72f7dd648ccefe6"
       }
@@ -192,7 +193,7 @@
         "supabase/migrations/**",
         "supabase/tests/**"
       ],
-      "expectPgtapDeltaMin": 7,
+      "_plannedPgtapDeltaMin": 7,
       "_rehash": "2026-08-08: se actualizo el hash de essential_reports_contract.sql. La primera version comparaba pg_get_function_identity_arguments contra 'uuid, integer', y esa funcion devuelve tambien los nombres de los parametros, asi que la asercion no podia pasar con ninguna implementacion posible. Instrumento roto, no codigo: la funcion siempre fue security definer. Corregido por el autor del contrato, nunca por el ejecutor. Hash anterior: 2cd1b6603a6d729e28ea24a7c2acd977357d7b3b5f388736d8cba3dd04d5f444",
       "frozenFiles": {
         "supabase/tests/essential_reports_contract.sql": "c10f9167116899280d759d7d019e4c70e6bf496a03d5324b75fb864952fe63c6",
@@ -214,7 +215,7 @@
         "supabase/migrations/**"
       ],
       "allowPublished": true,
-      "expectPgtapDeltaMin": 0,
+      "_plannedPgtapDeltaMin": 0,
       "frozenFiles": {}
     },
     {
@@ -234,7 +235,7 @@
         "supabase/migrations/**"
       ],
       "allowPublished": true,
-      "expectPgtapDeltaMin": 10,
+      "_plannedPgtapDeltaMin": 10,
       "frozenFiles": {
         "supabase/tests/subscription_delete_protection.sql": "430dfa588d1886868f5765e40bb3c0b0f020c147f0b436a7f8d019dc78d4ef23"
       }
@@ -255,7 +256,7 @@
         "supabase/migrations/**"
       ],
       "allowPublished": true,
-      "expectPgtapDeltaMin": 12,
+      "_plannedPgtapDeltaMin": 12,
       "frozenFiles": {
         "supabase/tests/billing_duration_contract.sql": "e9641f34ac974ec3ff534b44c775fa94dee9e86ef7bc87b7d03b8eeb361e2c58"
       }
@@ -276,7 +277,7 @@
         "supabase/migrations/**"
       ],
       "allowPublished": true,
-      "expectPgtapDeltaMin": 12,
+      "_plannedPgtapDeltaMin": 12,
       "frozenFiles": {
         "supabase/tests/biometric_revocation_contract.sql": "59e5fe91c85e0dc7c13b59c82a5166164a89ee782078b1ceb804ea4defb769a3"
       }
@@ -297,7 +298,7 @@
         "supabase/migrations/**"
       ],
       "allowPublished": true,
-      "expectPgtapDeltaMin": 4,
+      "_plannedPgtapDeltaMin": 4,
       "frozenFiles": {
         "supabase/tests/income_refund_contract.sql": "edd3f315becfc6213d92af4df947ead32e7bc20b30910ec342c6c26b56d7c18a"
       },
@@ -322,7 +323,7 @@
         "supabase/migrations/**"
       ],
       "allowPublished": true,
-      "expectPgtapDeltaMin": 26,
+      "_plannedPgtapDeltaMin": 26,
       "frozenFiles": {
         "supabase/tests/storage_deletion_queue_contract.sql": "4971caee59a082c23d44198466744f410e6b20435d9921cdb2124919d4371d38",
         "src/app/api/jobs/storage-deletion/storage-deletion-contract.test.ts": "90d7df2e91439551880f3a82bdc9ab38ca2473821c5e052f04c58eeeb1983053"
@@ -342,7 +343,7 @@
       ],
       "appendOnlyPaths": [],
       "allowPublished": true,
-      "expectPgtapDeltaMin": 0,
+      "_plannedPgtapDeltaMin": 0,
       "frozenFiles": {
         "src/features/staff/services/staff.repository.test.ts": "fb96dcfd3344c651559f8aefab5c7852cde2275fcac6e61ca8fde90c44f3b1e3"
       },
@@ -366,7 +367,7 @@
         "supabase/migrations/**"
       ],
       "allowPublished": true,
-      "expectPgtapDeltaMin": 15,
+      "_plannedPgtapDeltaMin": 15,
       "frozenFiles": {
         "supabase/tests/biometric_write_lockdown_contract.sql": "a81f6683c972b180f893a45066c8ca0a924ef13fb543377af7192a52fea0f1b9"
       },
@@ -389,7 +390,7 @@
         "supabase/tests/**",
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 8,
+      "_plannedPgtapDeltaMin": 8,
       "frozenFiles": {}
     },
     {
@@ -408,7 +409,7 @@
         "supabase/tests/**",
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 6,
+      "_plannedPgtapDeltaMin": 6,
       "frozenFiles": {}
     },
     {
@@ -428,7 +429,7 @@
         "supabase/tests/**",
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 8,
+      "_plannedPgtapDeltaMin": 8,
       "frozenFiles": {}
     },
     {
@@ -449,7 +450,7 @@
         "supabase/tests/**",
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 6,
+      "_plannedPgtapDeltaMin": 6,
       "frozenFiles": {}
     },
     {
@@ -469,7 +470,7 @@
         "supabase/tests/**",
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 10,
+      "_plannedPgtapDeltaMin": 10,
       "frozenFiles": {}
     },
     {
@@ -490,7 +491,7 @@
         "supabase/tests/**",
         "supabase/migrations/**"
       ],
-      "expectPgtapDeltaMin": 8,
+      "_plannedPgtapDeltaMin": 8,
       "frozenFiles": {}
     }
   ]

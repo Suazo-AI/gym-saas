@@ -22,18 +22,19 @@
 --   2. releer la fila con el dueno 1, que si la ve, y exigir que siga igual.
 -- Sin la segunda mitad, un cero podria venir de una fila que nunca existio.
 --
+-- Supabase protege storage.objects con el trigger protect_objects_delete y
+-- rechaza todo DELETE SQL antes de que RLS pueda decidir. La Storage API abre
+-- ese paso con storage.allow_delete_query. Este archivo hace lo mismo solo
+-- dentro de su transaccion, para medir la politica de delete que la API usa.
+--
 -- El bloque de control positivo tampoco es decorado: si la sesion del dueno 2
 -- estuviera rota, o si storage.objects no existiera, todos los ceros saldrian
 -- solos y no probarian nada.
 --
--- Los dos ultimos bloques documentan un borde que hoy nadie mira. Las politicas
--- castean el primer segmento con ::uuid sin validarlo antes. Si ese segmento
--- no es un UUID, el cast revienta con 22P02 mientras se evalua la politica, o
--- sea antes de decidir el permiso. No se deniega limpio: explota. Y como la
--- politica se evalua fila por fila, una sola ruta malformada en el bucket
--- rompe la lectura de todos los inquilinos, no solo la de esa fila. Se deja
--- escrito como comportamiento medido; arreglarlo pide una migracion y esta
--- fuera del alcance de este archivo.
+-- Los dos ultimos bloques cubren rutas malformadas. Una ruta cuyo primer
+-- segmento no es UUID debe denegarse sin lanzar 22P02. Incluso si service_role
+-- deja una fila vieja malformada en el bucket, esa fila debe quedar invisible
+-- para authenticated sin romper la lectura de las rutas validas.
 --
 -- Identidades del seed:
 --   gimnasio 1 20000000-0000-4000-8000-000000000001  Impulso Fitness
@@ -53,7 +54,7 @@
 
 begin;
 
-select plan(24);
+select plan(25);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures de metadatos. public.media_assets guarda la referencia al archivo,
@@ -231,6 +232,8 @@ select is(
   'la modificacion propia quedo efectivamente escrita'
 );
 
+select set_config('storage.allow_delete_query', 'true', true);
+
 with propio as (
   delete from storage.objects
    where id = 'a6000000-0000-4000-8000-000000000003'
@@ -308,6 +311,8 @@ select is(
 )
 from cruzado;
 
+select set_config('storage.allow_delete_query', 'false', true);
+
 -- La otra direccion: mudar un archivo propio a la carpeta del gimnasio 1. Aca
 -- el using pasa, porque la fila vieja es suya, y quien rechaza es el with check
 -- sobre la ruta nueva. Ese rechazo si es una excepcion.
@@ -336,13 +341,8 @@ select is(
 
 -- ---------------------------------------------------------------------------
 -- Bloque E. El borde de la ruta, todavia como dueno 2.
--- Las dos rutas son invalidas y ninguna deberia entrar, pero fallan de maneras
--- distintas y esa diferencia es el hallazgo:
---   sin barra      el primer segmento es null, el guardia is not null del
---                  insert lo corta y el rechazo es limpio, 42501;
---   con barra y    el guardia is not null pasa, el cast ::uuid revienta
---   sin UUID       mientras se evalua la politica y sale 22P02, o sea un
---                  error de dato y no una denegacion.
+-- Las dos rutas son invalidas y ninguna debe entrar. Ambas se deniegan limpio
+-- con 42501. Una ruta malformada nunca debe filtrar un 22P02 desde la politica.
 -- Ninguna de las dos crea filas, asi que este bloque no ensucia los anteriores.
 -- ---------------------------------------------------------------------------
 
@@ -355,9 +355,9 @@ select throws_ok(
       'no-es-uuid/a6000000-0000-4000-8000-000000000004.webp'
     )
   $$,
-  '22P02',
+  '42501',
   null,
-  'una ruta con primer segmento que no es UUID revienta el cast de la politica en vez de denegarse limpio'
+  'una ruta con primer segmento que no es UUID se deniega sin romper la politica'
 );
 
 select throws_ok(
@@ -421,13 +421,11 @@ select is(
 );
 
 -- ---------------------------------------------------------------------------
--- Bloque G. El alcance real del borde del cast.
+-- Bloque G. Defensa ante una fila heredada con ruta malformada.
 -- service_role omite RLS por atributo del rol, asi que puede dejar en el bucket
 -- una ruta que ninguna politica habria aceptado. Con esa fila adentro, la
--- politica de select ya no se puede evaluar: revienta al llegar a ella y se
--- lleva puesta la consulta entera del inquilino, aunque esa fila no fuera suya
--- ni le importara. Es denegacion de servicio entre inquilinos, no fuga de
--- datos, y hoy nada impide crear esa fila desde un proceso con service_role.
+-- politica de select debe ignorarla y seguir mostrando las rutas validas del
+-- gimnasio autenticado. Una fila ajena no puede romper la consulta completa.
 --
 -- El insert va con lives_ok a proposito: si algun dia service_role perdiera el
 -- grant sobre storage.objects, esto tiene que salir rojo con su diagnostico y
@@ -473,11 +471,15 @@ select set_config(
   true
 );
 
-select throws_ok(
+select lives_ok(
   $$ select count(*) from storage.objects $$,
-  '22P02',
-  null,
-  'con una sola ruta malformada en el bucket, la lectura de cualquier inquilino revienta con 22P02'
+  'una ruta malformada heredada no rompe la lectura de un inquilino'
+);
+
+select is(
+  (select count(*) from storage.objects),
+  1::bigint,
+  'el dueno 2 ve su ruta valida y la ruta malformada queda invisible'
 );
 
 reset role;
