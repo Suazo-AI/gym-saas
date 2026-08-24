@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import {
   recordPaymentAction,
   refundPaymentAction,
@@ -27,7 +29,8 @@ export function PaymentManagement({
   methods: PaymentMethodDto[];
   payments: PaymentSummaryDto[];
 }) {
-  const [selected, setSelected] = useState(charges[0]?.chargeId ?? "");
+  const [selected, setSelected] = useState("");
+  const [paymentMethodId, setPaymentMethodId] = useState("");
   const charge = charges.find((candidate) => candidate.chargeId === selected);
   const [state, action, pending] = useActionState(recordPaymentAction, initial);
 
@@ -45,9 +48,13 @@ export function PaymentManagement({
               <select
                 className={input}
                 name="chargeId"
-                onChange={(event) => setSelected(event.target.value)}
+                onChange={(event) => {
+                  setSelected(event.target.value);
+                  setPaymentMethodId("");
+                }}
                 value={selected}
               >
+                <option value="">Selecciona un cargo</option>
                 {charges.map((candidate) => (
                   <option key={candidate.chargeId} value={candidate.chargeId}>
                     {candidate.memberLabel} · {candidate.currency} {candidate.amountDue} · vence {candidate.dueDate}
@@ -62,22 +69,46 @@ export function PaymentManagement({
               <input
                 className={input}
                 defaultValue={charge?.amountDue ?? ""}
+                disabled={!charge}
                 inputMode="decimal"
-                key={selected}
+                key={selected || "no-charge"}
                 name="amount"
                 pattern="^\d+(\.\d{1,2})?$"
-                required
+                required={Boolean(charge)}
               />
             </label>
-            <div className="rounded-xl bg-slate-50 p-4">
-              <p className="text-sm text-gray">Saldo pendiente</p>
-              <strong className="text-2xl text-ink">
-                {charge?.currency} {charge?.amountDue}
-              </strong>
+            <div
+              aria-live="polite"
+              className={`rounded-xl border p-4 ${charge ? "border-brand-green bg-green-50" : "border-slate-200 bg-slate-50"}`}
+            >
+              {charge ? (
+                <>
+                  <p className="text-xs font-black uppercase tracking-[.16em] text-brand-green">
+                    Miembro y cargo seleccionados
+                  </p>
+                  <strong className="mt-2 block text-lg text-ink">{charge.memberLabel}</strong>
+                  <p className="mt-1 text-sm font-semibold text-gray">
+                    Vence {charge.dueDate} · Saldo {charge.currency} {charge.amountDue}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <strong className="block text-ink">No hay cargo seleccionado</strong>
+                  <p className="mt-1 text-sm text-gray">Elige el miembro y revisa el saldo antes de cobrar.</p>
+                </>
+              )}
             </div>
             <label className="text-sm font-bold">
               Método
-              <select className={input} name="paymentMethodId" required>
+              <select
+                className={input}
+                disabled={!charge}
+                name="paymentMethodId"
+                onChange={(event) => setPaymentMethodId(event.target.value)}
+                required
+                value={paymentMethodId}
+              >
+                <option value="">Selecciona un método</option>
                 {methods.map((method) => (
                   <option key={method.id} value={method.id}>{method.name}</option>
                 ))}
@@ -90,7 +121,8 @@ export function PaymentManagement({
             <Message state={state} />
             <button
               className="min-h-11 rounded-lg bg-brand-green px-4 font-black text-white disabled:opacity-60"
-              disabled={pending}
+              disabled={!charge || !paymentMethodId || pending}
+              type="submit"
             >
               {pending ? "Registrando..." : "Registrar pago y generar recibo"}
             </button>
@@ -145,7 +177,9 @@ function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
         </div>
         {payment.status === "settled" ? (
           <details>
-            <summary className="cursor-pointer text-sm font-black text-red-700">Anular</summary>
+            <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-amber-50 px-4 py-3 text-sm font-black text-amber-900">
+              Anular
+            </summary>
             <form action={voidAction} className="mt-2 flex gap-2">
               <input name="paymentId" type="hidden" value={payment.id} />
               <input className={input} name="reason" placeholder="Motivo" required />
@@ -157,7 +191,9 @@ function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
         ) : null}
         {canRefund ? (
           <details>
-            <summary className="cursor-pointer text-sm font-black text-amber-700">Reembolsar</summary>
+            <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-amber-50 px-4 py-3 text-sm font-black text-amber-900">
+              Reembolsar
+            </summary>
             <form action={refundAction} className="mt-2 grid gap-2 sm:grid-cols-2">
               <input name="paymentId" type="hidden" value={payment.id} />
               <input
@@ -187,9 +223,5 @@ function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
 }
 
 function Message({ state }: { state: PaymentActionState }) {
-  return state.message ? (
-    <p className={`text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`}>
-      {state.message}
-    </p>
-  ) : null;
+  return <ActionFeedback state={state} />;
 }

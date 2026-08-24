@@ -43,11 +43,14 @@ export default async function NewMemberPage({ searchParams }: NewMemberPageProps
         <input name="gymId" type="hidden" value={activeGym.gymId} />
         <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
           <h2 className="md:col-span-2 text-xl font-black text-[#061f46]">Datos del miembro</h2>
-          <Field label="Nombre" name="firstName" required />
-          <Field label="Apellido" name="lastName" required />
-          <Field label="Codigo de miembro" name="memberCode" />
-          <Field label="Telefono" name="phone" />
-          <Field label="Correo" name="email" type="email" />
+          <Field autoComplete="given-name" label="Nombre" name="firstName" required />
+          <Field autoComplete="family-name" label="Apellido" name="lastName" required />
+          {/* El campo parecia obligatorio y nadie lo dejaba vacio: en la base
+              habia codigos tecleados a mano como 888 y UX-R1-20260821-1459.
+              Dejarlo vacio genera el siguiente numero del gimnasio. */}
+          <Field hint="Dejalo vacio y el sistema asigna el siguiente numero, por ejemplo M-000042." label="Codigo de miembro (opcional)" name="memberCode" placeholder="Se genera solo" />
+          <Field autoComplete="tel" label="Telefono" name="phone" />
+          <Field autoComplete="email" label="Correo" name="email" type="email" />
           <SelectField label="Sucursal" name="branchId">
             <option value="">Sin sucursal</option>
             {branches.map((branch) => (
@@ -57,8 +60,6 @@ export default async function NewMemberPage({ searchParams }: NewMemberPageProps
             ))}
           </SelectField>
         </section>
-
-        <MemberFaceEnrollmentField />
 
         <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
           <h2 className="md:col-span-2 text-xl font-black text-[#061f46]">
@@ -104,6 +105,16 @@ export default async function NewMemberPage({ searchParams }: NewMemberPageProps
           </label>
         </section>
 
+        <details className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-black text-[#061f46]">
+            Agregar acceso facial (opcional)
+          </summary>
+          <p className="mb-4 mt-2 text-sm font-semibold text-slate-600">
+            Puedes terminar el registro sin foto y agregarla después.
+          </p>
+          <MemberFaceEnrollmentField />
+        </details>
+
         <div className="flex flex-wrap gap-3">
           <button className="min-h-11 rounded-md bg-[#ff7a1a] px-5 py-3 text-sm font-black text-white hover:bg-[#e86305]" type="submit">
             Crear miembro
@@ -118,28 +129,36 @@ export default async function NewMemberPage({ searchParams }: NewMemberPageProps
 }
 
 function Field({
+  autoComplete,
+  hint,
   label,
   name,
   placeholder,
   type = "text",
   required = false,
 }: {
+  autoComplete?: string;
+  hint?: string;
   label: string;
   name: string;
   type?: string;
   required?: boolean;
   placeholder?: string;
 }) {
+  const hintId = hint ? `${name}-hint` : undefined;
   return (
     <label className="block text-sm font-bold text-slate-800">
       {label}
       <input
+        aria-describedby={hintId}
+        autoComplete={autoComplete}
         className="mt-2 min-h-11 w-full rounded-md border border-slate-300 px-3 outline-none focus:border-[#083f88] focus:ring-2 focus:ring-blue-100"
         name={name}
         placeholder={placeholder}
         required={required}
         type={type}
       />
+      {hint ? <span className="mt-1 block text-xs font-semibold text-slate-500" id={hintId}>{hint}</span> : null}
     </label>
   );
 }

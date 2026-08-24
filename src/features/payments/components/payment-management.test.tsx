@@ -47,4 +47,30 @@ describe("PaymentManagement", () => {
     expect(html).toContain('href="/payments/p/receipt"');
     expect(html).toContain("Recibo");
   });
+
+  it("no prepara un cobro hasta que la recepcionista elige el cargo", () => {
+    const html = renderToStaticMarkup(createElement(PaymentManagement, {
+      charges: [{
+        chargeId: "c",
+        gymMemberId: "m",
+        memberLabel: "M-1 - Ana",
+        dueDate: "2026-08-04",
+        amountDue: "900.00",
+        currency: "NIO",
+        status: "overdue",
+      }],
+      methods: [{ id: "cash", code: "cash", name: "Efectivo", isCash: true }],
+      payments: [],
+    }));
+
+    const amountInput = html.match(/<input[^>]*name="amount"[^>]*>/)?.[0] ?? "";
+    const submitButton = html.match(/<button[^>]*>Registrar pago y generar recibo<\/button>/)?.[0] ?? "";
+
+    expect(html).toContain('<option value="" selected="">Selecciona un cargo</option>');
+    expect(html).toContain('<option value="" selected="">Selecciona un método</option>');
+    expect(html).toContain("No hay cargo seleccionado");
+    expect(amountInput).toContain('disabled=""');
+    expect(amountInput).not.toContain('value="900.00"');
+    expect(submitButton).toContain('disabled=""');
+  });
 });

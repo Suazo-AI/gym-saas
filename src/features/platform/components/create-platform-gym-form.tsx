@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import { createPlatformGymAction, type PlatformGymActionState } from "../actions/platform-gym.actions";
 
 const initialState: PlatformGymActionState = { ok: false };
@@ -38,7 +40,7 @@ export function CreatePlatformGymForm() {
         <Field label="Correo del dueño" name="ownerEmail" required type="email" />
 
         <div className="flex flex-col gap-3 md:col-span-2 md:flex-row md:items-center md:justify-between">
-          <p aria-live="polite" className={`text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`}>{state.message}</p>
+          <ActionFeedback state={state} />
           <button className="min-h-11 rounded-md bg-brand-green px-5 py-3 text-sm font-black text-white hover:bg-green-800 disabled:opacity-60" disabled={pending} type="submit">
             {pending ? "Creando…" : "Crear e invitar dueño"}
           </button>

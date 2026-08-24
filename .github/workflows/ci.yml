@@ -35,6 +35,18 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      # Lo que gana el CI con esto es una sola revision, y vale la pena: la
+      # desalineacion de la dimension del embedding facial ya rompio una vez y
+      # hasta hoy dependia de que alguien corriera preflight en su maquina.
+      #
+      # Sin --strict a proposito. En un runner limpio la revision de migraciones
+      # locales no tiene stack de Supabase al que preguntarle y responde "sin
+      # veredicto", que es un aviso; con --strict ese aviso tumbaria el CI por
+      # una limitacion del entorno y no por un defecto del codigo. Ese caso se
+      # cierra en db.yml, que crea la base desde cero con todas las migraciones.
+      - name: Revisar el drift del repositorio
+        run: npm run drift
+
       - name: Verificar tipos
         run: npm run typecheck
 

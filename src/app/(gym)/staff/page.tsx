@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { LoadError } from "@/features/app/components/load-error";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import { StaffManagement } from "@/features/staff/components/staff-management";
 import { RoleScreenManagement } from "@/features/staff/components/role-screen-management";
@@ -24,9 +25,9 @@ export default async function StaffPage() {
       {result ? (
         <StaffManagement deletedStaff={deletedStaff ?? []} deletedUnavailable={deletedStaff === null} roles={result[1]} staff={result[0]} />
       ) : (
-        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-bold text-red-800" role="alert">
+        <LoadError className="mt-6">
           No pudimos cargar el personal. Verifica tus permisos e intenta nuevamente.
-        </div>
+        </LoadError>
       )}
       {roleAccess ? <RoleScreenManagement access={roleAccess} /> : null}
     </>

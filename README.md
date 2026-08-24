@@ -37,6 +37,35 @@ npm test
 npm run build
 ```
 
+Antes de abrir un Pull Request:
+
+```bash
+npm run preflight
+```
+
+`preflight` encadena, en este orden, `drift`, `typecheck`, `lint`, `test` y `build`.
+Se detiene en el primero que falla.
+
+```bash
+npm run drift
+```
+
+`drift` corre `scripts/check-drift.mjs` y hace cuatro revisiones.
+Dos deciden el veredicto y salen con codigo 1:
+
+- la dimension del embedding facial tiene que coincidir en los cinco archivos donde vive;
+- ninguna migracion versionada puede quedar sin aplicar en la base local.
+
+Las otras dos solo avisan y salen con codigo 0:
+
+- hay trabajo sin commitear en el arbol;
+- `graphify-out/graph.json` quedo mas viejo que el ultimo commit.
+
+La revision de migraciones necesita el stack local de Supabase.
+Si no responde, avisa que no hay veredicto y no falla.
+
+`npm run drift -- --strict` convierte los dos avisos en fallas.
+
 Supabase local:
 
 ```bash
@@ -104,11 +133,34 @@ Contrato inicial:
 
 `supabase/seed.sql` contiene datos falsos para desarrollo:
 
-- dos usuarios Auth locales;
+- cinco usuarios Auth locales, todos con la contrasena falsa `LocalDev123!`;
 - dos gimnasios;
 - sucursales;
 - planes;
 - miembros;
 - cargos y pagos ficticios.
+
+Cuentas locales y su rol efectivo:
+
+| Correo | Rol |
+|---|---|
+| `owner1@fitmanager.local` | dueno de Impulso Fitness (`owner`) |
+| `owner2@fitmanager.local` | dueno de Norte Gym (`owner`) |
+| `platform-admin@fitmanager.local` | administrador de plataforma, sin `gym_users` |
+| `gym-admin@fitmanager.local` | rol `admin` en Impulso Fitness |
+| `reception@fitmanager.local` | rol `receptionist` en Impulso Fitness |
+
+Los roles de sistema y sus permisos los crea `private.bootstrap_new_gym()` al
+insertar el gimnasio. El seed solo los asigna. Para probar recepcion hay que
+usar `reception@fitmanager.local`: una cuenta `admin` ve todo y no ejerce
+ninguna restriccion de la matriz de permisos.
+
+El seed es idempotente: se puede volver a correr sobre una base que ya lo tiene
+y solo agrega lo que falta. Sirve para incorporar cuentas nuevas sin perder los
+datos locales:
+
+```bash
+docker exec -i supabase_db_gym-saas psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/seed.sql
+```
 
 No ejecutar el seed en produccion.

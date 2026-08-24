@@ -1214,6 +1214,7 @@ export type Database = {
           deletion_reason: string | null
           id: string
           legal_name: string
+          logo_media_asset_id: string | null
           slug: string
           status: Database["public"]["Enums"]["record_status"]
           tax_identifier: string | null
@@ -1230,6 +1231,7 @@ export type Database = {
           deletion_reason?: string | null
           id?: string
           legal_name: string
+          logo_media_asset_id?: string | null
           slug: string
           status?: Database["public"]["Enums"]["record_status"]
           tax_identifier?: string | null
@@ -1246,6 +1248,7 @@ export type Database = {
           deletion_reason?: string | null
           id?: string
           legal_name?: string
+          logo_media_asset_id?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["record_status"]
           tax_identifier?: string | null
@@ -1253,7 +1256,15 @@ export type Database = {
           trade_name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gyms_logo_media_asset_same_gym_fkey"
+            columns: ["id", "logo_media_asset_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["gym_id", "id"]
+          },
+        ]
       }
       income_categories: {
         Row: {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { LoadError } from "@/features/app/components/load-error";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
 import {
@@ -108,11 +109,11 @@ export default async function NewPaymentPage({ searchParams }: NewPaymentPagePro
         }
       />
       {"error" in result ? (
-        <p className="mt-6 rounded-lg border border-red-700 bg-red-50 p-5 text-sm font-bold text-red-900" role="alert">
+        <LoadError className="mt-6">
           {isApiError(result.error) && result.error.code === "FORBIDDEN"
             ? "No tienes permiso para registrar pagos."
             : "No pudimos cargar los cargos del miembro. Intenta nuevamente."}
-        </p>
+        </LoadError>
       ) : !result.member ? (
         <p className="mt-6 rounded-lg border border-charcoal bg-paper p-5 text-sm font-semibold text-charcoal">
           No encontramos el miembro en este gimnasio.

@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import { acknowledgeAlertAction, resolveAlertAction, type AlertActionState } from "../actions/alert.actions";
 import type { GymAlertDto } from "../types/alert.dto";
 
@@ -43,7 +45,7 @@ function AlertRow({ alert }: { alert: GymAlertDto }) {
         <time className="mt-2 block text-xs text-gray" dateTime={alert.createdAt}>
           {dateFormatter.format(new Date(alert.createdAt))}
         </time>
-        {state.message ? <p className={`mt-2 text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`} role={state.ok ? "status" : "alert"}>{state.message}</p> : null}
+        <ActionFeedback className="mt-2" state={state} />
       </div>
       {canTransition ? (
         <form action={formAction}>

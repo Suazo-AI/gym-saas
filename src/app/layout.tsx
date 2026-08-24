@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+
+import { ToastProvider } from "@/features/app/components/toast-provider";
+import { PreferencesInitializer } from "@/features/app/components/preferences-initializer";
 
 export const metadata: Metadata = {
   title: "Fit Manager - Gestion simple para gimnasios",
@@ -13,9 +18,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{__html:`(()=>{try{const t=localStorage.getItem('fitmanager-theme')||'system';const d=t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.dataset.theme=d;document.documentElement.style.colorScheme=d;document.documentElement.lang=localStorage.getItem('fitmanager-locale')||'es'}catch{}})();`}} /></head>
       <body className="min-h-screen bg-paper font-sans text-ink antialiased">
+        <PreferencesInitializer />
         {children}
+        <Suspense>
+          <ToastProvider />
+        </Suspense>
       </body>
     </html>
   );

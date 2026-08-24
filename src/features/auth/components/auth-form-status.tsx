@@ -3,6 +3,8 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import type { AuthFormState } from "../types/auth-form-state";
 
 type AuthFormProps = {
@@ -17,18 +19,10 @@ export function AuthForm({ action, buttonLabel, children }: AuthFormProps) {
   return (
     <form action={formAction} className="space-y-4">
       {children}
-      {state.message ? (
-        <p
-          className={`rounded-md border px-4 py-3 text-sm ${
-            state.type === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-red-200 bg-red-50 text-red-800"
-          }`}
-          role={state.type === "error" ? "alert" : "status"}
-        >
-          {state.message}
-        </p>
-      ) : null}
+      <ActionFeedback
+        className="rounded-md bg-amber-50 px-4 py-3"
+        state={{ message: state.message, ok: state.type === "success" }}
+      />
       <SubmitButton label={buttonLabel} />
     </form>
   );

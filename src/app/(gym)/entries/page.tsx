@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { PersistedDateRangeForm } from "@/app/(gym)/_components/persisted-date-range-form";
 import { ModuleHeader } from "@/features/app/components/module-header";
+import { LoadError } from "@/features/app/components/load-error";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { getEntryDecisionState } from "@/features/entries/entry-decision-state";
 import { FaceAccessModal } from "@/features/entries/components/face-access-modal";
@@ -154,12 +155,9 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
       </section>
 
       {(selectedMemberResult && "error" in selectedMemberResult) || selectedAccessFailed ? (
-        <p
-          className="mt-6 rounded-lg border border-brand-red bg-red-50 p-5 text-sm font-semibold text-brand-red"
-          role="alert"
-        >
+        <LoadError className="mt-6">
           No pudimos cargar el miembro seleccionado.
-        </p>
+        </LoadError>
       ) : selectedMember ? (
         <div className="mt-6 grid gap-4">
           <EntryAccessNotice member={selectedMember} />
@@ -184,9 +182,9 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
         <PersistedDateRangeForm from={params.from} storageKey="fitmanager:entries-date-range" to={params.to} />
 
         {"error" in entriesResult ? (
-          <p className="p-5 text-sm font-semibold text-brand-red" role="alert">
+          <LoadError>
             No pudimos cargar las entradas. Intenta nuevamente.
-          </p>
+          </LoadError>
         ) : entriesResult.length === 0 ? (
           <p className="p-5 text-sm text-gray-300">Todavía no hay entradas registradas.</p>
         ) : (

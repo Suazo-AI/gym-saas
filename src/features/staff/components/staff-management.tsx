@@ -2,6 +2,9 @@
 
 import { useActionState } from "react";
 
+import { LoadError } from "@/features/app/components/load-error";
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import { deleteStaffAction, inviteStaffAction, restoreStaffAction, updateStaffAction, type StaffActionState } from "../actions/staff.actions";
 import { describeEffectivePermissions, describeRoleLimits } from "../services/permission-presentation";
 import type { DeletedStaffUserDto, StaffRoleDto, StaffUserDto } from "../types/staff.dto";
@@ -60,7 +63,7 @@ function DeletedStaff({ staff, unavailable }: { staff: DeletedStaffUserDto[]; un
   return (
     <div className="border-t border-slate-200 bg-slate-50 p-5">
       <h2 className="text-lg font-black text-ink">Personal retirado</h2>
-      {unavailable ? <p className="mt-2 text-sm font-semibold text-red-700">No pudimos cargar el personal retirado.</p> : null}
+      {unavailable ? <LoadError className="mt-2">No pudimos cargar el personal retirado.</LoadError> : null}
       {!unavailable && staff.length === 0 ? <p className="mt-2 text-sm text-gray">No hay personal retirado.</p> : null}
       <div className="mt-3 grid gap-3">
         {staff.map((person) => <RestoreStaff key={person.id} person={person} />)}
@@ -148,5 +151,5 @@ function RoleChoices({ roles, selected = [] }: { roles: StaffRoleDto[]; selected
     <span className="mt-1 block text-xs text-gray">{describeRoleLimits(role.code, role.permissionCodes).join(" ")}</span>
   </label>)}</div></fieldset>;
 }
-function ActionMessage({ state }: { state: StaffActionState }) { return state.message ? <p aria-live="polite" className={`text-sm font-bold ${state.ok ? "text-green-700" : "text-red-700"}`}>{state.message}</p> : null; }
+function ActionMessage({ state }: { state: StaffActionState }) { return <ActionFeedback state={state} />; }
 function statusLabel(status: StaffUserDto["status"]) { return ({ invited: "Invitado", active: "Activo", suspended: "Suspendido", revoked: "Revocado" })[status]; }

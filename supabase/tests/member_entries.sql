@@ -178,15 +178,15 @@ select results_eq(
   $$select member_code from public.search_entry_members(
     '20000000-0000-4000-8000-000000000001', 'Ana', 10
   )$$,
-  $$values ('M-0001'::text)$$,
+  $$values ('M-000001'::text)$$,
   'entry search finds a same-gym member by name'
 );
 
 select results_eq(
   $$select member_code from public.search_entry_members(
-    '20000000-0000-4000-8000-000000000001', 'M-0002', 10
+    '20000000-0000-4000-8000-000000000001', 'M-000002', 10
   )$$,
-  $$values ('M-0002'::text)$$,
+  $$values ('M-000002'::text)$$,
   'entry search finds a same-gym member by code'
 );
 
@@ -194,7 +194,7 @@ select results_eq(
   $$select member_code from public.search_entry_members(
     '20000000-0000-4000-8000-000000000001', '88880001', 10
   )$$,
-  $$values ('M-0001'::text)$$,
+  $$values ('M-000001'::text)$$,
   'entry search normalizes and matches a same-gym phone'
 );
 

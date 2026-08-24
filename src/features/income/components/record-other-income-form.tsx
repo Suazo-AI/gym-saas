@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 
+import { ActionFeedback } from "@/features/app/components/action-feedback";
+
 import { recordOtherIncomeAction, type IncomeActionState } from "../actions/income.actions";
 import type { IncomeBranchDto, IncomeCategoryDto } from "../types/income.dto";
 
@@ -60,9 +62,7 @@ export function RecordOtherIncomeForm({
             Descripción
             <textarea className={`${controlClass} min-h-24 py-3`} maxLength={500} name="description" />
           </label>
-          {state.message ? (
-            <p className={`rounded-md p-3 text-sm font-bold sm:col-span-2 ${state.ok ? "bg-green-100 text-green-900" : "bg-red-100 text-red-900"}`} role="status">{state.message}</p>
-          ) : null}
+          <ActionFeedback className="rounded-md bg-amber-50 p-3 sm:col-span-2" state={state} />
           <button className="min-h-11 rounded-md bg-brand-green px-4 font-black text-white hover:bg-brand-green/90 disabled:opacity-60 sm:col-span-2" disabled={pending} type="submit">
             {pending ? "Registrando..." : "Registrar ingreso"}
           </button>
