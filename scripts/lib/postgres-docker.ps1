@@ -115,5 +115,6 @@ function Invoke-PostgresDockerQuery {
     throw 'PostgreSQL query failed.'
   }
 
-  return $result
+  # The leading comma keeps a one-row result an array instead of a bare string.
+  return ,$result
 }

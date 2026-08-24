@@ -8,7 +8,7 @@ Nunca use el proyecto de producción como destino de una prueba.
 
 ## Qué se respalda
 
-El respaldo de PostgreSQL crea seis archivos.
+El respaldo de PostgreSQL crea siete archivos.
 
 `roles.sql` contiene los roles.
 
@@ -19,6 +19,14 @@ El respaldo de PostgreSQL crea seis archivos.
 `history-schema.sql` y `history-data.sql` conservan el historial de migraciones.
 
 `auth-storage-custom.sql` conserva el trigger propio de Auth y las políticas propias de Storage.
+
+`privileges.sql` reproduce los permisos exactos de `public` y `private`.
+
+El volcado de Supabase exporta los `GRANT`, pero no exporta los `REVOKE`.
+
+Sin este archivo, la base restaurada queda más abierta que la original.
+
+Un ejemplo medido: sin `privileges.sql`, `anon` recibía `TRUNCATE` sobre `storage_deletion_queue` y las tres RPC biométricas quedaban con `EXECUTE` para `PUBLIC`.
 
 Los objetos reales de Storage no viven dentro del respaldo de PostgreSQL.
 
@@ -50,7 +58,7 @@ Ejecute el respaldo.
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\scripts\backup-supabase.ps1 -DatabaseUrl $env:FITMANAGER_SOURCE_DB_URL -OutputDirectory $backupRoot
 ```
 
-El resultado correcto termina con `POSTGRES_BACKUP=PASS FILES=6`.
+El resultado correcto termina con `POSTGRES_BACKUP=PASS FILES=7`.
 
 ## Exportar los objetos de Storage
 
@@ -84,9 +92,29 @@ El restaurador usa Docker y exige que el destino esté vacío.
 
 El control bloquea y revisa objetos de `public` y `private`, datos de Auth y Storage, historial de migraciones y secuencias.
 
-Los seis archivos SQL se aplican dentro de una sola transacción.
+Los siete archivos SQL se aplican dentro de una sola transacción.
 
 Si un archivo falla, PostgreSQL revierte la restauración completa.
+
+El control del destino se ejecuta dos veces.
+
+La primera vez corre solo, antes de tocar nada.
+
+La segunda corre dentro de la transacción, para cerrar la ventana entre ambas.
+
+PostgreSQL nunca revierte una secuencia.
+
+Por eso, cuando la restauración falla, el script devuelve las secuencias de `auth`, `storage` y `supabase_migrations` a su valor inicial.
+
+Sin ese paso, un solo intento fallido dejaría el destino rechazado para siempre por su propio control.
+
+Esa recuperación se niega si el destino tiene datos.
+
+Si el destino ya trae el esquema `supabase_migrations` vacío, la restauración lo reemplaza por el del respaldo.
+
+Ese reemplazo vive en la misma transacción y se revierte junto con todo lo demás.
+
+Use siempre una base dedicada a restaurar.
 
 ```powershell
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\scripts\restore-supabase.ps1 -DatabaseUrl $env:FITMANAGER_RESTORE_DB_URL -BackupDirectory $backupRoot -ConfirmEmptyTarget
@@ -121,7 +149,7 @@ Compara inventarios, contenido de cada tabla, secuencias, columnas, relaciones, 
 Después ejecuta las pruebas SQL completas contra el destino restaurado.
 
 ```powershell
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-restored-database.ps1 -SourceDatabaseUrl $env:FITMANAGER_SOURCE_DB_URL -RestoredDatabaseUrl $env:FITMANAGER_RESTORE_DB_URL -EvidenceFile .\Docs\evidence\backup-restore.txt
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-restored-database.ps1 -SourceDatabaseUrl $env:FITMANAGER_SOURCE_DB_URL -RestoredDatabaseUrl $env:FITMANAGER_RESTORE_DB_URL -EvidenceFile .\Docs\evidence\backup-restore-$(Get-Date -Format 'yyyy-MM-dd').txt
 ```
 
 El resultado correcto termina con `RESTORE_VERIFICATION=PASS`.
@@ -130,15 +158,25 @@ No acepte una restauración si falta una comparación o una prueba.
 
 ## Evidencia local del 2026-08-24
 
-La prueba usó una base Supabase separada.
+La prueba usó un stack Supabase local aparte, con su propio cluster y su propia base vacía.
 
-El respaldo restauró 55 tablas y conjuntos de datos comparados.
+El respaldo creó los siete archivos.
 
-También restauró 50 migraciones, 89 funciones, 147 políticas y 75 triggers.
+La comparación cubrió 86 tablas, su contenido, 6 secuencias y su estado, 633 columnas, 249 restricciones, 122 índices, 89 funciones, 10 vistas, 16 tipos, 70 enums, 172 propietarios, 1737 privilegios, 147 políticas, 85 filas de RLS y 75 triggers.
 
-Las 38 pruebas SQL pasaron.
+Ninguna comparación tuvo diferencias.
 
-El total fue 559 pruebas exitosas.
+Las 38 pruebas SQL pasaron contra la base restaurada, con 559 pruebas exitosas.
+
+El control rechazó un destino con datos y no cambió nada.
+
+Una falla inyectada después de los datos y de las 50 migraciones revirtió la restauración completa.
+
+El destino quedó en cero objetos, cero usuarios de Auth y la secuencia de Auth en `1|false`.
+
+El reintento sobre esa misma base terminó en `RESTORE_APPLY=PASS`.
+
+El detalle está en `Docs/evidence/backup-restore-2026-08-24.txt`.
 
 La base local no tenía objetos en `gym-media`.
 

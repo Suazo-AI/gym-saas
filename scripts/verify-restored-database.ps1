@@ -20,7 +20,12 @@ function Read-DatabaseRows {
     [string] $Sql
   )
 
-  return @(Invoke-PostgresDockerQuery -DatabaseUrl $DatabaseUrl -Sql $Sql)
+  # Assign without @() first: the helper already emits the row list as one
+  # object, so a collector here would nest it inside another array.
+  $rows = Invoke-PostgresDockerQuery -DatabaseUrl $DatabaseUrl -Sql $Sql
+
+  # The leading comma keeps a one-row result an array instead of a bare string.
+  return ,@($rows)
 }
 
 $identitySql = @'
@@ -73,7 +78,14 @@ order by n.nspname, c.relname;
 function ConvertTo-SqlIdentifier {
   param([string] $Value)
 
-  return '"' + $Value.Replace('"', '""') + '"'
+  # SQL reaches psql as a docker argument, and PowerShell mangles a native
+  # argument that carries both a double quote and whitespace. A quoted
+  # identifier with a space would corrupt the command silently, so refuse it.
+  if ($Value -match '[\s"]') {
+    throw "Unsupported identifier for docker argument passing: $Value"
+  }
+
+  return '"' + $Value + '"'
 }
 
 function Compare-DatabaseRows {
@@ -176,8 +188,8 @@ $queries = [ordered] @{
   columns = @'
 select n.nspname || '|' || c.relname || '|' || a.attname || '|' ||
   format_type(a.atttypid, a.atttypmod) || '|' || a.attnotnull::text || '|' ||
-  coalesce(pg_get_expr(d.adbin, d.adrelid), '') || '|' || a.attidentity || '|' ||
-  a.attgenerated || '|' || coalesce(coll_ns.nspname || '.' || coll.collname, '')
+  coalesce(pg_get_expr(d.adbin, d.adrelid), '') || '|' || a.attidentity::text || '|' ||
+  a.attgenerated::text || '|' || coalesce(coll_ns.nspname || '.' || coll.collname, '')
 from pg_attribute a
 join pg_class c on c.oid = a.attrelid
 join pg_namespace n on n.oid = c.relnamespace
@@ -218,7 +230,7 @@ where n.nspname in ('public', 'private')
 order by 1;
 '@
   views = @'
-select n.nspname || '|' || c.relname || '|' || c.relkind || '|' ||
+select n.nspname || '|' || c.relname || '|' || c.relkind::text || '|' ||
   md5(pg_get_viewdef(c.oid, true)) || '|' || coalesce(array_to_string(c.reloptions, ','), '')
 from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
@@ -227,7 +239,7 @@ where n.nspname in ('public', 'private')
 order by 1;
 '@
   types = @'
-select n.nspname || '|' || t.typname || '|' || t.typtype || '|' ||
+select n.nspname || '|' || t.typname || '|' || t.typtype::text || '|' ||
   case when t.typbasetype = 0 then '' else format_type(t.typbasetype, t.typtypmod) end || '|' ||
   t.typnotnull::text || '|' || coalesce(t.typdefault, '') || '|' ||
   coalesce(format_type(r.rngsubtype, null), '') || '|' ||
@@ -291,9 +303,18 @@ select 'relation|' || n.nspname || '|' || c.relname || '|' ||
   pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
 from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
-cross join lateral aclexplode(coalesce(c.relacl, acldefault(case when c.relkind = 'S' then 's' else 'r' end, c.relowner))) acl
+cross join lateral aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) acl
 where n.nspname in ('public', 'private')
-  and c.relkind in ('r', 'p', 'v', 'm', 'S', 'f')
+  and c.relkind in ('r', 'p', 'v', 'm', 'f')
+union all
+select 'relation|' || n.nspname || '|' || c.relname || '|' ||
+  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
+  pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+cross join lateral aclexplode(coalesce(c.relacl, acldefault('s', c.relowner))) acl
+where n.nspname in ('public', 'private')
+  and c.relkind = 'S'
 union all
 select 'routine|' || n.nspname || '|' || p.proname || '|' || pg_get_function_identity_arguments(p.oid) || '|' ||
   case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
@@ -325,7 +346,7 @@ where n.nspname in ('public', 'private')
   and a.attnum > 0
   and not a.attisdropped
 union all
-select 'default|' || pg_get_userbyid(d.defaclrole) || '|' || coalesce(n.nspname, '') || '|' || d.defaclobjtype || '|' ||
+select 'default|' || pg_get_userbyid(d.defaclrole) || '|' || coalesce(n.nspname, '') || '|' || d.defaclobjtype::text || '|' ||
   case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
   pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
 from pg_default_acl d

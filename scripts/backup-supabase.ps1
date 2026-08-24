@@ -116,13 +116,75 @@ Invoke-PostgresDockerQuery `
   -Sql $customSchemaSql `
   -OutputFile (Join-Path $resolvedOutput 'auth-storage-custom.sql') | Out-Null
 
+$privilegesSql = @'
+with objects as (
+  select 1 as ord, 'SCHEMA ' || quote_ident(n.nspname) as target, n.nspacl as acl
+  from pg_namespace n
+  where n.nspname in ('public', 'private')
+    and n.nspacl is not null
+  union all
+  select 2,
+    case when c.relkind = 'S' then 'SEQUENCE ' else 'TABLE ' end ||
+      quote_ident(n.nspname) || '.' || quote_ident(c.relname),
+    c.relacl
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname in ('public', 'private')
+    and c.relkind in ('r', 'p', 'v', 'm', 'S', 'f')
+    and c.relacl is not null
+  union all
+  select 3,
+    'ROUTINE ' || quote_ident(n.nspname) || '.' || quote_ident(p.proname) ||
+      '(' || pg_get_function_identity_arguments(p.oid) || ')',
+    p.proacl
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname in ('public', 'private')
+    and p.proacl is not null
+  union all
+  select 4, 'TYPE ' || quote_ident(n.nspname) || '.' || quote_ident(t.typname), t.typacl
+  from pg_type t
+  join pg_namespace n on n.oid = t.typnamespace
+  where n.nspname in ('public', 'private')
+    and t.typrelid = 0
+    and t.typelem = 0
+    and t.typtype <> 'p'
+    and t.typacl is not null
+),
+statements as (
+  select o.ord, o.target, 0 as step,
+    'do $fitmanager_privileges$ declare role_name text; begin execute ' ||
+      quote_literal('revoke all on ' || o.target || ' from public') ||
+      '; for role_name in select rolname from pg_roles where not starts_with(rolname, ''pg_'') loop execute ' ||
+      quote_literal('revoke all on ' || o.target || ' from ') ||
+      ' || quote_ident(role_name); end loop; end $fitmanager_privileges$;' as statement
+  from objects o
+  union all
+  select o.ord, o.target, 1,
+    'GRANT ' || acl.privilege_type || ' ON ' || o.target || ' TO ' ||
+      case when acl.grantee = 0 then 'PUBLIC' else quote_ident(pg_get_userbyid(acl.grantee)) end ||
+      case when acl.is_grantable then ' WITH GRANT OPTION' else '' end || ';'
+  from objects o
+  cross join lateral aclexplode(o.acl) acl
+)
+select statement
+from statements
+order by ord, target, step, statement;
+'@
+
+Invoke-PostgresDockerQuery `
+  -DatabaseUrl $DatabaseUrl `
+  -Sql $privilegesSql `
+  -OutputFile (Join-Path $resolvedOutput 'privileges.sql') | Out-Null
+
 $requiredFiles = @(
   'roles.sql',
   'schema.sql',
   'data.sql',
   'history-schema.sql',
   'history-data.sql',
-  'auth-storage-custom.sql'
+  'auth-storage-custom.sql',
+  'privileges.sql'
 )
 
 foreach ($fileName in $requiredFiles) {
