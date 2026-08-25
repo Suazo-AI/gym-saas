@@ -93,12 +93,18 @@ join pg_namespace n on n.oid = c.relnamespace
 where n.nspname in ('auth', 'storage')
 union all
 select format(
-  'drop trigger if exists %I on %I.%I;%s%s;',
+  'drop trigger if exists %I on %I.%I;%s%s;%s',
   t.tgname,
   n.nspname,
   c.relname,
   chr(10),
-  pg_get_triggerdef(t.oid, true)
+  pg_get_triggerdef(t.oid, true),
+  case t.tgenabled::text
+    when 'D' then format('%salter table %I.%I disable trigger %I;', chr(10), n.nspname, c.relname, t.tgname)
+    when 'R' then format('%salter table %I.%I enable replica trigger %I;', chr(10), n.nspname, c.relname, t.tgname)
+    when 'A' then format('%salter table %I.%I enable always trigger %I;', chr(10), n.nspname, c.relname, t.tgname)
+    else ''
+  end
 )
 from pg_trigger t
 join pg_class c on c.oid = t.tgrelid

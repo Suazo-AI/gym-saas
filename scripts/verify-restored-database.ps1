@@ -379,12 +379,36 @@ where n.nspname in ('public', 'private', 'auth', 'storage')
 order by 1;
 '@
   triggers = @'
-select n.nspname || '|' || c.relname || '|' || t.tgname || '|' || pg_get_triggerdef(t.oid, true)
+select n.nspname || '|' || c.relname || '|' || t.tgname || '|' ||
+  t.tgenabled::text || '|' || pg_get_triggerdef(t.oid, true)
 from pg_trigger t
 join pg_class c on c.oid = t.tgrelid
 join pg_namespace n on n.oid = c.relnamespace
 where n.nspname in ('public', 'auth', 'storage')
   and not t.tgisinternal
+order by 1;
+'@
+  extensions = @'
+select e.extname || '|' || e.extversion || '|' || n.nspname
+from pg_extension e
+join pg_namespace n on n.oid = e.extnamespace
+order by 1;
+'@
+  roles = @'
+select r.rolname || '|' || r.rolsuper::text || '|' || r.rolinherit::text || '|' ||
+  r.rolcreaterole::text || '|' || r.rolcreatedb::text || '|' || r.rolcanlogin::text || '|' ||
+  r.rolreplication::text || '|' || r.rolbypassrls::text || '|' || r.rolconnlimit::text || '|' ||
+  coalesce(r.rolvaliduntil::text, '')
+from pg_roles r
+order by 1;
+'@
+  role_members = @'
+select granted.rolname || '|' || member.rolname || '|' ||
+  grantor.rolname || '|' || m.admin_option::text
+from pg_auth_members m
+join pg_roles granted on granted.oid = m.roleid
+join pg_roles member on member.oid = m.member
+join pg_roles grantor on grantor.oid = m.grantor
 order by 1;
 '@
 }

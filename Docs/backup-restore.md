@@ -150,7 +150,11 @@ npx supabase storage ls ss:///gym-media --recursive --linked
 
 El verificador rechaza conexiones que apuntan a la misma base.
 
-Compara inventarios, contenido de cada tabla, secuencias, columnas, relaciones, índices, funciones, vistas, tipos, propietarios, privilegios, políticas, RLS y triggers.
+Compara inventarios, contenido de cada tabla, secuencias, columnas, relaciones, índices, funciones, vistas, tipos, propietarios, privilegios, políticas, RLS, triggers, extensiones, roles y membresías de rol.
+
+De cada trigger compara además su modo de activación (`tgenabled`), porque `pg_get_triggerdef` lo omite y un trigger deshabilitado se restauraría habilitado.
+
+De cada extensión compara nombre, versión y esquema. De los roles compara sus atributos y sus membresías por nombre, no por OID.
 
 Después ejecuta las pruebas SQL completas contra el destino restaurado.
 
@@ -167,6 +171,8 @@ No acepte una restauración si falta una comparación o una prueba.
 La prueba usó un stack Supabase local aparte, con su propio cluster y su propia base vacía.
 
 El respaldo creó los siete archivos.
+
+Las comparaciones de modo de trigger, extensiones, roles y membresías se agregaron después de esta corrida y todavía no se ejercieron contra un destino restaurado.
 
 La comparación cubrió 86 tablas, su contenido, 6 secuencias y su estado, 633 columnas, 249 restricciones, 122 índices, 89 funciones, 10 vistas, 16 tipos, 70 enums, 172 propietarios, 1737 privilegios, 147 políticas, 85 filas de RLS y 75 triggers.
 
