@@ -409,7 +409,7 @@ order by r.rolname collate "C";
   role_members = @'
 select granted.rolname || '|' || member.rolname || '|' ||
   grantor.rolname || '|' || m.admin_option::text || '|' ||
-  coalesce(to_jsonb(m)->>'inherit_option', 'true') || '|' ||
+  coalesce(to_jsonb(m)->>'inherit_option', member.rolinherit::text) || '|' ||
   coalesce(to_jsonb(m)->>'set_option', 'true')
 from pg_auth_members m
 join pg_roles granted on granted.oid = m.roleid
