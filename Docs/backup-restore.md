@@ -172,8 +172,6 @@ La prueba usó un stack Supabase local aparte, con su propio cluster y su propia
 
 El respaldo creó los siete archivos.
 
-Las comparaciones de modo de trigger, extensiones, roles y membresías se agregaron después de esta corrida y todavía no se ejercieron contra un destino restaurado.
-
 La comparación cubrió 86 tablas, su contenido, 6 secuencias y su estado, 633 columnas, 249 restricciones, 122 índices, 89 funciones, 10 vistas, 16 tipos, 70 enums, 172 propietarios, 1737 privilegios, 147 políticas, 85 filas de RLS y 75 triggers.
 
 Ninguna comparación tuvo diferencias.
@@ -193,3 +191,23 @@ El detalle está en `Docs/evidence/backup-restore-2026-08-24.txt`.
 La base local no tenía objetos en `gym-media`.
 
 Por eso la recuperación de bytes queda documentada, pero no probada con un archivo real.
+
+## Evidencia de contrato del 2026-08-24
+
+Esta corrida ejercitó las comparaciones nuevas contra dos clusters PostgreSQL 17 aislados y separados.
+
+Las 19 comparaciones dieron `DIFF=0`, incluidas `triggers` con 75 filas, `extensions` con 7, `roles` con 33 y `role_members` con 24.
+
+Las 38 pruebas SQL pasaron con 559 checks. El resultado fue `RESTORE_VERIFICATION=PASS`.
+
+La salida completa está en `Docs/evidence/backup-restore-contract-2026-08-24.txt`.
+
+Tres pruebas negativas confirmaron que el verificador rechaza una restauración inexacta, cada una con exit 1:
+
+* un trigger idéntico restaurado en modo `O` en vez de `R`;
+* la extensión `hstore` restaurada en el esquema `extensions_alt` en vez de `extensions`;
+* un rol con `rolconnlimit` y `rolconfig` distintos.
+
+La cuarta prueba negativa, la de opciones de membresía (`inherit_option` y `set_option`), quedó a medias: el agente murió antes de terminarla. Esa ruta sigue sin ejercerse.
+
+El orden de las consultas de roles usa `convert_to(..., 'UTF8')` y no `collate "C"`. La razón es real y medida: PowerShell corrompe un argumento nativo que lleva comillas dobles y espacios, y PostgreSQL recibía `collate C` sin comillas y fallaba con `collation "c" for encoding "UTF8" does not exist`.

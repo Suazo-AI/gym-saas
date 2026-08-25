@@ -400,11 +400,11 @@ select r.rolname || '|' || r.rolsuper::text || '|' || r.rolinherit::text || '|' 
   r.rolreplication::text || '|' || r.rolbypassrls::text || '|' || r.rolconnlimit::text || '|' ||
   coalesce(r.rolvaliduntil::text, '') || '|' ||
   coalesce((
-    select jsonb_agg(setting order by setting collate "C")::text
+    select jsonb_agg(setting order by convert_to(setting, 'UTF8'))::text
     from unnest(r.rolconfig) config(setting)
   ), '[]')
 from pg_roles r
-order by r.rolname collate "C";
+order by convert_to(r.rolname, 'UTF8');
 '@
   role_members = @'
 select granted.rolname || '|' || member.rolname || '|' ||
@@ -415,7 +415,7 @@ from pg_auth_members m
 join pg_roles granted on granted.oid = m.roleid
 join pg_roles member on member.oid = m.member
 join pg_roles grantor on grantor.oid = m.grantor
-order by granted.rolname collate "C", member.rolname collate "C", grantor.rolname collate "C";
+order by convert_to(granted.rolname, 'UTF8'), convert_to(member.rolname, 'UTF8'), convert_to(grantor.rolname, 'UTF8');
 '@
 }
 
