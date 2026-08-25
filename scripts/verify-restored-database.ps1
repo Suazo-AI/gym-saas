@@ -359,12 +359,12 @@ order by 1;
 select n.nspname || '|' || c.relname || '|' || p.polname || '|' || p.polcmd::text || '|' ||
   p.polpermissive::text || '|' ||
   coalesce((
-    select string_agg(role_name, ',' order by convert_to(role_name, 'UTF8'))
+    select jsonb_agg(role_name order by convert_to(role_name, 'UTF8'))::text
     from (
       select case when role_oid = 0 then 'PUBLIC' else pg_get_userbyid(role_oid) end as role_name
       from unnest(p.polroles) policy_role(role_oid)
     ) resolved_roles
-  ), 'PUBLIC') || '|' ||
+  ), '["PUBLIC"]') || '|' ||
   coalesce(pg_get_expr(p.polqual, p.polrelid), '') || '|' ||
   coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '')
 from pg_policy p
