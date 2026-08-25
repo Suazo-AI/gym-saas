@@ -73,7 +73,9 @@ function Invoke-PostgresDockerQuery {
     '--env',
     "PGPASSWORD=$($connection.Password)",
     '--env',
-    "PGSSLMODE=$($connection.SslMode)"
+    "PGSSLMODE=$($connection.SslMode)",
+    '--env',
+    'PGOPTIONS=-c TimeZone=UTC -c DateStyle=ISO,YMD -c IntervalStyle=iso_8601 -c extra_float_digits=3 -c bytea_output=hex'
   )
 
   if ($OutputFile) {

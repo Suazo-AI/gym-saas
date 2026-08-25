@@ -29,7 +29,7 @@ function Read-DatabaseRows {
 }
 
 $identitySql = @'
-select system_identifier::text || '|' || d.oid::text
+select jsonb_build_array(system_identifier::text, d.oid)::text
 from pg_control_system()
 cross join pg_database d
 where d.datname = current_database();
@@ -130,10 +130,13 @@ foreach ($tableJson in $tables) {
   $schemaName = ConvertTo-SqlIdentifier -Value $table.schema
   $tableName = ConvertTo-SqlIdentifier -Value $table.name
   $digestSql = @"
-select count(*)::text || '|' || coalesce(
-  md5(string_agg(row_hash, '' order by row_hash)),
-  md5('')
-)
+select jsonb_build_array(
+  count(*),
+  coalesce(
+    md5(string_agg(row_hash, '' order by row_hash)),
+    md5('')
+  )
+)::text
 from (
   select md5(to_jsonb(row_value)::text) as row_hash
   from $schemaName.$tableName row_value
@@ -167,7 +170,7 @@ foreach ($sequenceJson in $sequences) {
   $sequence = $sequenceJson | ConvertFrom-Json
   $schemaName = ConvertTo-SqlIdentifier -Value $sequence.schema
   $sequenceName = ConvertTo-SqlIdentifier -Value $sequence.name
-  $stateSql = "select last_value::text || '|' || is_called::text from $schemaName.$sequenceName;"
+  $stateSql = "select jsonb_build_array(last_value, is_called)::text from $schemaName.$sequenceName;"
   $sourceState = Read-DatabaseRows -DatabaseUrl $SourceDatabaseUrl -Sql $stateSql
   $restoredState = Read-DatabaseRows -DatabaseUrl $RestoredDatabaseUrl -Sql $stateSql
 
@@ -186,10 +189,20 @@ $evidence.Add($sequenceStateLine)
 
 $queries = [ordered] @{
   columns = @'
-select n.nspname || '|' || c.relname || '|' || a.attname || '|' ||
-  format_type(a.atttypid, a.atttypmod) || '|' || a.attnotnull::text || '|' ||
-  coalesce(pg_get_expr(d.adbin, d.adrelid), '') || '|' || a.attidentity::text || '|' ||
-  a.attgenerated::text || '|' || coalesce(coll_ns.nspname || '.' || coll.collname, '')
+select jsonb_build_array(
+  n.nspname,
+  c.relname,
+  a.attname,
+  format_type(a.atttypid, a.atttypmod),
+  a.attnotnull,
+  coalesce(pg_get_expr(d.adbin, d.adrelid), ''),
+  a.attidentity::text,
+  a.attgenerated::text,
+  case
+    when coll.oid is null then null
+    else jsonb_build_array(coll_ns.nspname, coll.collname)
+  end
+)::text
 from pg_attribute a
 join pg_class c on c.oid = a.attrelid
 join pg_namespace n on n.oid = c.relnamespace
@@ -203,13 +216,13 @@ where n.nspname in ('public', 'private')
 order by 1;
 '@
   constraints = @'
-select n.nspname || '|' || c.relname || '|' || con.conname || '|' || pg_get_constraintdef(con.oid, true)
+select jsonb_build_array(n.nspname, c.relname, con.conname, pg_get_constraintdef(con.oid, true))::text
 from pg_constraint con
 join pg_class c on c.oid = con.conrelid
 join pg_namespace n on n.oid = c.relnamespace
 where n.nspname in ('public', 'private')
 union all
-select n.nspname || '|' || t.typname || '|' || con.conname || '|' || pg_get_constraintdef(con.oid, true)
+select jsonb_build_array(n.nspname, t.typname, con.conname, pg_get_constraintdef(con.oid, true))::text
 from pg_constraint con
 join pg_type t on t.oid = con.contypid
 join pg_namespace n on n.oid = t.typnamespace
@@ -217,21 +230,31 @@ where n.nspname in ('public', 'private')
 order by 1;
 '@
   indexes = @'
-select schemaname || '|' || tablename || '|' || indexname || '|' || indexdef
+select jsonb_build_array(schemaname, tablename, indexname, indexdef)::text
 from pg_indexes
 where schemaname in ('public', 'private')
 order by 1;
 '@
   functions = @'
-select n.nspname || '|' || p.proname || '|' || pg_get_function_identity_arguments(p.oid) || '|' || md5(pg_get_functiondef(p.oid))
+select jsonb_build_array(
+  n.nspname,
+  p.proname,
+  pg_get_function_identity_arguments(p.oid),
+  md5(pg_get_functiondef(p.oid))
+)::text
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
 where n.nspname in ('public', 'private')
 order by 1;
 '@
   views = @'
-select n.nspname || '|' || c.relname || '|' || c.relkind::text || '|' ||
-  md5(pg_get_viewdef(c.oid, true)) || '|' || coalesce(array_to_string(c.reloptions, ','), '')
+select jsonb_build_array(
+  n.nspname,
+  c.relname,
+  c.relkind::text,
+  md5(pg_get_viewdef(c.oid, true)),
+  coalesce(to_jsonb(c.reloptions), '[]'::jsonb)
+)::text
 from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
 where n.nspname in ('public', 'private')
@@ -239,13 +262,21 @@ where n.nspname in ('public', 'private')
 order by 1;
 '@
   types = @'
-select n.nspname || '|' || t.typname || '|' || t.typtype::text || '|' ||
-  case when t.typbasetype = 0 then '' else format_type(t.typbasetype, t.typtypmod) end || '|' ||
-  t.typnotnull::text || '|' || coalesce(t.typdefault, '') || '|' ||
-  coalesce(format_type(r.rngsubtype, null), '') || '|' ||
-  coalesce(coll_ns.nspname || '.' || coll.collname, '') || '|' ||
-  coalesce(r.rngcanonical::regprocedure::text, '') || '|' ||
+select jsonb_build_array(
+  n.nspname,
+  t.typname,
+  t.typtype::text,
+  case when t.typbasetype = 0 then '' else format_type(t.typbasetype, t.typtypmod) end,
+  t.typnotnull,
+  coalesce(t.typdefault, ''),
+  coalesce(format_type(r.rngsubtype, null), ''),
+  case
+    when coll.oid is null then null
+    else jsonb_build_array(coll_ns.nspname, coll.collname)
+  end,
+  coalesce(r.rngcanonical::regprocedure::text, ''),
   coalesce(format_type(r.rngmultitypid, null), '')
+)::text
 from pg_type t
 join pg_namespace n on n.oid = t.typnamespace
 left join pg_range r on r.rngtypid = t.oid
@@ -258,7 +289,7 @@ where n.nspname in ('public', 'private')
 order by 1;
 '@
   enums = @'
-select n.nspname || '|' || t.typname || '|' || e.enumsortorder::text || '|' || e.enumlabel
+select jsonb_build_array(n.nspname, t.typname, e.enumsortorder, e.enumlabel)::text
 from pg_enum e
 join pg_type t on t.oid = e.enumtypid
 join pg_namespace n on n.oid = t.typnamespace
@@ -266,22 +297,28 @@ where n.nspname in ('public', 'private')
 order by n.nspname, t.typname, e.enumsortorder;
 '@
   owners = @'
-select 'schema|' || n.nspname || '|' || pg_get_userbyid(n.nspowner)
+select jsonb_build_array('schema', n.nspname, pg_get_userbyid(n.nspowner))::text
 from pg_namespace n
 where n.nspname in ('public', 'private')
 union all
-select 'relation|' || n.nspname || '|' || c.relname || '|' || pg_get_userbyid(c.relowner)
+select jsonb_build_array('relation', n.nspname, c.relname, pg_get_userbyid(c.relowner))::text
 from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
 where n.nspname in ('public', 'private')
   and c.relkind in ('r', 'p', 'v', 'm', 'S', 'f')
 union all
-select 'routine|' || n.nspname || '|' || p.proname || '|' || pg_get_function_identity_arguments(p.oid) || '|' || pg_get_userbyid(p.proowner)
+select jsonb_build_array(
+  'routine',
+  n.nspname,
+  p.proname,
+  pg_get_function_identity_arguments(p.oid),
+  pg_get_userbyid(p.proowner)
+)::text
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
 where n.nspname in ('public', 'private')
 union all
-select 'type|' || n.nspname || '|' || t.typname || '|' || pg_get_userbyid(t.typowner)
+select jsonb_build_array('type', n.nspname, t.typname, pg_get_userbyid(t.typowner))::text
 from pg_type t
 join pg_namespace n on n.oid = t.typnamespace
 where n.nspname in ('public', 'private')
@@ -291,42 +328,72 @@ where n.nspname in ('public', 'private')
 order by 1;
 '@
   privileges = @'
-select 'schema|' || n.nspname || '|' ||
-  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
-  pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
+select jsonb_build_array(
+  'schema',
+  n.nspname,
+  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end,
+  pg_get_userbyid(acl.grantor),
+  acl.privilege_type,
+  acl.is_grantable
+)::text
 from pg_namespace n
 cross join lateral aclexplode(coalesce(n.nspacl, acldefault('n', n.nspowner))) acl
 where n.nspname in ('public', 'private')
 union all
-select 'relation|' || n.nspname || '|' || c.relname || '|' ||
-  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
-  pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
+select jsonb_build_array(
+  'relation',
+  n.nspname,
+  c.relname,
+  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end,
+  pg_get_userbyid(acl.grantor),
+  acl.privilege_type,
+  acl.is_grantable
+)::text
 from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
 cross join lateral aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) acl
 where n.nspname in ('public', 'private')
   and c.relkind in ('r', 'p', 'v', 'm', 'f')
 union all
-select 'relation|' || n.nspname || '|' || c.relname || '|' ||
-  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
-  pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
+select jsonb_build_array(
+  'relation',
+  n.nspname,
+  c.relname,
+  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end,
+  pg_get_userbyid(acl.grantor),
+  acl.privilege_type,
+  acl.is_grantable
+)::text
 from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
 cross join lateral aclexplode(coalesce(c.relacl, acldefault('s', c.relowner))) acl
 where n.nspname in ('public', 'private')
   and c.relkind = 'S'
 union all
-select 'routine|' || n.nspname || '|' || p.proname || '|' || pg_get_function_identity_arguments(p.oid) || '|' ||
-  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
-  pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
+select jsonb_build_array(
+  'routine',
+  n.nspname,
+  p.proname,
+  pg_get_function_identity_arguments(p.oid),
+  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end,
+  pg_get_userbyid(acl.grantor),
+  acl.privilege_type,
+  acl.is_grantable
+)::text
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
 cross join lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) acl
 where n.nspname in ('public', 'private')
 union all
-select 'type|' || n.nspname || '|' || t.typname || '|' ||
-  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
-  pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
+select jsonb_build_array(
+  'type',
+  n.nspname,
+  t.typname,
+  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end,
+  pg_get_userbyid(acl.grantor),
+  acl.privilege_type,
+  acl.is_grantable
+)::text
 from pg_type t
 join pg_namespace n on n.oid = t.typnamespace
 cross join lateral aclexplode(coalesce(t.typacl, acldefault('T', t.typowner))) acl
@@ -335,9 +402,16 @@ where n.nspname in ('public', 'private')
   and t.typelem = 0
   and t.typtype <> 'p'
 union all
-select 'column|' || n.nspname || '|' || c.relname || '|' || a.attname || '|' ||
-  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
-  pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
+select jsonb_build_array(
+  'column',
+  n.nspname,
+  c.relname,
+  a.attname,
+  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end,
+  pg_get_userbyid(acl.grantor),
+  acl.privilege_type,
+  acl.is_grantable
+)::text
 from pg_attribute a
 join pg_class c on c.oid = a.attrelid
 join pg_namespace n on n.oid = c.relnamespace
@@ -346,9 +420,16 @@ where n.nspname in ('public', 'private')
   and a.attnum > 0
   and not a.attisdropped
 union all
-select 'default|' || pg_get_userbyid(d.defaclrole) || '|' || coalesce(n.nspname, '') || '|' || d.defaclobjtype::text || '|' ||
-  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end || '|' ||
-  pg_get_userbyid(acl.grantor) || '|' || acl.privilege_type || '|' || acl.is_grantable::text
+select jsonb_build_array(
+  'default',
+  pg_get_userbyid(d.defaclrole),
+  coalesce(n.nspname, ''),
+  d.defaclobjtype::text,
+  case when acl.grantee = 0 then 'PUBLIC' else pg_get_userbyid(acl.grantee) end,
+  pg_get_userbyid(acl.grantor),
+  acl.privilege_type,
+  acl.is_grantable
+)::text
 from pg_default_acl d
 left join pg_namespace n on n.oid = d.defaclnamespace
 cross join lateral aclexplode(d.defaclacl) acl
@@ -356,17 +437,22 @@ where n.nspname in ('public', 'private')
 order by 1;
 '@
   policies = @'
-select n.nspname || '|' || c.relname || '|' || p.polname || '|' || p.polcmd::text || '|' ||
-  p.polpermissive::text || '|' ||
+select jsonb_build_array(
+  n.nspname,
+  c.relname,
+  p.polname,
+  p.polcmd::text,
+  p.polpermissive,
   coalesce((
-    select jsonb_agg(role_name order by convert_to(role_name, 'UTF8'))::text
+    select jsonb_agg(role_name order by convert_to(role_name, 'UTF8'))
     from (
       select case when role_oid = 0 then 'PUBLIC' else pg_get_userbyid(role_oid) end as role_name
       from unnest(p.polroles) policy_role(role_oid)
     ) resolved_roles
-  ), '["PUBLIC"]') || '|' ||
-  coalesce(pg_get_expr(p.polqual, p.polrelid), '') || '|' ||
+  ), '["PUBLIC"]'::jsonb),
+  coalesce(pg_get_expr(p.polqual, p.polrelid), ''),
   coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '')
+)::text
 from pg_policy p
 join pg_class c on c.oid = p.polrelid
 join pg_namespace n on n.oid = c.relnamespace
@@ -374,7 +460,7 @@ where n.nspname in ('public', 'private', 'auth', 'storage')
 order by 1;
 '@
   rls = @'
-select n.nspname || '|' || c.relname || '|' || c.relrowsecurity || '|' || c.relforcerowsecurity
+select jsonb_build_array(n.nspname, c.relname, c.relrowsecurity, c.relforcerowsecurity)::text
 from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
 where n.nspname in ('public', 'private', 'auth', 'storage')
@@ -382,8 +468,13 @@ where n.nspname in ('public', 'private', 'auth', 'storage')
 order by 1;
 '@
   triggers = @'
-select n.nspname || '|' || c.relname || '|' || t.tgname || '|' ||
-  t.tgenabled::text || '|' || pg_get_triggerdef(t.oid, true)
+select jsonb_build_array(
+  n.nspname,
+  c.relname,
+  t.tgname,
+  t.tgenabled::text,
+  pg_get_triggerdef(t.oid, true)
+)::text
 from pg_trigger t
 join pg_class c on c.oid = t.tgrelid
 join pg_namespace n on n.oid = c.relnamespace
@@ -392,28 +483,40 @@ where n.nspname in ('public', 'private', 'auth', 'storage')
 order by 1;
 '@
   extensions = @'
-select e.extname || '|' || e.extversion || '|' || n.nspname
+select jsonb_build_array(e.extname, e.extversion, n.nspname)::text
 from pg_extension e
 join pg_namespace n on n.oid = e.extnamespace
 order by 1;
 '@
   roles = @'
-select r.rolname || '|' || r.rolsuper::text || '|' || r.rolinherit::text || '|' ||
-  r.rolcreaterole::text || '|' || r.rolcreatedb::text || '|' || r.rolcanlogin::text || '|' ||
-  r.rolreplication::text || '|' || r.rolbypassrls::text || '|' || r.rolconnlimit::text || '|' ||
-  coalesce(r.rolvaliduntil::text, '') || '|' ||
+select jsonb_build_array(
+  r.rolname,
+  r.rolsuper,
+  r.rolinherit,
+  r.rolcreaterole,
+  r.rolcreatedb,
+  r.rolcanlogin,
+  r.rolreplication,
+  r.rolbypassrls,
+  r.rolconnlimit,
+  coalesce(r.rolvaliduntil::text, ''),
   coalesce((
-    select jsonb_agg(setting order by convert_to(setting, 'UTF8'))::text
+    select jsonb_agg(setting order by convert_to(setting, 'UTF8'))
     from unnest(r.rolconfig) config(setting)
-  ), '[]')
+  ), '[]'::jsonb)
+)::text
 from pg_roles r
 order by convert_to(r.rolname, 'UTF8');
 '@
   role_members = @'
-select granted.rolname || '|' || member.rolname || '|' ||
-  grantor.rolname || '|' || m.admin_option::text || '|' ||
-  coalesce(to_jsonb(m)->>'inherit_option', member.rolinherit::text) || '|' ||
-  coalesce(to_jsonb(m)->>'set_option', 'true')
+select jsonb_build_array(
+  granted.rolname,
+  member.rolname,
+  grantor.rolname,
+  m.admin_option,
+  coalesce(to_jsonb(m)->>'inherit_option', member.rolinherit::text)::boolean,
+  coalesce(to_jsonb(m)->>'set_option', 'true')::boolean
+)::text
 from pg_auth_members m
 join pg_roles granted on granted.oid = m.roleid
 join pg_roles member on member.oid = m.member
