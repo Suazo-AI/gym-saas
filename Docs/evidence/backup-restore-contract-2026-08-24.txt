@@ -11,13 +11,13 @@ RESTORE_CHECK=types ROWS=16 DIFF=0
 RESTORE_CHECK=enums ROWS=70 DIFF=0
 RESTORE_CHECK=owners ROWS=172 DIFF=0
 RESTORE_CHECK=privileges ROWS=1737 DIFF=0
-RESTORE_CHECK=policies ROWS=147 DIFF=0
+RESTORE_CHECK=policies ROWS=90 DIFF=0
 RESTORE_CHECK=rls ROWS=85 DIFF=0
 RESTORE_CHECK=triggers ROWS=75 DIFF=0
 RESTORE_CHECK=extensions ROWS=7 DIFF=0
 RESTORE_CHECK=roles ROWS=33 DIFF=0
 RESTORE_CHECK=role_members ROWS=24 DIFF=0
 All tests successful.
-Files=38, Tests=559,  5 wallclock secs ( 0.26 usr  0.11 sys +  0.42 cusr  0.27 csys =  1.06 CPU)
+Files=38, Tests=559,  3 wallclock secs ( 0.18 usr  0.08 sys +  0.24 cusr  0.18 csys =  0.68 CPU)
 Result: PASS
 RESTORE_VERIFICATION=PASS

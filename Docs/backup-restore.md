@@ -208,6 +208,10 @@ Las 38 pruebas SQL pasaron con 559 checks. El resultado fue `RESTORE_VERIFICATIO
 
 La salida completa está en `Docs/evidence/backup-restore-contract-2026-08-24.txt`.
 
+Las dos pruebas negativas de opciones de membresía están en `Docs/evidence/backup-restore-negative-inherit-option-2026-08-24.txt` y `Docs/evidence/backup-restore-negative-set-option-2026-08-24.txt`.
+
+`policies` cuenta 90 filas y no 147 porque cada política ahora se serializa como una sola fila JSON con su lista de roles adentro, en vez de una fila por rol.
+
 Tres pruebas negativas confirmaron que el verificador rechaza una restauración inexacta, cada una con exit 1:
 
 * un trigger idéntico restaurado en modo `O` en vez de `R`;
