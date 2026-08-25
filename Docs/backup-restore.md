@@ -18,7 +18,7 @@ El respaldo de PostgreSQL crea siete archivos.
 
 `history-schema.sql` y `history-data.sql` conservan el historial de migraciones.
 
-`auth-storage-custom.sql` conserva el trigger propio de Auth y las políticas propias de Storage.
+`auth-storage-custom.sql` conserva los triggers propios de Auth y Storage, incluido su modo de activación, y sus políticas propias.
 
 `privileges.sql` reproduce los permisos exactos de `public` y `private`.
 
@@ -154,7 +154,13 @@ Compara inventarios, contenido de cada tabla, secuencias, columnas, relaciones, 
 
 De cada trigger compara además su modo de activación (`tgenabled`), porque `pg_get_triggerdef` lo omite y un trigger deshabilitado se restauraría habilitado.
 
-De cada extensión compara nombre, versión y esquema. De los roles compara sus atributos y sus membresías por nombre, no por OID.
+De cada extensión compara nombre, versión y esquema.
+
+De cada rol compara sus atributos y su `rolconfig`.
+
+De cada membresía de rol compara los nombres del rol, miembro y otorgante, además de `admin_option`, `inherit_option` y `set_option`.
+
+En PostgreSQL anterior a 16, `inherit_option` sigue `rolinherit` del miembro y `set_option` se trata como `true`.
 
 Después ejecuta las pruebas SQL completas contra el destino restaurado.
 
@@ -208,6 +214,10 @@ Tres pruebas negativas confirmaron que el verificador rechaza una restauración 
 * la extensión `hstore` restaurada en el esquema `extensions_alt` en vez de `extensions`;
 * un rol con `rolconnlimit` y `rolconfig` distintos.
 
-La cuarta prueba negativa, la de opciones de membresía (`inherit_option` y `set_option`), quedó a medias: el agente murió antes de terminarla. Esa ruta sigue sin ejercerse.
+Dos pruebas negativas adicionales ejercitaron `inherit_option` y `set_option` por separado.
+
+El verificador rechazó cada diferencia en `role_members` con exit 1.
+
+Con ambas opciones iguales, las 19 comparaciones y las 38 pruebas SQL terminaron en `RESTORE_VERIFICATION=PASS`.
 
 El orden de las consultas de roles usa `convert_to(..., 'UTF8')` y no `collate "C"`. La razón es real y medida: PowerShell corrompe un argumento nativo que lleva comillas dobles y espacios, y PostgreSQL recibía `collate C` sin comillas y fallaba con `collation "c" for encoding "UTF8" does not exist`.

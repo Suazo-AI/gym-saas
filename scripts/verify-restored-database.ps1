@@ -449,7 +449,7 @@ select jsonb_build_array(
       select case when role_oid = 0 then 'PUBLIC' else pg_get_userbyid(role_oid) end as role_name
       from unnest(p.polroles) policy_role(role_oid)
     ) resolved_roles
-  ), '["PUBLIC"]'::jsonb),
+  ), jsonb_build_array('PUBLIC')),
   coalesce(pg_get_expr(p.polqual, p.polrelid), ''),
   coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '')
 )::text
