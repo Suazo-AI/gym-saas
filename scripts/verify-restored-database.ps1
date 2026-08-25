@@ -367,7 +367,7 @@ select n.nspname || '|' || c.relname || '|' || p.polname || '|' || p.polcmd::tex
 from pg_policy p
 join pg_class c on c.oid = p.polrelid
 join pg_namespace n on n.oid = c.relnamespace
-where n.nspname in ('public', 'auth', 'storage')
+where n.nspname in ('public', 'private', 'auth', 'storage')
 order by 1;
 '@
   rls = @'
@@ -384,7 +384,7 @@ select n.nspname || '|' || c.relname || '|' || t.tgname || '|' ||
 from pg_trigger t
 join pg_class c on c.oid = t.tgrelid
 join pg_namespace n on n.oid = c.relnamespace
-where n.nspname in ('public', 'auth', 'storage')
+where n.nspname in ('public', 'private', 'auth', 'storage')
   and not t.tgisinternal
 order by 1;
 '@
