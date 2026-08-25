@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export type StorageDeletionJob = {
   id: string;
+  claim_token: string;
   media_asset_id: string;
   gym_id: string;
   bucket_name: string;
@@ -71,6 +72,7 @@ export async function runStorageDeletionWorker(
 
     const completedJob = await supabase.rpc("complete_storage_deletion_job", {
       p_job_id: job.id,
+      p_claim_token: job.claim_token,
     });
 
     if (completedJob.error) {
@@ -93,6 +95,10 @@ export async function runStorageDeletionWorker(
  * y no habria RLS que lo frenara.
  */
 function tenantViolation(job: StorageDeletionJob): string | null {
+  if (!job.claim_token) {
+    return "El trabajo no declara token de propiedad.";
+  }
+
   if (job.bucket_name !== STORAGE_BUCKET) {
     return "El bucket del trabajo no esta permitido.";
   }
@@ -115,6 +121,7 @@ async function failJob(
 ): Promise<void> {
   await supabase.rpc("fail_storage_deletion_job", {
     p_job_id: job.id,
+    p_claim_token: job.claim_token,
     p_error: reason,
     p_retry_after_seconds: RETRY_AFTER_SECONDS,
   });

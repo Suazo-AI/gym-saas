@@ -417,8 +417,7 @@ Reglas de la cola que no se deducen del esquema, endurecidas en el PR #65 antes 
 * un trabajo que quedó en `processing` con el bloqueo vencido a los **15 minutos** vuelve a la rotación, porque su worker murió; uno recién bloqueado no se toca, porque su worker está vivo;
 * si esa fila trabada además agotó los intentos, el propio reclamo la declara `dead` en vez de dejarla en `processing` para siempre;
 * el worker valida el bucket contra una lista blanca antes de tocar Storage, y la cola exige lo mismo con un check. Corre con `service_role` y la fila **no** es fuente confiable.
-
-Lo que todavía no está: el reclamo no emite token de propiedad, así que un worker que revive pasados los 15 minutos puede completar un trabajo que ya reclamó otro. Está anotado como F040.
+* cada reclamo emite un token de propiedad nuevo; completar o fallar exige el token vigente del trabajo.
 
 
 ## Reconocimiento facial
