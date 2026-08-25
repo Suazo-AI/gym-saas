@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   type CapturedFrame,
@@ -24,6 +24,13 @@ type VerificationRequest = (
   init: RequestInit,
 ) => Promise<Pick<Response, "json" | "ok">>;
 
+type WarmupRequest = (
+  input: string,
+  init: RequestInit,
+) => Promise<Pick<Response, "json" | "ok">>;
+
+type FaceServiceStatus = "warming" | "ready" | "error";
+
 export async function requestFaceVerification(
   imageBase64: string,
   request: VerificationRequest = fetch,
@@ -45,10 +52,47 @@ export async function requestFaceVerification(
   return payload as FaceVerificationResult;
 }
 
+export async function requestFaceWarmup(
+  request: WarmupRequest = fetch,
+): Promise<void> {
+  const response = await request("/api/face/warm", {
+    method: "GET",
+    cache: "no-store",
+  });
+  const payload = await response.json();
+
+  if (!response.ok || typeof payload !== "object" || !payload || !("ok" in payload) || !payload.ok) {
+    throw new Error("El servicio facial no respondió.");
+  }
+}
+
 export function FacialAccessPanel({ canVerify }: { canVerify: boolean }) {
   const [status, setStatus] = useState<"idle" | "verifying" | "done" | "error">("idle");
   const [result, setResult] = useState<FaceVerificationResult | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [serviceStatus, setServiceStatus] = useState<FaceServiceStatus>("warming");
+  const mounted = useRef(false);
+  const warmupStarted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+
+    if (canVerify && !warmupStarted.current) {
+      warmupStarted.current = true;
+
+      void requestFaceWarmup()
+        .then(() => {
+          if (mounted.current) setServiceStatus("ready");
+        })
+        .catch(() => {
+          if (mounted.current) setServiceStatus("error");
+        });
+    }
+
+    return () => {
+      mounted.current = false;
+    };
+  }, [canVerify]);
 
   if (!canVerify) {
     return (
@@ -82,6 +126,18 @@ export function FacialAccessPanel({ canVerify }: { canVerify: boolean }) {
 
   return (
     <section className="mt-6 grid gap-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[1.2fr_0.8fr]">
+      <div
+        aria-live="polite"
+        className={`rounded-lg border p-4 lg:col-span-2 ${serviceStatusClasses(serviceStatus)}`}
+        role={serviceStatus === "error" ? "alert" : "status"}
+      >
+        <span className="text-xs font-black uppercase tracking-[0.14em]">
+          Servicio facial
+        </span>
+        <strong className="mt-1 block text-base font-black">
+          {serviceStatusLabel(serviceStatus)}
+        </strong>
+      </div>
       <FaceCamera frameCount={1} onCapture={verifyFrames} />
       <aside aria-live="polite" className="rounded-lg border border-slate-200 bg-slate-50 p-5">
         <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
@@ -119,4 +175,16 @@ export function decisionLabel(decision: FaceVerificationResult["decision"]) {
   if (decision === "denied") return "Acceso denegado";
   if (decision === "manual_review") return "Revisión manual";
   return "Sin coincidencia";
+}
+
+export function serviceStatusLabel(status: FaceServiceStatus) {
+  if (status === "ready") return "Servicio listo para escanear.";
+  if (status === "error") return "Servicio no disponible. Recarga la página para intentar de nuevo.";
+  return "Servicio despertando...";
+}
+
+function serviceStatusClasses(status: FaceServiceStatus) {
+  if (status === "ready") return "border-emerald-300 bg-emerald-50 text-emerald-900";
+  if (status === "error") return "border-brand-red bg-red-50 text-brand-red";
+  return "border-amber-300 bg-amber-50 text-amber-900";
 }
