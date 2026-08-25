@@ -28,11 +28,11 @@ Cada fila es una consulta al catálogo, no una lectura de código.
 Las 39 funciones `private.*` que aparecen con `EXECUTE` para `PUBLIC` **no son un
 hallazgo**: sin `USAGE` sobre el esquema, ningún rol de la API puede nombrarlas.
 
-## Riesgos abiertos
+## Riesgos cerrados
 
 ### R1 - Cualquier usuario autenticado puede crear gimnasios sin límite
 
-Gravedad: **alto**.
+Gravedad original: **alto**. Estado final: **cerrado**.
 
 La política `gyms_insert` tiene `with_check (created_by = auth.uid())`.
 Eso sólo exige que el creador se firme a sí mismo.
@@ -41,20 +41,30 @@ No hay tope por usuario, no hay verificación de suscripción SaaS y no hay
 permiso requerido. Cada inserción dispara `private.bootstrap_new_gym`, que crea
 roles, permisos y estado inicial.
 
-Un usuario registrado puede inflar la base y saltarse la facturación del SaaS.
+La migración `20260825010000_security_review_access_hardening.sql` mantiene el
+alta self-service y permite hasta 3 gimnasios por usuario en 24 horas. Un
+bloqueo de transacción evita carreras entre altas simultáneas. La política
+también rechaza fechas de creación manipuladas.
+
+La vigila `security_review_gym_creation_limit.sql`. La prueba deja crear los
+primeros 3 gimnasios y exige que el cuarto falle con `42501`.
 
 ### R2 - Cualquier usuario autenticado puede crear personas sin límite
 
-Gravedad: **medio-alto**.
+Gravedad original: **medio-alto**. Estado final: **cerrado**.
 
 `persons_insert` tiene el mismo `with_check (created_by = auth.uid())`.
 
-`persons` es la tabla de identidad de miembros y de personal. Un usuario sin
-gimnasio y sin ningún permiso puede insertar filas sin tope.
+`persons` es la tabla de identidad de miembros y de personal. La migración
+`20260825010000_security_review_access_hardening.sql` exige una membresía activa
+en un gimnasio y el permiso `members.manage` o `staff.manage`.
+
+La vigila `security_review_person_creation.sql`. La prueba rechaza al usuario
+sin gimnasio y conserva el alta para recepción con `members.manage`.
 
 ### R3 - `TRUNCATE` concedido a `anon` y a `authenticated`
 
-Gravedad: **medio**.
+Gravedad original: **medio**. Estado final: **cerrado**.
 
 `anon` tiene `TRUNCATE` sobre 58 tablas de `public`, `authenticated` sobre 57.
 
@@ -64,26 +74,42 @@ Hoy no es una puerta abierta, porque PostgREST no expone `TRUNCATE` y ninguna
 ruta entrega SQL crudo. Es profundidad de defensa: el día que aparezca cualquier
 camino a SQL arbitrario, esto pasa de medio a catastrófico.
 
-Es la misma clase de agujero que encontró el trabajo de respaldo del 2026-08-24.
+La migración `20260825010000_security_review_access_hardening.sql` quita
+`TRUNCATE` de todas las tablas actuales para `anon` y `authenticated`. También
+lo quita de los privilegios por defecto del rol `postgres`, que es el dueño que
+crea las tablas de las migraciones del proyecto.
+
+La vigila `security_review_truncate_privileges.sql`. La prueba revisa las tablas
+actuales, el valor por defecto y una tabla futura creada dentro de la prueba.
 
 ### R4 - F040, el reclamo de borrado de Storage no emite token de propiedad
 
-Gravedad: **medio**. Ya documentado en `AGENTS.md:421`.
+Gravedad original: **medio**. Estado final: **cerrado**.
 
 `claim_storage_deletion_jobs` no devuelve un token de propiedad, así que un
 worker que revive pasados los 15 minutos puede completar un trabajo que ya
 reclamó otro.
 
+La migración `20260825020000_storage_deletion_claim_tokens.sql` añade
+`claim_token`. Cada reclamo lo rota. Las RPC de completar y fallar exigen el
+token vigente. El worker lo pasa en ambas llamadas.
+
+La vigila `security_review_storage_claim_token.sql`. La prueba rechaza tokens
+ajenos y acepta los dos tokens entregados por el reclamo.
+
 ### R5 - Catálogo de permisos y de pantallas legible por cualquiera
 
-Gravedad: **bajo**.
+Gravedad original: **bajo**. Estado final: **cerrado**.
 
 `permissions_read` y `screen_permissions_read` usan `USING true`.
 
-Es un catálogo estático, no datos de gimnasio. Revela la forma del sistema de
-permisos, nada más.
+La migración `20260825010000_security_review_access_hardening.sql` permite leer
+ambos catálogos solo a usuarios activos de algún gimnasio.
 
-## Pendiente de verificar
+La vigila `security_review_permission_catalog.sql`. La prueba oculta ambos
+catálogos al usuario sin gimnasio y conserva la lectura para un dueño activo.
+
+## Verificación pendiente ejercida
 
 `gym_user_roles_manage` valida `roles.manage` contra el gimnasio del **usuario
 destino**, no contra el gimnasio del **rol** que se asigna.
@@ -91,6 +117,15 @@ destino**, no contra el gimnasio del **rol** que se asigna.
 Un usuario con `roles.manage` en el gimnasio X podría intentar asignarle a un
 usuario de X un rol que pertenece al gimnasio Y.
 
-Existe el trigger `private.validate_gym_user_role_tenant`, que probablemente lo
-cierra. **No se ejerció.** Hace falta una prueba negativa que lo intente de
-verdad y confirme que falla.
+La prueba `security_review_role_tenant.sql` intentó esa asignación como un dueño
+con `roles.manage`. El trigger `private.validate_gym_user_role_tenant` la
+rechazó con `P0001` y `Gym user and role must belong to the same gym`.
+
+Gravedad final: **sin riesgo abierto**. No hizo falta una migración para este
+punto. La prueba queda fija para impedir una regresión.
+
+## Resultado pendiente
+
+No queda ningún riesgo abierto de esta revisión. Falta solamente ejecutar los
+dos comandos finales de verificación en el mismo commit y guardar su salida en
+`Docs/evidence/security-review-2026-08-25.txt`.

@@ -55,6 +55,7 @@ const GYM_B = "20000000-0000-4000-8000-000000000002";
 
 type Job = {
   id: string;
+  claim_token: string;
   media_asset_id: string;
   gym_id: string;
   bucket_name: string;
@@ -63,6 +64,7 @@ type Job = {
 
 const job = (id: string, gymId: string, objectPath: string): Job => ({
   id,
+  claim_token: `claim-token-${id}`,
   media_asset_id: `media-${id}`,
   gym_id: gymId,
   bucket_name: "gym-media",
@@ -159,6 +161,7 @@ describe("worker de eliminacion de Storage: procesamiento", () => {
     expect(remove).toHaveBeenCalledWith([target.object_path]);
     expect(rpcArgs(rpc, "complete_storage_deletion_job")).toContainEqual({
       p_job_id: target.id,
+      p_claim_token: target.claim_token,
     });
     expect(rpcNames(rpc)).not.toContain("fail_storage_deletion_job");
   });
@@ -176,6 +179,7 @@ describe("worker de eliminacion de Storage: procesamiento", () => {
     const failures = rpcArgs(rpc, "fail_storage_deletion_job") as Array<Record<string, unknown>>;
     expect(failures).toHaveLength(1);
     expect(failures[0].p_job_id).toBe(target.id);
+    expect(failures[0].p_claim_token).toBe(target.claim_token);
     expect(String(failures[0].p_error)).toContain("el objeto no se pudo borrar");
   });
 
@@ -203,6 +207,7 @@ describe("worker de eliminacion de Storage: procesamiento", () => {
     expect(remove).toHaveBeenCalledWith([sano.object_path]);
     expect(rpcArgs(rpc, "complete_storage_deletion_job")).toContainEqual({
       p_job_id: sano.id,
+      p_claim_token: sano.claim_token,
     });
     expect(rpcArgs(rpc, "fail_storage_deletion_job")).toHaveLength(1);
   });
@@ -268,6 +273,7 @@ describe("worker de eliminacion de Storage: lista blanca de bucket", () => {
     expect(remove).toHaveBeenCalledWith([sano.object_path]);
     expect(rpcArgs(rpc, "complete_storage_deletion_job")).toContainEqual({
       p_job_id: sano.id,
+      p_claim_token: sano.claim_token,
     });
     expect(rpcArgs(rpc, "fail_storage_deletion_job")).toHaveLength(1);
   });
@@ -281,6 +287,7 @@ describe("worker de eliminacion de Storage: lista blanca de bucket", () => {
     const failures = rpcArgs(rpc, "fail_storage_deletion_job") as Array<Record<string, unknown>>;
     expect(failures).toHaveLength(1);
     expect(failures[0].p_job_id).toBe(ajeno.id);
+    expect(failures[0].p_claim_token).toBe(ajeno.claim_token);
     expect(String(failures[0].p_error)).toContain("bucket");
   });
 });

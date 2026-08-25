@@ -1,0 +1,123 @@
+﻿node.exe : Connecting to local database...
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Connecting to local database...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: Error loading config file: open C:\Users\Jason\.docker\config.json: Access is denied.
+error getting credentials - err: exit status 1, out: `A specified logon session does not exist. It may already have 
+been terminated.`
+WARNING: Error loading config file: open C:\Users\Jason\.docker\config.json: Access is denied.
+error getting credentials - err: exit status 1, out: `A specified logon session does not exist. It may already have 
+been terminated.`
+WARNING: Error loading config file: open C:\Users\Jason\.docker\config.json: Access is denied.
+error getting credentials - err: exit status 1, out: `A specified logon session does not exist. It may already have 
+been terminated.`
+{"_tag":"Error","error":{"code":"LegacyDockerRunError","message":"failed to pull docker image from all registries: public.ecr.aws/supabase/pg_prove:3.36 attempt 1: WARNING: Error loading config file: open C:\\Users\\Jason\\.docker\\config.json: Access is denied.\nerror getting credentials - err: exit status 1, out: `A specified logon session does not exist. It may already have been terminated.`; ghcr.io/supabase/pg_prove:3.36 attempt 1: WARNING: Error loading config file: open C:\\Users\\Jason\\.docker\\config.json: Access is denied.\nerror getting credentials - err: exit status 1, out: `A specified logon session does not exist. It may already have been terminated.`; supabase/pg_prove:3.36 attempt 1: WARNING: Error loading config file: open C:\\Users\\Jason\\.docker\\config.json: Access is denied.\nerror getting credentials - err: exit status 1, out: `A specified logon session does not exist. It may already have been terminated.`"}}
+exit=1
+
+== VERIFICACION CRUZADA DE ROLES, CODIGO ORIGINAL ==
+== supabase/tests/security_review_role_tenant.sql ==
+1..1
+{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}
+ok 1 - el trigger rechaza asignar a un usuario del gimnasio X un rol del gimnasio Y
+{}
+
+exit=0
+
+== R1 A R5, PRUEBAS ROJAS CONTRA CODIGO ORIGINAL ==
+== supabase/tests/security_review_gym_creation_limit.sql ==
+1..2
+{"sub":"00000000-0000-4000-8000-000000000003","role":"authenticated"}
+ok 1 - el alta self-service permite crear hasta tres gimnasios en 24 horas
+not ok 2 - el cuarto gimnasio del mismo usuario y ventana queda bloqueado
+# Failed test 2: "el cuarto gimnasio del mismo usuario y ventana queda bloqueado"
+#       caught: no exception
+#       wanted: 42501
+{}
+# Looks like you failed 1 test of 2
+== supabase/tests/security_review_person_creation.sql ==
+1..2
+{"sub":"00000000-0000-4000-8000-000000000003","role":"authenticated"}
+not ok 1 - un usuario sin gimnasio ni permiso no puede crear personas
+# Failed test 1: "un usuario sin gimnasio ni permiso no puede crear personas"
+#       caught: no exception
+#       wanted: 42501
+{"sub":"00000000-0000-4000-8000-000000000005","role":"authenticated"}
+ok 2 - recepcion conserva el alta de personas porque tiene members.manage
+{}
+# Looks like you failed 1 test of 2
+== supabase/tests/security_review_truncate_privileges.sql ==
+1..4
+not ok 1 - anon no tiene TRUNCATE sobre ninguna tabla actual de public
+# Failed test 1: "anon no tiene TRUNCATE sobre ninguna tabla actual de public"
+#         have: 58
+#         want: 0
+not ok 2 - authenticated no tiene TRUNCATE sobre ninguna tabla actual de public
+# Failed test 2: "authenticated no tiene TRUNCATE sobre ninguna tabla actual de public"
+#         have: 57
+#         want: 0
+not ok 3 - el privilegio por defecto tampoco entrega TRUNCATE a anon
+# Failed test 3: "el privilegio por defecto tampoco entrega TRUNCATE a anon"
+not ok 4 - el privilegio por defecto tampoco entrega TRUNCATE a authenticated
+# Failed test 4: "el privilegio por defecto tampoco entrega TRUNCATE a authenticated"
+# Looks like you failed 4 tests of 4
+== supabase/tests/security_review_storage_claim_token.sql ==
+1..8
+{"role":"service_role"}
+not ok 1 - cada reclamo devuelve un token de propiedad
+# Failed test 1: "cada reclamo devuelve un token de propiedad"
+#         have: 0
+#         want: 2
+not ok 2 - cada trabajo reclamado recibe un token distinto
+# Failed test 2: "cada trabajo reclamado recibe un token distinto"
+#         have: 0
+#         want: 2
+not ok 3 - completar rechaza un token que no posee el trabajo
+# Failed test 3: "completar rechaza un token que no posee el trabajo"
+#       caught: 42883: function public.complete_storage_deletion_job(unknown, unknown) does not exist
+#       wanted: P0001: Storage deletion claim token does not match
+not ok 4 - fallar rechaza un token que no posee el trabajo
+# Failed test 4: "fallar rechaza un token que no posee el trabajo"
+#       caught: 42883: function public.fail_storage_deletion_job(unknown, unknown, unknown, integer) does not exist
+#       wanted: P0001: Storage deletion claim token does not match
+not ok 5 - completar acepta el token entregado por el reclamo
+# Failed test 5: "completar acepta el token entregado por el reclamo"
+#     died: 42883: function public.complete_storage_deletion_job(uuid, uuid) does not exist
+#         HINT:       No function matches the given name and argument types. You might need to add explicit type casts.
+#         CONTEXT:
+#             PL/pgSQL function lives_ok(text,text) line 14 at EXECUTE
+not ok 6 - fallar acepta el token entregado por el reclamo
+# Failed test 6: "fallar acepta el token entregado por el reclamo"
+#     died: 42883: function public.fail_storage_deletion_job(uuid, uuid, unknown, integer) does not exist
+#         HINT:       No function matches the given name and argument types. You might need to add explicit type casts.
+#         CONTEXT:
+#             PL/pgSQL function lives_ok(text,text) line 14 at EXECUTE
+not ok 7 - el token correcto permite completar el trabajo
+# Failed test 7: "el token correcto permite completar el trabajo"
+#         have: processing
+#         want: completed
+not ok 8 - el token correcto permite reprogramar el trabajo fallido
+# Failed test 8: "el token correcto permite reprogramar el trabajo fallido"
+#         have: processing
+#         want: failed
+# Looks like you failed 8 tests of 8
+== supabase/tests/security_review_permission_catalog.sql ==
+1..4
+{"sub":"00000000-0000-4000-8000-000000000003","role":"authenticated"}
+not ok 1 - un usuario sin gimnasio no puede leer permissions
+# Failed test 1: "un usuario sin gimnasio no puede leer permissions"
+#         have: 26
+#         want: 0
+not ok 2 - un usuario sin gimnasio no puede leer screen_permissions
+# Failed test 2: "un usuario sin gimnasio no puede leer screen_permissions"
+#         have: 14
+#         want: 0
+{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}
+ok 3 - un usuario activo de un gimnasio conserva acceso a permissions
+ok 4 - un usuario activo de un gimnasio conserva acceso a screen_permissions
+{}
+# Looks like you failed 2 tests of 4
+
+exit=1

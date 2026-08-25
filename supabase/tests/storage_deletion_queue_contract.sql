@@ -71,26 +71,26 @@ from generate_series(1, 11) as n;
 -- 908  en curso                   -> se completa
 insert into public.storage_deletion_queue
   (id, media_asset_id, gym_id, bucket_name, object_path,
-   status, attempts, available_at, locked_at, created_at)
+   status, attempts, claim_token, available_at, locked_at, created_at)
 values
   ('b0000000-0000-4000-8000-000000000901', 'a0000000-0000-4000-8000-000000000901',
    '20000000-0000-4000-8000-000000000001', 'gym-media',
    '20000000-0000-4000-8000-000000000001/w2/901.webp',
-   'pending', 0,
+   'pending', 0, null,
    timezone('utc', now()) - interval '1 minute', null,
    timezone('utc', now()) - interval '8 minutes'),
 
   ('b0000000-0000-4000-8000-000000000902', 'a0000000-0000-4000-8000-000000000902',
    '20000000-0000-4000-8000-000000000001', 'gym-media',
    '20000000-0000-4000-8000-000000000001/w2/902.webp',
-   'pending', 0,
+   'pending', 0, null,
    timezone('utc', now()) + interval '1 hour', null,
    timezone('utc', now()) - interval '7 minutes'),
 
   ('b0000000-0000-4000-8000-000000000903', 'a0000000-0000-4000-8000-000000000903',
    '20000000-0000-4000-8000-000000000001', 'gym-media',
    '20000000-0000-4000-8000-000000000001/w2/903.webp',
-   'processing', 1,
+   'processing', 1, 'd0000000-0000-4000-8000-000000000903',
    timezone('utc', now()) - interval '1 hour',
    timezone('utc', now()) - interval '1 hour',
    timezone('utc', now()) - interval '6 minutes'),
@@ -98,7 +98,7 @@ values
   ('b0000000-0000-4000-8000-000000000904', 'a0000000-0000-4000-8000-000000000904',
    '20000000-0000-4000-8000-000000000001', 'gym-media',
    '20000000-0000-4000-8000-000000000001/w2/904.webp',
-   'processing', 1,
+   'processing', 1, 'd0000000-0000-4000-8000-000000000904',
    timezone('utc', now()) - interval '1 hour',
    timezone('utc', now()) - interval '1 minute',
    timezone('utc', now()) - interval '5 minutes'),
@@ -106,7 +106,7 @@ values
   ('b0000000-0000-4000-8000-000000000905', 'a0000000-0000-4000-8000-000000000905',
    '20000000-0000-4000-8000-000000000001', 'gym-media',
    '20000000-0000-4000-8000-000000000001/w2/905.webp',
-   'processing', 5,
+   'processing', 5, 'd0000000-0000-4000-8000-000000000905',
    timezone('utc', now()) - interval '1 hour',
    timezone('utc', now()) - interval '1 hour',
    timezone('utc', now()) - interval '4 minutes'),
@@ -114,7 +114,7 @@ values
   ('b0000000-0000-4000-8000-000000000906', 'a0000000-0000-4000-8000-000000000906',
    '20000000-0000-4000-8000-000000000001', 'gym-media',
    '20000000-0000-4000-8000-000000000001/w2/906.webp',
-   'processing', 5,
+   'processing', 5, 'd0000000-0000-4000-8000-000000000906',
    timezone('utc', now()) - interval '1 hour',
    timezone('utc', now()),
    timezone('utc', now()) - interval '3 minutes'),
@@ -122,7 +122,7 @@ values
   ('b0000000-0000-4000-8000-000000000907', 'a0000000-0000-4000-8000-000000000907',
    '20000000-0000-4000-8000-000000000001', 'gym-media',
    '20000000-0000-4000-8000-000000000001/w2/907.webp',
-   'processing', 1,
+   'processing', 1, 'd0000000-0000-4000-8000-000000000907',
    timezone('utc', now()) - interval '1 hour',
    timezone('utc', now()),
    timezone('utc', now()) - interval '2 minutes'),
@@ -130,7 +130,7 @@ values
   ('b0000000-0000-4000-8000-000000000908', 'a0000000-0000-4000-8000-000000000908',
    '20000000-0000-4000-8000-000000000001', 'gym-media',
    '20000000-0000-4000-8000-000000000001/w2/908.webp',
-   'processing', 1,
+   'processing', 1, 'd0000000-0000-4000-8000-000000000908',
    timezone('utc', now()) - interval '1 hour',
    timezone('utc', now()),
    timezone('utc', now()) - interval '1 minute');
@@ -317,12 +317,14 @@ select ok(
 
 select public.fail_storage_deletion_job(
   'b0000000-0000-4000-8000-000000000906',
+  'd0000000-0000-4000-8000-000000000906',
   'El objeto no existe y nunca va a existir.',
   300
 );
 
 select public.fail_storage_deletion_job(
   'b0000000-0000-4000-8000-000000000907',
+  'd0000000-0000-4000-8000-000000000907',
   'Storage no respondio.',
   300
 );
@@ -382,7 +384,10 @@ select is(
 -- 5. Completado
 -- ---------------------------------------------------------------------------
 
-select public.complete_storage_deletion_job('b0000000-0000-4000-8000-000000000908');
+select public.complete_storage_deletion_job(
+  'b0000000-0000-4000-8000-000000000908',
+  'd0000000-0000-4000-8000-000000000908'
+);
 
 select is(
   (select status from public.storage_deletion_queue
@@ -398,20 +403,24 @@ select ok(
 );
 
 select throws_ok(
-  $$select public.complete_storage_deletion_job('b0000000-0000-4000-8000-000000000902')$$,
+  $$select public.complete_storage_deletion_job(
+      'b0000000-0000-4000-8000-000000000902',
+      'd0000000-0000-4000-8000-000000000902'
+    )$$,
   'P0001',
-  'Processing Storage deletion job not found',
+  'Storage deletion claim token does not match',
   'no se puede completar un trabajo que no esta en curso'
 );
 
 select throws_ok(
   $$select public.fail_storage_deletion_job(
       'b0000000-0000-4000-8000-000000000906',
+      'd0000000-0000-4000-8000-000000000906',
       'ya estaba muerto',
       300
     )$$,
   'P0001',
-  'Processing Storage deletion job not found',
+  'Storage deletion claim token does not match',
   'no se puede fallar un trabajo que ya salio de la rotacion'
 );
 

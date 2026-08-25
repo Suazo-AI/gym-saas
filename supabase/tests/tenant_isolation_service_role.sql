@@ -340,7 +340,8 @@ select throws_ok(
 
 select throws_ok(
   $$ select public.complete_storage_deletion_job(
-       'a4000000-0000-4000-8000-000000000011'
+       'a4000000-0000-4000-8000-000000000011',
+       'd0000000-0000-4000-8000-000000000011'
      ) $$,
   'P0001',
   'service_role is required',
@@ -350,6 +351,7 @@ select throws_ok(
 select throws_ok(
   $$ select public.fail_storage_deletion_job(
        'a4000000-0000-4000-8000-000000000011',
+       'd0000000-0000-4000-8000-000000000011',
        'intento desde un JWT que no es del worker',
        300
      ) $$,
