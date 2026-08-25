@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:db": "supabase test db",
     "drift": "node scripts/check-drift.mjs",
+    "preflight:deploy": "node scripts/deploy-preflight.mjs",
     "preflight": "npm run drift && npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "dependencies": {

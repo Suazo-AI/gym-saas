@@ -20,6 +20,8 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { checkPendingMigrations } from "./lib/check-pending-migrations.mjs";
+
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const STRICT = process.argv.includes("--strict");
 
@@ -131,89 +133,13 @@ function checkFaceDimensions() {
 // Se saltea cuando no hay stack local que consultar, porque en CI la base se
 // levanta desde cero y esta al dia por construccion.
 // ---------------------------------------------------------------------------
-// El CLI de supabase es una devDependency, no esta en el PATH del sistema.
-// Buscarlo por nombre pelado devuelve siempre "no se pudo consultar", que es
-// una barrera que miente en verde. Se resuelve desde node_modules/.bin.
-//
-// En Windows, Node 24 rechaza ejecutar un .cmd directamente (endurecimiento por
-// CVE-2024-27980) y hay que pasar por el interprete de comandos. Es el mismo
-// tropiezo que ya documenta verification/CONTRATO.md: sin esto la revision no
-// arranca nunca y se reporta como "sin veredicto" para siempre.
-const IS_WIN = process.platform === "win32";
-
-function supabaseCommand() {
-  const base = join(REPO, "node_modules", ".bin");
-  if (IS_WIN && existsSync(join(base, "supabase.cmd"))) {
-    return {
-      bin: process.env.COMSPEC || "cmd.exe",
-      prefix: ["/d", "/s", "/c", join(base, "supabase.cmd")],
-    };
-  }
-  if (existsSync(join(base, "supabase"))) {
-    return { bin: join(base, "supabase"), prefix: [] };
-  }
-  return null;
-}
-
-function checkPendingMigrations() {
-  const cli = supabaseCommand();
-  if (!cli) {
-    warn(
-      "migraciones locales",
-      "no se encontro el CLI de supabase en node_modules/.bin. Correr npm ci.",
-    );
-    return;
-  }
-
-  const listed = run(cli.bin, [...cli.prefix, "migration", "list", "--local"]);
-  const out = `${listed.out}${listed.err ?? ""}`;
-
-  // El CLI imprime el error y sale con codigo 0 cuando no hay base a la que
-  // conectarse. Confiar en el exit code deja pasar una salida vacia como
-  // "cero pendientes", que es un verde inventado. Se exige el JSON real.
-  // Cada fila del JSON es {local, remote}: `local` es el archivo versionado en
-  // supabase/migrations y `remote` es la version aplicada en la base. Una fila
-  // con `local` lleno y `remote` vacio es exactamente el caso A4: el archivo
-  // esta en el repositorio y la base no lo corrio.
-  const pending = [];
-  let total = 0;
-  let parsed = false;
-  for (const line of out.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("{")) continue;
-    let payload;
-    try {
-      payload = JSON.parse(trimmed);
-    } catch {
-      continue;
-    }
-    if (!Array.isArray(payload.migrations)) continue;
-    parsed = true;
-    for (const row of payload.migrations) {
-      if (typeof row.local !== "string" || row.local === "") continue;
-      total += 1;
-      if (!row.remote) pending.push(row.local);
-    }
-  }
-
-  if (!parsed) {
-    const reason = /Failed to connect|LegacyDbConnectError/.test(out)
-      ? "el stack local no responde. Levantarlo con:  npx supabase start"
-      : "no se pudo leer la lista de migraciones del CLI";
-    warn("migraciones locales", `${reason}. Sin veredicto.`);
-    return;
-  }
-
-  if (pending.length === 0) {
-    pass("migraciones locales", `${total} migraciones versionadas, ninguna pendiente`);
-    return;
-  }
-
-  fail(
-    "migraciones locales",
-    `${pending.length} de ${total} migracion(es) versionadas que la base local no aplico: ${pending.sort().join(", ")}.\n` +
-      "  Aplicar con:  npx supabase migration up  (o  npx supabase db reset  si podes perder los datos locales)",
-  );
+// La lectura del CLI y el parseo viven en scripts/lib para que el preflight de
+// despliegue use la misma regla.
+function checkLocalMigrations() {
+  const result = checkPendingMigrations({ repo: REPO });
+  if (result.status === "pass") pass("migraciones locales", result.detail);
+  else if (result.status === "fail") fail("migraciones locales", result.detail);
+  else warn("migraciones locales", result.detail);
 }
 
 // ---------------------------------------------------------------------------
@@ -280,7 +206,7 @@ function checkGraphFreshness() {
 // ---------------------------------------------------------------------------
 
 checkFaceDimensions();
-checkPendingMigrations();
+checkLocalMigrations();
 checkUncommittedWork();
 checkGraphFreshness();
 

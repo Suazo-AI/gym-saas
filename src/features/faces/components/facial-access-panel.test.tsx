@@ -10,7 +10,9 @@ vi.mock("@/features/faces/capture/face-camera", () => ({
 import {
   decisionLabel,
   FacialAccessPanel,
+  requestFaceWarmup,
   requestFaceVerification,
+  serviceStatusLabel,
 } from "./facial-access-panel";
 
 describe("FacialAccessPanel", () => {
@@ -26,6 +28,28 @@ describe("FacialAccessPanel", () => {
 
     expect(html).toContain("Cámara facial");
     expect(html).toContain('data-frame-count="1"');
+    expect(html).toContain("Servicio despertando...");
+  });
+
+  it("warms the facial service without sending its URL or token", async () => {
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ ok: true, ms: 22_680 }),
+    });
+
+    await expect(requestFaceWarmup(request)).resolves.toBeUndefined();
+    expect(request).toHaveBeenCalledWith("/api/face/warm", {
+      method: "GET",
+      cache: "no-store",
+    });
+  });
+
+  it.each([
+    ["warming", "Servicio despertando..."],
+    ["ready", "Servicio listo para escanear."],
+    ["error", "Servicio no disponible. Recarga la página para intentar de nuevo."],
+  ] as const)("shows the %s service state", (status, label) => {
+    expect(serviceStatusLabel(status)).toBe(label);
   });
 
   it("sends only the captured image to the existing verification route", async () => {
