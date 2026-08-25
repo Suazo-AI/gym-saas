@@ -1,0 +1,43 @@
+﻿FITMANAGER BACKUP AND RESTORE EVIDENCE 2026-08-24
+Source: local Supabase stack, database postgres.
+Target: a separate local Supabase stack, its own cluster and its own empty database.
+
+POSTGRES_BACKUP=PASS FILES=7
+MISSING_CONFIRM_FLAG_GUARD=PASS
+NON_EMPTY_TARGET_GUARD=PASS
+
+Injected failure after the data and the 50 migration rows:
+FAULT_RESTORE_EXIT=1
+ROLLBACK_SEQUENCE_STATE=1|false
+ROLLBACK_PUBLIC_OBJECTS=0
+ROLLBACK_AUTH_USERS=0
+RETRY_AFTER_ROLLBACK=RESTORE_APPLY=PASS
+
+Restored target after the retry:
+RESTORED_PUBLIC_OBJECTS=187
+RESTORED_MIGRATION_ROWS=50
+RESTORED_AUTH_USERS=5
+
+RESTORE_CHECK=table_inventory ROWS=86 DIFF=0
+RESTORE_CHECK=table_data ROWS=86 DIFF=0
+RESTORE_CHECK=sequence_inventory ROWS=6 DIFF=0
+RESTORE_CHECK=sequence_state ROWS=6 DIFF=0
+RESTORE_CHECK=columns ROWS=633 DIFF=0
+RESTORE_CHECK=constraints ROWS=249 DIFF=0
+RESTORE_CHECK=indexes ROWS=122 DIFF=0
+RESTORE_CHECK=functions ROWS=89 DIFF=0
+RESTORE_CHECK=views ROWS=10 DIFF=0
+RESTORE_CHECK=types ROWS=16 DIFF=0
+RESTORE_CHECK=enums ROWS=70 DIFF=0
+RESTORE_CHECK=owners ROWS=172 DIFF=0
+RESTORE_CHECK=privileges ROWS=1737 DIFF=0
+RESTORE_CHECK=policies ROWS=147 DIFF=0
+RESTORE_CHECK=rls ROWS=85 DIFF=0
+RESTORE_CHECK=triggers ROWS=75 DIFF=0
+All tests successful.
+Files=38, Tests=559,  4 wallclock secs ( 0.22 usr  0.09 sys +  0.40 cusr  0.19 csys =  0.90 CPU)
+Result: PASS
+RESTORE_VERIFICATION=PASS
+
+STORAGE_BYTES_RECOVERY=DOCUMENTED_NOT_EXERCISED
+The source gym-media bucket held zero objects, so no real file was restored.

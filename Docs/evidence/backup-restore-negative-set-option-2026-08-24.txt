@@ -1,0 +1,36 @@
+RESTORE_CHECK=table_inventory ROWS=86 DIFF=0
+RESTORE_CHECK=table_data ROWS=86 DIFF=0
+RESTORE_CHECK=sequence_inventory ROWS=6 DIFF=0
+RESTORE_CHECK=sequence_state ROWS=6 DIFF=0
+RESTORE_CHECK=columns ROWS=633 DIFF=0
+RESTORE_CHECK=constraints ROWS=249 DIFF=0
+RESTORE_CHECK=indexes ROWS=122 DIFF=0
+RESTORE_CHECK=functions ROWS=89 DIFF=0
+RESTORE_CHECK=views ROWS=10 DIFF=0
+RESTORE_CHECK=types ROWS=16 DIFF=0
+RESTORE_CHECK=enums ROWS=70 DIFF=0
+RESTORE_CHECK=owners ROWS=172 DIFF=0
+RESTORE_CHECK=privileges ROWS=1737 DIFF=0
+RESTORE_CHECK=policies ROWS=90 DIFF=0
+RESTORE_CHECK=rls ROWS=85 DIFF=0
+RESTORE_CHECK=triggers ROWS=75 DIFF=0
+RESTORE_CHECK=extensions ROWS=7 DIFF=0
+RESTORE_CHECK=roles ROWS=33 DIFF=0
+
+InputObject                                                            SideIndicator
+-----------                                                            -------------
+["nm_br_parent", "nm_br_member", "supabase_admin", true, false, true]  =>           
+["nm_br_parent", "nm_br_member", "supabase_admin", true, false, false] <=           
+
+
+Restore comparison failed: role_members
+At 
+C:\Users\Jason\.no-mistakes\worktrees\e07c46ea550f\01M0VC6K4WS8KVG3FVYXVRT0QP\scripts\verify-restored-database.ps1:109 
+char:5
++     throw "Restore comparison failed: $Name"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Restore comparison failed: role_members:String) [], RuntimeException
+    + FullyQualifiedErrorId : Restore comparison failed: role_members
+ 
+EXPECTED_FAILURE=set_option_mismatch
+VERIFIER_EXIT=1
