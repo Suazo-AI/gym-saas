@@ -398,18 +398,24 @@ order by 1;
 select r.rolname || '|' || r.rolsuper::text || '|' || r.rolinherit::text || '|' ||
   r.rolcreaterole::text || '|' || r.rolcreatedb::text || '|' || r.rolcanlogin::text || '|' ||
   r.rolreplication::text || '|' || r.rolbypassrls::text || '|' || r.rolconnlimit::text || '|' ||
-  coalesce(r.rolvaliduntil::text, '')
+  coalesce(r.rolvaliduntil::text, '') || '|' ||
+  coalesce((
+    select jsonb_agg(setting order by setting collate "C")::text
+    from unnest(r.rolconfig) config(setting)
+  ), '[]')
 from pg_roles r
-order by 1;
+order by r.rolname collate "C";
 '@
   role_members = @'
 select granted.rolname || '|' || member.rolname || '|' ||
-  grantor.rolname || '|' || m.admin_option::text
+  grantor.rolname || '|' || m.admin_option::text || '|' ||
+  coalesce(to_jsonb(m)->>'inherit_option', 'true') || '|' ||
+  coalesce(to_jsonb(m)->>'set_option', 'true')
 from pg_auth_members m
 join pg_roles granted on granted.oid = m.roleid
 join pg_roles member on member.oid = m.member
 join pg_roles grantor on grantor.oid = m.grantor
-order by 1;
+order by granted.rolname collate "C", member.rolname collate "C", grantor.rolname collate "C";
 '@
 }
 
