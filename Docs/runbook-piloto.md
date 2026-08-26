@@ -141,7 +141,116 @@ npm run preflight:deploy -- --skip-remote
 
 ---
 
-## 5. Limites del plan gratis, medidos
+## 5. Gimnasio de demostracion, en tu maquina
+
+Antes de montar nada en la nube conviene tener la demostracion corriendo local.
+No cuesta nada, no consume el cupo de dos proyectos de Supabase, y sirve para
+mostrar el producto sin internet.
+
+El gimnasio se llama **Vertice Fitness** y es inventado. Tiene 80 socios,
+tres meses de cobros y treinta dias de entradas diarias.
+
+### 5.1 Levantarlo
+
+Con Docker Desktop encendido, desde la raiz del repositorio:
+
+```bash
+npx supabase start
+```
+
+```bash
+npx supabase db reset
+```
+
+`db reset` aplica las 52 migraciones y carga `supabase/seed.sql`, que trae los
+dos gimnasios chicos de desarrollo. La demostracion va aparte:
+
+```bash
+docker cp supabase/seed-demo.sql supabase_db_gym-saas:/tmp/seed-demo.sql
+```
+
+```bash
+docker exec supabase_db_gym-saas psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f /tmp/seed-demo.sql
+```
+
+Y la biometria, que va en su propio archivo por un motivo que esta explicado
+abajo:
+
+```bash
+docker cp supabase/seed-demo-faces.sql supabase_db_gym-saas:/tmp/faces.sql
+```
+
+```bash
+docker exec supabase_db_gym-saas psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f /tmp/faces.sql
+```
+
+Los dos archivos se pueden correr dos veces sin romper nada: si los datos ya
+estan, avisan y no hacen nada.
+
+Para empezar de cero, `npx supabase db reset` otra vez. No hay script que borre
+solo el gimnasio de demostracion, y no es un olvido: el trigger
+`private.prevent_physical_delete` prohibe el `DELETE` fisico sobre suscripciones
+y demas historia financiera. Esa barrera vale mas que la comodidad de un reset
+selectivo.
+
+### 5.2 Entrar
+
+```bash
+npm run dev
+```
+
+| Cuenta | Contrasena | Que ve |
+|---|---|---|
+| `demo-owner@fitmanager.local` | `LocalDev123!` | todo, es el dueno |
+| `demo-reception@fitmanager.local` | `LocalDev123!` | lo que puede recepcion, ni un permiso mas |
+
+La segunda cuenta es la que conviene mostrarle a un dueno de gimnasio: deja ver
+que la recepcionista no llega a los ingresos ni al personal.
+
+### 5.3 Que hay adentro
+
+| Cosa | Cantidad |
+|---|---|
+| Socios | 80 |
+| Al dia | 62 |
+| Morosos | 10 |
+| Inactivos | 5 |
+| Prospectos | 3 |
+| Cargos de membresia | 176 |
+| Pagos con recibo | 161 |
+| Entradas de los ultimos 30 dias | 988 |
+| Ventas de mostrador | 167 |
+
+El panel del dueno muestra alrededor de 149,000 NIO en el mes y unas 32 entradas
+en el dia. Los numeros exactos cambian segun el dia en que corras el seed,
+porque todo se calcula contra `current_date`.
+
+Las alertas no se inventan: el trigger `trg_member_entry_create_alert` crea una
+por cada entrada denegada, igual que en un gimnasio de verdad.
+
+### 5.4 Lo que la demostracion NO prueba
+
+**El reconocimiento facial no reconoce a nadie en este ambiente.**
+
+`seed-demo-faces.sql` llena la tabla de embeddings con numeros al azar. Con eso
+alcanza para que el panel diga "72 socios con cara registrada", para que el
+indice HNSW tenga con que trabajar, y para que `verify_face_access` corra su
+logica completa. De hecho corre bien: probado con los tres casos, devuelve
+`allowed` para un socio al dia, `denied` para un moroso y `no_match` para un
+vector desconocido.
+
+Lo que no hace es reconocer una cara. Si abris la pantalla de acceso facial y te
+parás frente a la camara, el sistema va a decir que no te conoce, y va a tener
+razon: tu cara no esta en esa tabla.
+
+Para cerrar esa prueba hacen falta fotos de caras de frente pasadas por el
+servicio de Render, que es el unico que produce un embedding que significa algo.
+Cada fila sintetica queda marcada con `quality_score = 0.111` y consentimiento
+`DEMO-SINTETICO` justamente para que nadie la confunda con biometria real.
+
+---
+
+## 6. Limites del plan gratis, medidos
 
 No son sorpresas. Son el precio de no pagar, y hay que operar sabiendolos.
 
@@ -185,7 +294,7 @@ El procedimiento completo, con lo que compara el verificador y la evidencia medi
 
 ---
 
-## 6. Que queda pendiente cuando haya presupuesto
+## 7. Que queda pendiente cuando haya presupuesto
 
 Ninguna de estas dos es urgente para arrancar. Las dos dejan de doler el dia que se pagan.
 
