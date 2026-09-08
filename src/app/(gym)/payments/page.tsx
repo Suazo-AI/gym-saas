@@ -28,7 +28,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
       <section className="mt-6 rounded-lg border border-gray-300 bg-paper shadow-sm">
         <div className="border-b border-gray p-5">
           <h2 className="text-xl font-black text-ink">Pagos por periodo</h2>
-          <p className="mt-1 text-sm text-gray-300">Filtra el historial por la fecha en que se recibió cada pago.</p>
+          <p className="mt-1 text-sm text-gray">Filtra el historial por la fecha en que se recibió cada pago.</p>
         </div>
         <PersistedDateRangeForm from={params.from} storageKey="fitmanager:payments-date-range" to={params.to} />
       </section>

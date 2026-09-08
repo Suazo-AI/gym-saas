@@ -1,18 +1,14 @@
 import Link from "next/link";
 
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { PlatformShell } from "@/features/platform/components/platform-shell";
 import { CreatePlatformGymForm } from "@/features/platform/components/create-platform-gym-form";
-import { requirePlatformAdmin } from "@/features/platform/services/platform-access";
 import { getPlatformDashboard } from "@/features/platform/services/platform.repository";
 
 export default async function PlatformGymsPage() {
-  const { user, navigation } = await requirePlatformAdmin();
-
   const dashboard = await getPlatformDashboard();
 
   return (
-    <PlatformShell currentPath="/platform/gyms" navigation={navigation} userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="Clientes"
         title="Gimnasios del SaaS"
@@ -58,6 +54,6 @@ export default async function PlatformGymsPage() {
           </tbody>
         </table>
       </section>
-    </PlatformShell>
+    </>
   );
 }

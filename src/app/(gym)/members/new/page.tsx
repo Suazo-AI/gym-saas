@@ -32,7 +32,7 @@ export default async function NewMemberPage({ searchParams }: NewMemberPageProps
       <ModuleHeader
         eyebrow="Registro"
         title="Nuevo miembro"
-        description="Alta con sucursal, plan, cargo y pago inicial mediante RPC transaccional."
+        description="Registra al miembro con su sucursal, plan y pago inicial."
       />
       {params.error ? (
         <div className="mt-6 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-bold text-orange-900">

@@ -89,7 +89,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
       <section className="mt-6 rounded-lg border border-gray-300 bg-paper shadow-sm">
         <div className="border-b border-gray p-5">
           <h2 className="text-xl font-black text-ink">Registrar entrada manual</h2>
-          <p className="mt-1 text-sm text-gray-300">
+          <p className="mt-1 text-sm text-gray">
             Busca por nombre, teléfono o código y selecciona al miembro correcto.
           </p>
         </div>
@@ -174,7 +174,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
       <section className="mt-6 rounded-lg border border-gray-300 bg-paper shadow-sm">
         <div className="border-b border-gray p-5">
           <h2 className="text-xl font-black text-ink">Entradas por periodo</h2>
-          <p className="mt-1 text-sm text-gray-300">
+          <p className="mt-1 text-sm text-gray">
             Historial manual y facial visible para tu gimnasio.
           </p>
         </div>
@@ -186,7 +186,7 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
             No pudimos cargar las entradas. Intenta nuevamente.
           </LoadError>
         ) : entriesResult.length === 0 ? (
-          <p className="p-5 text-sm text-gray-300">Todavía no hay entradas registradas.</p>
+          <p className="p-5 text-sm text-gray">Todavía no hay entradas registradas.</p>
         ) : (
           <div className="divide-y divide-gray">
             {entriesResult.map((entry) => {

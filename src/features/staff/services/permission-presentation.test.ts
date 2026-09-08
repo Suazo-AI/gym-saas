@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { describeEffectivePermissions, describeRoleLimits } from "./permission-presentation";
+import { describeEffectivePermissions, describeRoleLimits, displayRoleName } from "./permission-presentation";
 
 describe("permission presentation", () => {
   it("translates, groups and sorts effective permission codes", () => {
@@ -21,5 +21,16 @@ describe("permission presentation", () => {
       code: "future.capability",
       label: "future.capability",
     });
+  });
+
+  it("keeps SaaS subscription permissions out of the gym staff view", () => {
+    expect(describeEffectivePermissions(["billing.read", "billing.manage", "members.read"])).toEqual([
+      { group: "Miembros", items: [{ code: "members.read", label: "Ver miembros" }] },
+    ]);
+  });
+
+  it("localizes system role names", () => {
+    expect(displayRoleName("owner", "Owner", "es")).toBe("Dueño");
+    expect(displayRoleName("owner", "Dueño", "en")).toBe("Owner");
   });
 });
