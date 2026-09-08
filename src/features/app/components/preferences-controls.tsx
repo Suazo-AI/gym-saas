@@ -8,6 +8,10 @@ export type Locale = "es" | "en";
 export type ThemePreference = "light" | "dark" | "system";
 const eventName = "fitmanager-preferences";
 
+export function useLocale() {
+  return usePreference<Locale>("fitmanager-locale", "es");
+}
+
 export function PreferencesControls() {
   const locale = usePreference<Locale>("fitmanager-locale", "es");
   const theme = usePreference<ThemePreference>("fitmanager-theme", "system");

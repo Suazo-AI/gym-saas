@@ -50,7 +50,7 @@ export function GymLogoForm({ currentLogoUrl }: { currentLogoUrl: string | null 
           <button className="min-h-11 rounded-lg bg-brand-green px-4 font-black text-white disabled:opacity-60" disabled={!imageBase64 || pending} type="submit">{pending ? "Guardando…" : "Guardar logo"}</button>
         </form>
       </div>
-      <p className="mt-3 text-xs text-gray">Se comprime a WebP y se guarda en el bucket privado del gimnasio.</p>
+      <p className="mt-3 text-xs text-gray">La imagen se ajusta automáticamente antes de guardarla.</p>
     </section>
   );
 }

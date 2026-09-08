@@ -1,6 +1,4 @@
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { PlatformShell } from "@/features/platform/components/platform-shell";
-import { requirePlatformAdmin } from "@/features/platform/services/platform-access";
 import { getPlatformGymDetail } from "@/features/platform/services/platform.repository";
 
 type PlatformGymDetailPageProps = {
@@ -9,13 +7,11 @@ type PlatformGymDetailPageProps = {
 };
 
 export default async function PlatformGymDetailPage({ params, searchParams }: PlatformGymDetailPageProps) {
-  const { user, navigation } = await requirePlatformAdmin();
-
   const [{ gymId }, query] = await Promise.all([params, searchParams]);
   const detail = await getPlatformGymDetail(gymId);
 
   return (
-    <PlatformShell currentPath="/platform/gyms" navigation={navigation} userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="Cliente SaaS"
         title={detail.gym.trade_name}
@@ -84,7 +80,7 @@ export default async function PlatformGymDetailPage({ params, searchParams }: Pl
           </div>
         </Panel>
       </section>
-    </PlatformShell>
+    </>
   );
 }
 
