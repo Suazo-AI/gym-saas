@@ -24,13 +24,20 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
 
   return (
     <>
-      <ModuleHeader eyebrow="Pagos" title="Cobros y recibos" description="Modulo protegido para registrar pagos, asignarlos a cargos y conservar historial financiero." action={<Link className="min-h-11 rounded-md bg-brand-green px-5 py-3 text-center text-sm font-black text-white" href="/payments/day-pass">Registrar pase diario</Link>} />
-      <section className="mt-6 rounded-lg border border-gray-300 bg-paper shadow-sm">
-        <div className="border-b border-gray p-5">
-          <h2 className="text-xl font-black text-ink">Pagos por periodo</h2>
-          <p className="mt-1 text-sm text-gray-300">Filtra el historial por la fecha en que se recibió cada pago.</p>
+      <ModuleHeader eyebrow="Pagos" title="Cobros y recibos" description="Modulo protegido para registrar pagos, asignarlos a cargos y conservar historial financiero." action={<Link className="btn btn-secondary" href="/payments/day-pass">Registrar pase diario</Link>} />
+      <section className="panel mt-6 overflow-hidden">
+        <div className="panel-head">
+          <div>
+            <h2 className="type-heading">Pagos por periodo</h2>
+            <p className="mt-0.5 text-sm text-muted">Filtra el historial por la fecha en que se recibió cada pago.</p>
+          </div>
         </div>
-        <PersistedDateRangeForm from={params.from} storageKey="fitmanager:payments-date-range" to={params.to} />
+        <details className="group p-4 sm:p-0 sm:[&::details-content]:[content-visibility:visible]">
+          <summary className="btn btn-secondary cursor-pointer list-none group-open:mb-3 sm:hidden [&::-webkit-details-marker]:hidden">Filtros</summary>
+          <div className="hidden group-open:block sm:block [&_form]:border-b-0 [&_form]:p-0 sm:[&_form]:p-4 [&_input]:min-w-0 [&_input]:tabular">
+            <PersistedDateRangeForm from={params.from} storageKey="fitmanager:payments-date-range" to={params.to} />
+          </div>
+        </details>
       </section>
       {!payments||!charges||!methods?<LoadError className="mt-6">No pudimos cargar el módulo de pagos.</LoadError>:<PaymentManagement charges={charges} methods={methods} payments={payments}/>}
     </>

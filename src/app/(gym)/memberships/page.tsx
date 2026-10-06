@@ -16,7 +16,7 @@ export default async function MembershipsPage() {
   return (
     <>
       <ModuleHeader eyebrow="Membresías" title="Planes de membresía" description="Configura precios, duración, renovación y disponibilidad para el gimnasio activo." />
-      {!plans ? <LoadError className="mt-6"><h2 className="font-black">No pudimos cargar los planes</h2><p className="mt-1">Intenta nuevamente en unos minutos.</p></LoadError> : <MembershipPlanManagement plans={plans} canManage={canManage} deletedPlans={deletedPlans ?? []} deletedPlansUnavailable={deletedPlans === null} />}
+      {!plans ? <LoadError className="mt-6"><h2 className="type-heading">No pudimos cargar los planes</h2><p className="mt-1">Intenta nuevamente en unos minutos.</p></LoadError> : <MembershipPlanManagement plans={plans} canManage={canManage} deletedPlans={deletedPlans ?? []} deletedPlansUnavailable={deletedPlans === null} />}
     </>
   );
 }
