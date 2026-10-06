@@ -29,17 +29,17 @@ export function ActiveGymSwitcher({
 
   return (
     <div>
-      <small className="font-black uppercase tracking-[0.16em] text-brand-sand">
+      <small className="type-eyebrow block">
         Gimnasio activo
       </small>
       <form action={action} className="mt-2">
         <GymSelect activeGymId={activeGym.gymId} gyms={availableGyms} selectId={selectId} />
       </form>
-      <p aria-live="polite" className="mt-2 min-h-5 text-xs font-semibold text-gray-light">
+      <p aria-live="polite" className="mt-1 min-h-4 text-xs font-semibold text-stop">
         {state?.error ? <span role="alert">{state.error}</span> : null}
       </p>
-      <span className="block text-sm text-gray-light">
-        {activeGym.defaultCurrency} / {activeGym.timezone}
+      <span className="block text-xs text-muted">
+        {activeGym.defaultCurrency} · {activeGym.timezone}
       </span>
     </div>
   );
@@ -48,12 +48,12 @@ export function ActiveGymSwitcher({
 function GymIdentity({ activeGym }: { activeGym: ActiveGymDto }) {
   return (
     <div>
-      <small className="font-black uppercase tracking-[0.16em] text-brand-sand">
+      <small className="type-eyebrow block">
         Gimnasio activo
       </small>
-      <strong className="mt-2 block text-xl">{activeGym.tradeName}</strong>
-      <span className="mt-1 block text-sm text-gray-light">
-        {activeGym.defaultCurrency} / {activeGym.timezone}
+      <strong className="mt-1 block text-sm font-semibold text-ink">{activeGym.tradeName}</strong>
+      <span className="mt-0.5 block text-xs text-muted">
+        {activeGym.defaultCurrency} · {activeGym.timezone}
       </span>
     </div>
   );
@@ -67,7 +67,7 @@ function GymSelect({ activeGymId, gyms, selectId }: { activeGymId: string; gyms:
       <label className="sr-only" htmlFor={selectId}>Cambiar gimnasio activo</label>
       <select
         aria-label="Cambiar gimnasio activo"
-        className="min-h-11 w-full rounded-md border border-white/20 bg-[#111814] px-3 text-sm font-black text-white outline-none focus:border-brand-lime focus:ring-2 focus:ring-brand-lime/30"
+        className="field mt-1.5 min-h-10 text-sm font-semibold"
         defaultValue={activeGymId}
         disabled={pending}
         id={selectId}
@@ -78,7 +78,7 @@ function GymSelect({ activeGymId, gyms, selectId }: { activeGymId: string; gyms:
           <option key={gym.gymId} value={gym.gymId}>{gym.tradeName}</option>
         ))}
       </select>
-      {pending ? <span className="mt-2 block text-xs text-brand-sand">Cambiando gimnasio...</span> : null}
+      {pending ? <span className="mt-1 block text-xs text-muted">Cambiando gimnasio...</span> : null}
     </>
   );
 }

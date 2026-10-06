@@ -18,7 +18,22 @@ import type {
 } from "../types/payment.dto";
 
 const initial: PaymentActionState = { ok: false };
-const input = "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2";
+const input = "field min-w-0";
+const statusLabels: Record<string, string> = {
+  pending: "Pendiente",
+  processing: "Procesando",
+  settled: "Pagado",
+  paid: "Pagado",
+  failed: "Fallido",
+  refunded: "Reembolsado",
+  partially_refunded: "Reembolso parcial",
+  void: "Anulado",
+};
+const statusChips: Record<string, string> = {
+  settled: "chip-ok", paid: "chip-ok",
+  void: "chip-stop", failed: "chip-stop", refunded: "chip-stop",
+  partially_refunded: "chip-wait", pending: "chip-wait", processing: "chip-wait",
+};
 
 export function PaymentManagement({
   charges,
@@ -35,18 +50,18 @@ export function PaymentManagement({
   const [state, action, pending] = useActionState(recordPaymentAction, initial);
 
   return (
-    <div className="mt-6 grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-black uppercase tracking-[.16em] text-brand-green">Nuevo cobro</p>
-        <h2 className="mt-2 text-xl font-black text-ink">Registrar pago</h2>
+    <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+      <section className="panel min-w-0 p-5">
+        <p className="type-eyebrow">Nuevo cobro</p>
+        <h2 className="type-heading mt-1">Registrar pago</h2>
         {charges.length === 0 ? (
-          <p className="mt-4 text-gray">No hay cargos pendientes por cobrar.</p>
+          <p className="mt-4 text-sm text-muted">No hay cargos pendientes por cobrar.</p>
         ) : (
           <form action={action} className="mt-5 grid gap-4">
-            <label className="text-sm font-bold">
+            <label className="field-label min-w-0">
               Cargo
               <select
-                className={input}
+                className={`${input} tabular`}
                 name="chargeId"
                 onChange={(event) => {
                   setSelected(event.target.value);
@@ -64,10 +79,10 @@ export function PaymentManagement({
             </label>
             <input name="gymMemberId" type="hidden" value={charge?.gymMemberId ?? ""} />
             <input name="currency" type="hidden" value={charge?.currency ?? ""} />
-            <label className="text-sm font-bold">
-              Monto
+            <label className="field-label">
+              Monto{charge ? <span className="tabular"> ({charge.currency})</span> : null}
               <input
-                className={input}
+                className={`${input} tabular`}
                 defaultValue={charge?.amountDue ?? ""}
                 disabled={!charge}
                 inputMode="decimal"
@@ -79,26 +94,26 @@ export function PaymentManagement({
             </label>
             <div
               aria-live="polite"
-              className={`rounded-xl border p-4 ${charge ? "border-brand-green bg-green-50" : "border-slate-200 bg-slate-50"}`}
+              className={`rounded-xl border border-line p-4 ${charge ? "bg-accent-tint" : "bg-fill"}`}
             >
               {charge ? (
                 <>
-                  <p className="text-xs font-black uppercase tracking-[.16em] text-brand-green">
+                  <p className="type-eyebrow">
                     Miembro y cargo seleccionados
                   </p>
-                  <strong className="mt-2 block text-lg text-ink">{charge.memberLabel}</strong>
-                  <p className="mt-1 text-sm font-semibold text-gray">
+                  <strong className="mt-2 block break-words text-lg text-ink">{charge.memberLabel}</strong>
+                  <p className="tabular mt-1 text-sm text-muted">
                     Vence {charge.dueDate} · Saldo {charge.currency} {charge.amountDue}
                   </p>
                 </>
               ) : (
                 <>
                   <strong className="block text-ink">No hay cargo seleccionado</strong>
-                  <p className="mt-1 text-sm text-gray">Elige el miembro y revisa el saldo antes de cobrar.</p>
+                  <p className="mt-1 text-sm text-muted">Elige el miembro y revisa el saldo antes de cobrar.</p>
                 </>
               )}
             </div>
-            <label className="text-sm font-bold">
+            <label className="field-label">
               Método
               <select
                 className={input}
@@ -114,13 +129,13 @@ export function PaymentManagement({
                 ))}
               </select>
             </label>
-            <label className="text-sm font-bold">
+            <label className="field-label">
               Notas
               <input className={input} name="notes" maxLength={500} />
             </label>
             <Message state={state} />
             <button
-              className="min-h-11 rounded-lg bg-brand-green px-4 font-black text-white disabled:opacity-60"
+              className="btn btn-lg btn-primary whitespace-normal"
               disabled={!charge || !paymentMethodId || pending}
               type="submit"
             >
@@ -128,7 +143,7 @@ export function PaymentManagement({
             </button>
           </form>
         )}
-        <p className="mt-4 text-xs text-gray">
+        <p className="mt-4 text-xs leading-relaxed text-muted">
           Puedes cobrar un abono o el saldo completo en la moneda del cargo. La tasa vigente queda
           guardada como referencia histórica.
         </p>
@@ -140,14 +155,17 @@ export function PaymentManagement({
 
 function PaymentList({ payments }: { payments: PaymentSummaryDto[] }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="p-5"><h2 className="text-xl font-black text-ink">Pagos recientes</h2></div>
+    <section className="panel min-w-0 overflow-hidden">
+      <div className="panel-head"><h2 className="type-heading">Pagos recientes</h2></div>
       {payments.length === 0 ? (
-        <p className="p-5 text-gray">No hay pagos registrados.</p>
+        <p className="p-5 text-sm text-muted">No hay pagos registrados.</p>
       ) : (
-        <div className="divide-y">
-          {payments.map((payment) => <PaymentRow key={payment.id} payment={payment} />)}
-        </div>
+        <>
+          <div aria-hidden="true" className="type-eyebrow hidden grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-line bg-fill px-5 py-3 sm:grid"><span>Recibo</span><span className="w-28 text-right">Monto</span><span className="w-36 text-right">Estado</span></div>
+          <ul className="divide-y divide-line">
+            {payments.map((payment) => <li key={payment.id}><PaymentRow payment={payment} /></li>)}
+          </ul>
+        </>
       )}
     </section>
   );
@@ -161,53 +179,57 @@ function PaymentRow({ payment }: { payment: PaymentSummaryDto }) {
   );
   const canRefund = payment.status === "settled" || payment.status === "partially_refunded";
   return (
-    <article className="p-4">
-      <div className="flex flex-wrap justify-between gap-3">
-        <div>
+    <article className="min-w-0 px-5 py-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <div className="hidden min-w-0 sm:block">
           <Link
-            className="mb-2 inline-block text-sm font-black text-brand-green underline"
+            className="row-link tabular block truncate rounded-md text-sm font-semibold text-accent underline underline-offset-4"
             href={`/payments/${payment.id}/receipt`}
           >
-            Recibo
+            Recibo <span>{payment.receiptNumber}</span>
           </Link>
-          <strong className="block text-ink">{payment.receiptNumber}</strong>
-          <p className="text-sm text-gray">
-            {payment.currency} {payment.amount} · {payment.status} · tasa C${payment.appliedNioPerUsd}
-          </p>
         </div>
+        <strong className="tabular text-ink sm:w-28 sm:text-right">{payment.currency} {payment.amount}</strong>
+        <span className="flex justify-end sm:w-36"><span className={`chip ${statusChips[payment.status] ?? "chip-neutral"}`}>{statusLabels[payment.status] ?? payment.status}</span></span>
+        <p className="tabular col-span-2 min-w-0 break-words text-sm text-muted sm:col-span-3">
+          <Link className="row-link rounded-md text-accent underline underline-offset-4 sm:hidden" href={`/payments/${payment.id}/receipt`}>Recibo {payment.receiptNumber}</Link>
+          <span className="sm:hidden"> · </span>Tasa C${payment.appliedNioPerUsd}
+        </p>
+      </div>
+      <div className="mt-3 flex flex-wrap items-start gap-2">
         {payment.status === "settled" ? (
-          <details>
-            <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-amber-50 px-4 py-3 text-sm font-black text-amber-900">
+          <details className="min-w-0 max-w-full open:basis-full">
+            <summary className="btn btn-secondary cursor-pointer list-none text-stop [&::-webkit-details-marker]:hidden">
               Anular
             </summary>
-            <form action={voidAction} className="mt-2 flex gap-2">
+            <form action={voidAction} className="mt-3 grid gap-3 rounded-xl border border-line bg-fill p-4">
               <input name="paymentId" type="hidden" value={payment.id} />
-              <input className={input} name="reason" placeholder="Motivo" required />
-              <button className="rounded-lg bg-red-700 px-3 text-sm font-black text-white" disabled={voidPending}>
+              <label className="field-label">Motivo<input className={input} name="reason" placeholder="Motivo" required /></label>
+              <button className="btn btn-secondary text-stop" disabled={voidPending}>
                 Confirmar
               </button>
             </form>
           </details>
         ) : null}
         {canRefund ? (
-          <details>
-            <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-amber-50 px-4 py-3 text-sm font-black text-amber-900">
+          <details className="min-w-0 max-w-full open:basis-full">
+            <summary className="btn btn-secondary cursor-pointer list-none text-stop [&::-webkit-details-marker]:hidden">
               Reembolsar
             </summary>
-            <form action={refundAction} className="mt-2 grid gap-2 sm:grid-cols-2">
+            <form action={refundAction} className="mt-3 grid gap-3 rounded-xl border border-line bg-fill p-4 sm:grid-cols-2">
               <input name="paymentId" type="hidden" value={payment.id} />
-              <input
-                className={input}
+              <label className="field-label">Monto <span className="tabular">({payment.currency})</span><input
+                className={`${input} tabular`}
                 inputMode="decimal"
                 max={payment.amount}
                 name="amount"
                 pattern="^\d+(\.\d{1,2})?$"
                 placeholder="Monto"
                 required
-              />
-              <input className={input} name="reason" placeholder="Motivo" required />
+              /></label>
+              <label className="field-label">Motivo<input className={input} name="reason" placeholder="Motivo" required /></label>
               <button
-                className="rounded-lg bg-amber-700 px-3 py-2 text-sm font-black text-white disabled:opacity-60 sm:col-span-2"
+                className="btn btn-secondary whitespace-normal text-stop sm:col-span-2"
                 disabled={refundPending}
               >
                 {refundPending ? "Registrando..." : "Confirmar reembolso"}

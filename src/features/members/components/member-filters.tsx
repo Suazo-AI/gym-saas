@@ -43,10 +43,12 @@ export function MemberFilters() {
   }
 
   return (
-    <form className="grid gap-3 border-b border-gray p-4 md:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_auto_auto] lg:items-end" onSubmit={submit}>
-      <label className="text-sm font-bold text-ink">
+    <details className="px-5 pb-5 sm:[&::details-content]:[content-visibility:visible]" open={Boolean(searchParams.get("status") || searchParams.get("membershipStatus") || searchParams.get("hasOverdueCharges"))}>
+      <summary className="btn btn-secondary w-fit cursor-pointer sm:hidden">Filtros</summary>
+    <form className="mt-4 grid gap-4 sm:mt-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto_auto] sm:items-end" onSubmit={submit}>
+      <label className="field-label min-w-0">
         Estado del miembro
-        <select className="mt-2 min-h-11 w-full rounded-md border border-gray bg-paper px-3" defaultValue={searchParams.get("status") ?? ""} name="status">
+        <select className="field" defaultValue={searchParams.get("status") ?? ""} name="status">
           <option value="">Todos</option>
           <option value="prospect">Prospecto</option>
           <option value="active">Activo</option>
@@ -56,9 +58,9 @@ export function MemberFilters() {
           <option value="archived">Archivado</option>
         </select>
       </label>
-      <label className="text-sm font-bold text-ink">
+      <label className="field-label min-w-0">
         Estado de membresia
-        <select className="mt-2 min-h-11 w-full rounded-md border border-gray bg-paper px-3" defaultValue={searchParams.get("membershipStatus") ?? ""} name="membershipStatus">
+        <select className="field" defaultValue={searchParams.get("membershipStatus") ?? ""} name="membershipStatus">
           <option value="">Todos</option>
           <option value="trialing">En prueba</option>
           <option value="active">Activa</option>
@@ -66,16 +68,17 @@ export function MemberFilters() {
           <option value="paused">Pausada</option>
         </select>
       </label>
-      <label className="text-sm font-bold text-ink">
+      <label className="field-label min-w-0">
         Morosidad
-        <select className="mt-2 min-h-11 w-full rounded-md border border-gray bg-paper px-3" defaultValue={searchParams.get("hasOverdueCharges") ?? ""} name="hasOverdueCharges">
+        <select className="field" defaultValue={searchParams.get("hasOverdueCharges") ?? ""} name="hasOverdueCharges">
           <option value="">Todos</option>
           <option value="true">Con cargos vencidos</option>
           <option value="false">Sin cargos vencidos</option>
         </select>
       </label>
-      <button className="min-h-11 rounded-md bg-ink px-5 py-3 text-sm font-black text-paper hover:bg-charcoal" type="submit">Aplicar</button>
-      <button className="min-h-11 rounded-md border border-charcoal px-5 py-3 text-sm font-black text-ink hover:bg-gray-light" onClick={clearFilters} type="button">Limpiar</button>
+      <button className="btn btn-secondary self-end" type="submit">Aplicar</button>
+      <button className="btn btn-quiet self-end" onClick={clearFilters} type="button">Limpiar</button>
     </form>
+    </details>
   );
 }

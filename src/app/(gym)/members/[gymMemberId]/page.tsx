@@ -82,21 +82,26 @@ export default async function MemberDetailPage({
         title={member.fullName}
         description="Estado observado de membresía, cargos y pagos registrados."
         action={
+          <div className="flex flex-wrap gap-2">
+          <Link className="btn btn-primary" href={`/entries?gymMemberId=${member.gymMemberId}`}>
+            Abrir en recepción
+          </Link>
           <Link
-            className="min-h-11 rounded-md border border-charcoal px-5 py-3 text-center text-sm font-black text-ink hover:bg-gray-light"
+            className="btn btn-quiet"
             href="/members"
           >
             Volver a miembros
           </Link>
+          </div>
         }
       />
       {query.error ? (
-        <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800">
+        <div className="mt-6 rounded-xl bg-stop-tint px-4 py-3 text-sm font-semibold text-stop">
           {query.error}
         </div>
       ) : null}
       {query.notice ? (
-        <div className="mt-6 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-bold text-orange-900">
+        <div className="mt-6 rounded-xl bg-ok-tint px-4 py-3 text-sm font-semibold text-ok">
           {query.notice}
         </div>
       ) : null}

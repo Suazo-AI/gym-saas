@@ -20,6 +20,19 @@ type MembersPageProps = {
   }>;
 };
 
+const statusLabels: Record<string, string> = {
+  active: "Activo",
+  trialing: "Prueba",
+  past_due: "Moroso",
+  expired: "Vencido",
+  canceled: "Cancelado",
+  paused: "Pausado",
+  inactive: "Inactivo",
+  prospect: "Prospecto",
+  blocked: "Bloqueado",
+  retired: "Retirado",
+};
+
 export default async function MembersPage({ searchParams }: MembersPageProps) {
   const activeGym = await getActiveGym();
 
@@ -44,54 +57,72 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
         eyebrow="Miembros"
         title="Base de miembros"
         description="Consulta el estado actual de cada miembro y abre su detalle operativo."
-        action={<div className="flex flex-wrap gap-2">{canManage ? <Link className="rounded-md border border-charcoal px-5 py-3 text-center text-sm font-black text-ink hover:bg-gray-light" href="/members/deleted">Papelera</Link> : null}<Link
-            className="rounded-md bg-brand-orange px-5 py-3 text-center text-sm font-black text-ink hover:bg-brand-red hover:text-paper"
+        action={<div className="flex flex-wrap gap-2">{canManage ? <Link className="btn btn-quiet" href="/members/deleted">Papelera</Link> : null}<Link
+            className="btn btn-secondary"
             href="/members/new"
           >
             Nuevo miembro
           </Link></div>}
       />
       {params.notice ? (
-        <div className="mt-6 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-bold text-orange-900">
+        <div className="mt-6 rounded-xl bg-ok-tint px-4 py-3 text-sm font-semibold text-ok">
           {params.notice}
         </div>
       ) : null}
-      <section className="mt-6 rounded-lg bg-surface shadow-md">
+      <section className="panel mt-6 overflow-hidden">
         <h2 className="sr-only">Miembros del gimnasio activo</h2>
-        <div className="grid gap-2 p-2 [&>form]:rounded-md [&>form]:border-b-0 [&>form]:bg-paper">
+        <div className="border-b border-line">
           <PersistedSearchForm placeholder="Buscar por nombre o código" storageKey="fitmanager.members.search" />
           <MemberFilters />
         </div>
 
         {"error" in result ? (
-          <LoadError>
+          <LoadError className="m-5">
             No pudimos cargar los miembros. Intenta nuevamente.
           </LoadError>
         ) : result.data.length === 0 ? (
-          <p className="p-5 text-slate-600">No hay miembros visibles para este gimnasio.</p>
+          <p className="p-5 text-sm text-muted">No hay miembros visibles para este gimnasio.</p>
         ) : (
-          <div className="grid gap-2 p-2">
+          <>
+          <div className="type-eyebrow hidden gap-3 border-b border-line px-5 py-3 sm:grid sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)_minmax(0,1fr)_minmax(0,0.6fr)_5rem]">
+            <span>Miembro</span>
+            <span>Estado</span>
+            <span>Plan</span>
+            <span>Saldo vencido</span>
+            <span className="text-right">Detalle</span>
+          </div>
+          <ul className="divide-y divide-line">
             {result.data.map((member) => (
-              <div
-                className="grid gap-3 rounded-md bg-paper p-4 md:grid-cols-[1.4fr_0.8fr_1fr_0.8fr_auto] md:items-center"
-                key={member.gymMemberId}
-              >
-                <div>
-                  <strong className="block text-ink">{member.fullName}</strong>
-                  <span className="text-sm text-gray-dark">{member.memberCode}</span>
-                </div>
-                <span className="text-sm font-semibold text-ink">{member.status}</span>
-                <span className="text-sm text-gray-dark">{member.membershipPlanName ?? "Sin plan"}</span>
-                <span className="text-sm text-gray-dark">{member.overdueAmount}</span>
+              <li key={member.gymMemberId}>
                 <Link
-                  className="min-h-11 rounded-md border border-charcoal px-4 py-3 text-center text-sm font-black text-ink hover:bg-gray-light"
+                  className="row-link grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)_minmax(0,1fr)_minmax(0,0.6fr)_5rem]"
                   href={`/members/${member.gymMemberId}`}
                 >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-full bg-fill-strong text-xs font-bold text-ink-2">
+                    {member.fullName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "?"}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex min-w-0 items-baseline gap-2 sm:block">
+                      <strong className="block truncate text-[0.9375rem] font-semibold text-ink sm:whitespace-normal sm:break-words">{member.fullName}</strong>
+                      <span className="tabular shrink-0 text-sm text-muted">{member.memberCode}</span>
+                    </div>
+                    <p className="truncate text-sm text-muted sm:hidden">
+                      {member.membershipPlanName ?? "Sin plan"} · Vencido <span className={`tabular ${Number(member.overdueAmount) > 0 ? "text-stop" : "text-muted"}`}>{member.overdueAmount}</span>
+                    </p>
+                  </div>
+                </div>
+                <span className={`chip w-fit ${member.status === "active" ? "chip-ok" : ["overdue", "past_due"].includes(member.status) ? "chip-stop" : ["expiring", "grace", "pending"].includes(member.status) ? "chip-wait" : "chip-neutral"}`}>{statusLabels[member.status] ?? member.status}</span>
+                <span className="hidden min-w-0 break-words text-sm text-ink-2 sm:inline">{member.membershipPlanName ?? "Sin plan"}</span>
+                <span className={`tabular hidden text-sm font-semibold sm:inline ${Number(member.overdueAmount) > 0 ? "text-stop" : "text-muted"}`}>{member.overdueAmount}</span>
+                <span className="hidden text-right text-sm font-semibold text-ink-2 sm:inline">
                   Ver detalle
+                </span>
                 </Link>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
+          </>
         )}
       </section>
     </>

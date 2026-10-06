@@ -24,17 +24,17 @@ export default async function SupabaseCheckPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#061f46] px-5 py-10 text-white sm:px-8">
+    <main className="min-h-screen bg-canvas px-5 py-10 text-ink sm:px-8">
       <section className="mx-auto max-w-5xl">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-200">
+        <p className="type-eyebrow text-muted">
           Solo desarrollo
         </p>
         <h1 className="mt-3 text-5xl font-black leading-tight">Diagnostico Supabase</h1>
         <dl className="mt-8 grid gap-4 md:grid-cols-2">
           {rows.map(([label, value]) => (
-            <div className="rounded-lg border border-white/10 bg-white p-5 text-slate-950" key={label}>
-              <dt className="text-xs font-black uppercase tracking-[0.14em] text-[#ff7a1a]">{label}</dt>
-              <dd className="mt-3 break-words text-xl font-black text-[#083f88]">{value}</dd>
+            <div className="rounded-lg border border-line bg-surface p-5 text-ink" key={label}>
+              <dt className="type-eyebrow text-muted">{label}</dt>
+              <dd className="mt-3 break-words text-xl font-black text-ink">{value}</dd>
             </div>
           ))}
         </dl>

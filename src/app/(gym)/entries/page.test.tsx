@@ -20,6 +20,9 @@ vi.mock("@/features/gyms/services/get-active-gym", () => ({
 vi.mock("@/features/entries/services/entry.repository", () => ({
   listGymEntries: mocks.listGymEntries,
 }));
+vi.mock("@/features/gyms/services/require-gym-permission", () => ({
+  hasGymPermission: vi.fn().mockResolvedValue(true),
+}));
 vi.mock("@/features/members/services/member.repository", () => ({
   getMember: mocks.getMember,
 }));
@@ -29,11 +32,24 @@ vi.mock("@/features/entries/services/entry-member-search.repository", () => ({
 vi.mock("@/features/entries/components/face-access-modal", () => ({
   FaceAccessModal: () => <button>Entrada facial</button>,
 }));
-vi.mock("@/features/entries/components/manual-entry-form", () => ({
-  ManualEntryForm: ({ memberFullName }: { memberFullName: string }) => (
-    <button>Registrar entrada de {memberFullName}</button>
-  ),
-}));
+// El formulario real envuelve el veredicto previo; el doble conserva esa
+// composicion para comprobar que la pagina le pasa el estado canonico.
+vi.mock("@/features/entries/components/manual-entry-form", async () => {
+  const { EntryAccessNotice } = await vi.importActual<typeof import("@/features/entries/components/entry-access-notice")>(
+    "@/features/entries/components/entry-access-notice",
+  );
+  return {
+    ManualEntryForm: ({ memberFullName, access }: {
+      memberFullName: string;
+      access: Parameters<typeof EntryAccessNotice>[0]["member"];
+    }) => (
+      <>
+        <EntryAccessNotice member={access} />
+        <button>Registrar entrada de {memberFullName}</button>
+      </>
+    ),
+  };
+});
 vi.mock("@/features/app/components/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
 }));

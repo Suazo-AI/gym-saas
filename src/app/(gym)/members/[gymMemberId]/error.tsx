@@ -4,15 +4,15 @@ import { LoadError } from "@/features/app/components/load-error";
 
 export default function MemberDetailError({ reset }: { error: Error; reset: () => void }) {
   return (
-    <main className="grid min-h-screen place-items-center bg-gray-light p-6 text-ink">
+    <main className="grid min-h-80 place-items-center p-4 text-ink sm:p-6">
       <LoadError className="w-full max-w-lg">
-        <p className="text-xs font-black uppercase tracking-[0.16em]">Error</p>
-        <h1 className="mt-2 text-2xl font-black">No pudimos cargar el miembro</h1>
-        <p className="mt-3 text-sm font-semibold text-gray-dark">
+        <p className="type-eyebrow">Error</p>
+        <h1 className="type-heading mt-2 text-2xl">No pudimos cargar el miembro</h1>
+        <p className="mt-3 text-sm text-muted">
           Revisa tu sesión o intenta cargar nuevamente.
         </p>
         <button
-          className="mt-5 min-h-11 rounded-md bg-ink px-5 py-3 text-sm font-black text-paper hover:bg-charcoal"
+          className="btn btn-primary mt-5"
           onClick={reset}
           type="button"
         >
