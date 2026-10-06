@@ -3,6 +3,8 @@ export type PermissionPresentationGroup = {
   items: Array<{ code: string; label: string }>;
 };
 
+export type RoleLocale = "es" | "en";
+
 const catalog: Record<string, { group: string; label: string }> = {
   "dashboard.read": { group: "Panel", label: "Ver el panel" },
   "gym.read": { group: "Configuración", label: "Ver configuración del gimnasio" },
@@ -54,6 +56,7 @@ export function describeEffectivePermissions(codes: string[]): PermissionPresent
   const groups = new Map<string, Array<{ code: string; label: string }>>();
 
   for (const code of [...new Set(codes)].sort()) {
+    if (code.startsWith("billing.")) continue;
     const item = catalog[code] ?? { group: "Otros permisos", label: code };
     groups.set(item.group, [...(groups.get(item.group) ?? []), { code, label: item.label }]);
   }
@@ -61,6 +64,30 @@ export function describeEffectivePermissions(codes: string[]): PermissionPresent
   return [...groups]
     .map(([group, items]) => ({ group, items }))
     .sort((left, right) => groupOrder.indexOf(left.group) - groupOrder.indexOf(right.group));
+}
+
+const roleNames: Record<string, { es: string; en: string }> = {
+  owner: { es: "Due\u00f1o", en: "Owner" },
+  admin: { es: "Administrador", en: "Administrator" },
+  receptionist: { es: "Recepcionista", en: "Receptionist" },
+  accountant: { es: "Contador", en: "Accountant" },
+  trainer: { es: "Entrenador", en: "Trainer" },
+};
+
+const roleDescriptions: Record<string, { es: string; en: string }> = {
+  owner: { es: "Control total del gimnasio", en: "Full gym control" },
+  admin: { es: "Administraci\u00f3n operativa", en: "Operational administration" },
+  receptionist: { es: "Miembros, membres\u00edas, cobros y entradas", en: "Members, memberships, payments and access" },
+  accountant: { es: "Pagos, ingresos y reportes", en: "Payments, income and reports" },
+  trainer: { es: "Consulta de informaci\u00f3n de miembros", en: "Read member information" },
+};
+
+export function displayRoleName(code: string, fallback: string, locale: RoleLocale) {
+  return roleNames[code]?.[locale] ?? fallback;
+}
+
+export function displayRoleDescription(code: string, fallback: string | null, locale: RoleLocale) {
+  return roleDescriptions[code]?.[locale] ?? fallback;
 }
 
 export function describeRoleLimits(code: string, permissions: string[]): string[] {

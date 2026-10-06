@@ -1,0 +1,19 @@
+# Fin de linea.
+#
+# Este repositorio se trabaja desde Windows con core.autocrlf=true, que al hacer
+# checkout convierte cada LF en CRLF. Para casi todo da igual. Para un archivo
+# que empieza con shebang, no.
+#
+# Lo que pasaba, medido el 2026-08-26: scripts/deploy-preflight.mjs empieza con
+# "#!/usr/bin/env node". Con CRLF el transform de vitest deja el \r colgado del
+# shebang y aborta el archivo entero con "SyntaxError: Invalid or unexpected
+# token". Resultado: los 6 tests de la barrera de preflight no corrian en
+# Windows. En el CI de GitHub si corren, porque ahi el checkout es LF, y por eso
+# nadie lo vio: el CI estaba verde mientras la maquina de trabajo no.
+#
+# Con esto, git escribe estos archivos con LF tambien en Windows, sin importar
+# autocrlf. Es la barrera: no depende de que alguien se acuerde.
+
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.sh  text eol=lf

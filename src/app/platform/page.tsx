@@ -1,17 +1,13 @@
 import Link from "next/link";
 
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { PlatformShell } from "@/features/platform/components/platform-shell";
-import { requirePlatformAdmin } from "@/features/platform/services/platform-access";
 import { getPlatformDashboard } from "@/features/platform/services/platform.repository";
 
 export default async function PlatformPage() {
-  const { user, navigation } = await requirePlatformAdmin();
-
   const dashboard = await getPlatformDashboard();
 
   return (
-    <PlatformShell currentPath="/platform" navigation={navigation} userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="Plataforma"
         title="Dashboard SaaS"
@@ -105,7 +101,7 @@ export default async function PlatformPage() {
           />
         </Panel>
       </section>
-    </PlatformShell>
+    </>
   );
 }
 

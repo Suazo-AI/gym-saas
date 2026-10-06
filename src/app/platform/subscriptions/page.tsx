@@ -1,15 +1,11 @@
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { PlatformShell } from "@/features/platform/components/platform-shell";
-import { requirePlatformAdmin } from "@/features/platform/services/platform-access";
 import { getPlatformDashboard } from "@/features/platform/services/platform.repository";
 
 export default async function PlatformSubscriptionsPage() {
-  const { user, navigation } = await requirePlatformAdmin();
-
   const dashboard = await getPlatformDashboard();
 
   return (
-    <PlatformShell currentPath="/platform/subscriptions" navigation={navigation} userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="SaaS"
         title="Suscripciones"
@@ -33,7 +29,7 @@ export default async function PlatformSubscriptionsPage() {
           </tbody>
         </table>
       </section>
-    </PlatformShell>
+    </>
   );
 }
 

@@ -3,12 +3,14 @@
 import { useActionState, useState } from "react";
 
 import { ActionFeedback } from "@/features/app/components/action-feedback";
+import { useLocale } from "@/features/app/components/preferences-controls";
 
 import { updateRoleScreenAction, type RoleScreenState } from "../actions/role-screen.actions";
-import { describeEffectivePermissions, describeRoleLimits } from "../services/permission-presentation";
+import { describeEffectivePermissions, describeRoleLimits, displayRoleName } from "../services/permission-presentation";
 import type { RoleScreenAccessDto } from "../types/staff.dto";
 
 export function RoleScreenManagement({ access }: { access: RoleScreenAccessDto }) {
+  const locale = useLocale();
   const firstEditable = access.roles.find((role) => !role.isOwner) ?? access.roles[0];
   const [roleId, setRoleId] = useState(firstEditable?.id ?? "");
   const role = access.roles.find((item) => item.id === roleId) ?? firstEditable;
@@ -16,17 +18,17 @@ export function RoleScreenManagement({ access }: { access: RoleScreenAccessDto }
   return <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
     <p className="text-xs font-black uppercase tracking-[.16em] text-brand-green">Roles y pantallas</p>
     <h2 className="mt-2 text-2xl font-black text-ink">Configurar accesos del equipo</h2>
-    <p className="mt-2 text-sm text-gray">Elige un rol y marca exactamente las pantallas que podrá ver. Los permisos operativos siguen protegidos en Supabase.</p>
+    <p className="mt-2 text-sm text-gray">Selecciona un rol y elige las pantallas que podrá usar.</p>
     <label className="mt-5 block max-w-md text-sm font-black text-ink">Rol que deseas configurar
       <select className="mt-2 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3" onChange={(event) => setRoleId(event.target.value)} value={role?.id ?? ""}>
-        {access.roles.map((item) => <option key={item.id} value={item.id}>{item.name}{item.isOwner ? " — protegido" : ""}</option>)}
+        {access.roles.map((item) => <option key={item.id} value={item.id}>{displayRoleName(item.code, item.name, locale)}{item.isOwner ? " — protegido" : ""}</option>)}
       </select>
     </label>
-    {role ? <RoleEditor access={access} key={role.id} role={role} /> : <p className="mt-5 text-gray">No hay roles configurables.</p>}
+    {role ? <RoleEditor access={access} key={role.id} locale={locale} role={role} /> : <p className="mt-5 text-gray">No hay roles configurables.</p>}
   </section>;
 }
 
-function RoleEditor({ role, access }: { role: RoleScreenAccessDto["roles"][number]; access: RoleScreenAccessDto }) {
+function RoleEditor({ role, access, locale }: { role: RoleScreenAccessDto["roles"][number]; access: RoleScreenAccessDto; locale: "es" | "en" }) {
   const [selected, setSelected] = useState<string[]>(role.screenIds);
   const [state, action, pending] = useActionState(updateRoleScreenAction, { ok: false } as RoleScreenState);
   const toggle = (id: string) => setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
@@ -34,7 +36,7 @@ function RoleEditor({ role, access }: { role: RoleScreenAccessDto["roles"][numbe
   return <form action={action} className="mt-5 rounded-xl border border-slate-200 p-4">
     <input name="roleId" type="hidden" value={role.id} />
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <div><h3 className="text-lg font-black text-ink">{role.name}</h3><p className="text-sm text-gray">{selected.length} de {access.screens.length} pantallas seleccionadas</p><p className="mt-2 max-w-2xl text-xs font-semibold text-gray">{describeRoleLimits(role.code, role.permissionCodes).join(" ")}</p></div>
+      <div><h3 className="text-lg font-black text-ink">{displayRoleName(role.code, role.name, locale)}</h3><p className="text-sm text-gray">{selected.length} de {access.screens.length} pantallas seleccionadas</p><p className="mt-2 max-w-2xl text-xs font-semibold text-gray">{describeRoleLimits(role.code, role.permissionCodes).join(" ")}</p></div>
       {role.isOwner ? <span className="rounded-full bg-brand-sand px-3 py-1 text-xs font-black text-green-900">Acceso total protegido</span> : <div className="flex gap-2"><button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-black" onClick={() => setSelected(access.screens.map((screen) => screen.id))} type="button">Marcar todas</button><button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-black" onClick={() => setSelected([])} type="button">Limpiar selección</button></div>}
     </div>
     <fieldset className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" disabled={role.isOwner}>

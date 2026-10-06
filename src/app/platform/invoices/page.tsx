@@ -1,15 +1,11 @@
 import { ModuleHeader } from "@/features/app/components/module-header";
-import { PlatformShell } from "@/features/platform/components/platform-shell";
-import { requirePlatformAdmin } from "@/features/platform/services/platform-access";
 import { getPlatformDashboard } from "@/features/platform/services/platform.repository";
 
 export default async function PlatformInvoicesPage() {
-  const { user, navigation } = await requirePlatformAdmin();
-
   const dashboard = await getPlatformDashboard();
 
   return (
-    <PlatformShell currentPath="/platform/invoices" navigation={navigation} userEmail={user.email}>
+    <>
       <ModuleHeader
         eyebrow="Facturacion SaaS"
         title="Facturas"
@@ -34,7 +30,7 @@ export default async function PlatformInvoicesPage() {
           </tbody>
         </table>
       </section>
-    </PlatformShell>
+    </>
   );
 }
 

@@ -4,9 +4,10 @@ import { useActionState } from "react";
 
 import { LoadError } from "@/features/app/components/load-error";
 import { ActionFeedback } from "@/features/app/components/action-feedback";
+import { useLocale } from "@/features/app/components/preferences-controls";
 
 import { deleteStaffAction, inviteStaffAction, restoreStaffAction, updateStaffAction, type StaffActionState } from "../actions/staff.actions";
-import { describeEffectivePermissions, describeRoleLimits } from "../services/permission-presentation";
+import { describeEffectivePermissions, describeRoleLimits, displayRoleDescription, displayRoleName } from "../services/permission-presentation";
 import type { DeletedStaffUserDto, StaffRoleDto, StaffUserDto } from "../types/staff.dto";
 
 const initialState: StaffActionState = { ok: false };
@@ -112,8 +113,8 @@ function StaffEditor({ person, roles }: { person: StaffUserDto; roles: StaffRole
         </label>
         <div className="md:col-span-2"><RoleChoices roles={roles} selected={person.roles.map((role) => role.id)} /></div>
         <div className="md:col-span-2">
-          <p className="text-sm font-bold text-ink">Permisos efectivos</p>
-          <p className="mt-1 text-xs text-gray">Se calculan en el servidor a partir de todos los roles asignados.</p>
+          <p className="text-sm font-bold text-ink">Accesos actuales</p>
+          <p className="mt-1 text-xs text-gray">Estos accesos combinan los roles asignados.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {describeEffectivePermissions(person.permissions).map((group) => <section className="rounded-xl bg-slate-50 p-3" key={group.group}>
               <h4 className="text-xs font-black uppercase tracking-wide text-brand-green">{group.group}</h4>
@@ -144,9 +145,10 @@ function Field(props: { label: string; name: string; type?: string; required?: b
   return <label className="block text-sm font-bold text-ink">{props.label}<input className={controlClass} {...props} /></label>;
 }
 function RoleChoices({ roles, selected = [] }: { roles: StaffRoleDto[]; selected?: string[] }) {
+  const locale = useLocale();
   return <fieldset><legend className="text-sm font-bold text-ink">Roles</legend><div className="mt-2 grid gap-2">{roles.map((role) => <label className="rounded-xl border border-slate-300 p-3 text-sm" key={role.id}>
-    <span className="font-black"><input className="mr-2 accent-brand-green" defaultChecked={selected.includes(role.id)} name="roleIds" type="checkbox" value={role.id} />{role.name}</span>
-    {role.description ? <span className="mt-1 block text-xs text-gray">{role.description}</span> : null}
+    <span className="font-black"><input className="mr-2 accent-brand-green" defaultChecked={selected.includes(role.id)} name="roleIds" type="checkbox" value={role.id} />{displayRoleName(role.code, role.name, locale)}</span>
+    {displayRoleDescription(role.code, role.description, locale) ? <span className="mt-1 block text-xs text-gray">{displayRoleDescription(role.code, role.description, locale)}</span> : null}
     <span className="mt-2 block text-xs font-bold text-ink">Qué permite este rol</span>
     <span className="mt-1 block text-xs text-gray">{describeRoleLimits(role.code, role.permissionCodes).join(" ")}</span>
   </label>)}</div></fieldset>;
