@@ -51,18 +51,22 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
     <div className="receipt-page mx-auto max-w-3xl">
       <style>{`
         @media print {
-          body > main > aside { display: none !important; }
           body > main { display: block !important; min-height: 0 !important; background: white !important; }
-          body > main > section { padding: 0 !important; background: white !important; }
+          body > main section { padding: 0 !important; background: white !important; }
           .receipt-page { margin: 0 !important; max-width: none !important; }
           .receipt-sheet { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
         }
       `}</style>
 
       <div className="print:hidden mb-5 flex flex-wrap items-center justify-between gap-3">
-        <Link className="print:hidden text-sm font-bold text-brand-green underline" href="/payments">
-          Volver a pagos
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link className="btn btn-primary" href="/entries">
+            Volver a recepción
+          </Link>
+          <Link className="btn btn-quiet" href="/payments">
+            Ver pagos
+          </Link>
+        </div>
         <PrintReceiptButton />
       </div>
 

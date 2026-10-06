@@ -20,7 +20,6 @@ export function AuthForm({ action, buttonLabel, children }: AuthFormProps) {
     <form action={formAction} className="space-y-4">
       {children}
       <ActionFeedback
-        className="rounded-md bg-amber-50 px-4 py-3"
         state={{ message: state.message, ok: state.type === "success" }}
       />
       <SubmitButton label={buttonLabel} />
@@ -33,7 +32,7 @@ function SubmitButton({ label }: { label: string }) {
 
   return (
     <button
-      className="min-h-11 w-full rounded-md bg-brand-orange px-4 py-3 text-sm font-semibold text-ink transition hover:bg-brand-red hover:text-paper focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+      className="btn btn-lg btn-primary w-full"
       disabled={pending}
       type="submit"
     >

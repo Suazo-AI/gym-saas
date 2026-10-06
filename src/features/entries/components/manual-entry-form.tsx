@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -10,6 +11,8 @@ import {
   type EntryActionState,
 } from "../actions/entry.actions";
 import { getEntryDecisionState } from "../entry-decision-state";
+import type { FinancialAccessStatus } from "../types/entry.dto";
+import { EntryAccessNotice, getAccessPrecheck, Verdict } from "./entry-access-notice";
 
 type ManualEntryFormProps = {
   gymId: string;
@@ -17,79 +20,90 @@ type ManualEntryFormProps = {
   branchId: string | null;
   memberCode: string;
   memberFullName: string;
+  access: {
+    status: string;
+    membershipStatus: string | null;
+    hasOverdueCharges: boolean;
+    financialAccessStatus?: FinancialAccessStatus | null;
+  };
+  canCharge?: boolean;
 };
 
 const initialState: EntryActionState = { ok: false };
 
+const timeFormatter = new Intl.DateTimeFormat("es-NI", { timeStyle: "short" });
+
+// Una sola superficie para el mostrador: antes de registrar muestra la lectura
+// previa; despues, la decision real de la base reemplaza esa lectura.
 export function ManualEntryForm({
   gymId,
   gymMemberId,
   branchId,
   memberCode,
   memberFullName,
+  access,
+  canCharge = false,
 }: ManualEntryFormProps) {
   const [state, formAction] = useActionState(registerEntryAction, initialState);
-  const resultState = state.result ? getEntryDecisionState(state.result) : null;
+  const result = state.result;
+  // Si no puede entrar, lo primero que hace recepcion es cobrar.
+  const chargeFirst = canCharge && getAccessPrecheck(access) === "denied";
+  const chargeLink = (primary: boolean) => canCharge ? (
+    <Link className={`btn ${primary ? "btn-lg btn-on-flood min-w-40" : "btn-flood-ghost"}`} href={`/payments/new?gymMemberId=${gymMemberId}`}>
+      Cobrar
+    </Link>
+  ) : null;
+  const profileLink = (
+    <Link className="btn btn-flood-ghost" href={`/members/${gymMemberId}`}>
+      Ver perfil
+    </Link>
+  );
+
+  if (!result) {
+    return (
+      <EntryAccessNotice member={access} memberCode={memberCode} memberName={memberFullName}>
+        <form action={formAction} className="flex flex-wrap gap-2">
+          <EntryHiddenFields branchId={branchId} gymId={gymId} gymMemberId={gymMemberId} />
+          {chargeFirst ? chargeLink(true) : null}
+          <SubmitEntryButton primary={!chargeFirst} />
+          {chargeFirst ? null : chargeLink(false)}
+          {profileLink}
+        </form>
+        <ActionFeedback className="mt-4" state={state} />
+      </EntryAccessNotice>
+    );
+  }
+
+  const resultState = getEntryDecisionState(result);
+  const denied = result.decision === "denied" || result.decision === "no_match";
+  const tone = denied ? "stop" : resultState.tone === "warning" ? "wait" : "ok";
 
   return (
-    <div className="rounded-lg border border-charcoal bg-paper p-5 shadow-sm">
-      <div className="mb-5">
-        <p className="text-sm font-bold text-charcoal">Miembro seleccionado</p>
-        <h2 className="mt-1 text-xl font-black text-ink">{memberFullName}</h2>
-        <p className="mt-1 text-sm text-charcoal">Código {memberCode}</p>
+    <Verdict
+      description={`${resultState.description} · ${timeFormatter.format(new Date(result.occurredAt))}`}
+      eyebrow={denied ? "Entrada denegada" : "Entrada registrada"}
+      memberCode={memberCode}
+      memberName={memberFullName}
+      role="status"
+      tone={tone}
+      word={resultState.label}
+    >
+      <div className="flex flex-wrap gap-2">
+        {denied ? chargeLink(true) : null}
+        <Link className={`btn ${denied && canCharge ? "btn-flood-ghost" : "btn-on-flood"}`} href="/entries">
+          Siguiente miembro
+        </Link>
+        {profileLink}
       </div>
 
-      <form action={formAction}>
-        <EntryHiddenFields
-          branchId={branchId}
-          gymId={gymId}
-          gymMemberId={gymMemberId}
-        />
-        <SubmitEntryButton />
-      </form>
-
-      <ActionFeedback
-        className="mt-4 rounded-md bg-amber-50 px-4 py-3"
-        state={state.result && !state.ok ? {} : state}
-      />
-
-      {state.result && resultState ? (
-        <div
-          className={`mt-5 rounded-lg border p-5 ${
-            resultState.tone === "success"
-              ? "border-green-700 bg-green-50"
-              : resultState.tone === "warning"
-                ? "border-brand-amber bg-brand-sand"
-                : "border-brand-red bg-red-50"
-          }`}
-          role="status"
-        >
-          <div className="flex items-center gap-3">
-            <span aria-hidden="true" className="text-3xl font-black text-ink">
-              {resultState.icon}
-            </span>
-            <div>
-              <p className="text-2xl font-black text-ink">{resultState.label}</p>
-              <p className="mt-1 text-sm font-semibold text-charcoal">
-                {resultState.description}
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {state.result?.decision === "denied" ? (
-        <form action={formAction} className="mt-5 border-t border-gray pt-5">
-          <EntryHiddenFields
-            branchId={branchId}
-            gymId={gymId}
-            gymMemberId={gymMemberId}
-          />
-          <label className="text-sm font-black text-ink" htmlFor="override-reason">
+      {result.decision === "denied" ? (
+        <form action={formAction} className="flood-plate mt-5 p-4">
+          <EntryHiddenFields branchId={branchId} gymId={gymId} gymMemberId={gymMemberId} />
+          <label className="block text-sm font-semibold" htmlFor="override-reason">
             Motivo para permitir la entrada
           </label>
           <textarea
-            className="mt-2 min-h-24 w-full rounded-md border border-gray px-3 py-3 text-sm text-ink outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-sand"
+            className="field"
             id="override-reason"
             maxLength={500}
             name="overrideReason"
@@ -99,7 +113,8 @@ export function ManualEntryForm({
           <OverrideButton />
         </form>
       ) : null}
-    </div>
+      <ActionFeedback className="mt-4" state={state} />
+    </Verdict>
   );
 }
 
@@ -117,12 +132,12 @@ function EntryHiddenFields({
   );
 }
 
-function SubmitEntryButton() {
+function SubmitEntryButton({ primary }: { primary: boolean }) {
   const { pending } = useFormStatus();
 
   return (
     <button
-      className="min-h-11 w-full rounded-md bg-brand-orange px-5 py-3 text-sm font-black text-ink hover:bg-brand-red hover:text-paper disabled:cursor-not-allowed disabled:opacity-60"
+      className={primary ? "btn btn-lg btn-on-flood min-w-48" : "btn btn-flood-ghost"}
       disabled={pending}
       type="submit"
     >
@@ -136,7 +151,7 @@ function OverrideButton() {
 
   return (
     <button
-      className="mt-3 min-h-11 w-full rounded-md border border-charcoal px-5 py-3 text-sm font-black text-ink hover:bg-gray-light disabled:cursor-not-allowed disabled:opacity-60"
+      className="btn btn-on-flood mt-3 w-full"
       disabled={pending}
       type="submit"
     >

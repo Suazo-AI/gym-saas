@@ -12,8 +12,6 @@ describe("OwnerDashboard", () => {
     expect(html).toContain("USD 10.00");
     expect(html).toContain("NIO 366.00");
     expect(html).toContain("Revisar miembros");
-    expect(html).toContain("bg-[#111814]");
-    expect(html).toContain("text-[#dce7df]");
   });
 
   it("explica cuando una métrica está restringida", () => {

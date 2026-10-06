@@ -17,16 +17,18 @@ export default async function DashboardPage() {
   return (
     <>
       <ModuleHeader
-        eyebrow="Resumen del gimnasio"
+        eyebrow="Resumen"
         title={`Hoy en ${activeGym.tradeName}`}
-        description="Estado operativo y financiero del gimnasio activo, con métricas calculadas en Supabase y protegidas por permisos."
+        description="Miembros, cobros y entradas de hoy en un vistazo."
         action={
-          <Link
-            className="rounded-md bg-[#ff7a1a] px-6 py-4 text-center text-sm font-black text-white hover:bg-[#e86305]"
-            href="/members/new"
-          >
-            Registrar miembro
-          </Link>
+          <>
+            <Link className="btn btn-secondary" href="/members/new">
+              Registrar miembro
+            </Link>
+            <Link className="btn btn-primary" href="/entries">
+              Abrir recepción
+            </Link>
+          </>
         }
       />
       {dashboard ? <OwnerDashboard dashboard={dashboard} /> : <LoadError className="mt-6"><h2 className="font-black">No pudimos cargar el resumen</h2><p className="mt-2">Verifica que tu usuario tenga acceso al dashboard del gimnasio activo e intenta nuevamente.</p></LoadError>}

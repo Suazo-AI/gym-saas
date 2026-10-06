@@ -4,8 +4,7 @@ import { loginAction } from "@/features/auth/actions/auth.actions";
 import { AuthForm } from "@/features/auth/components/auth-form-status";
 import { AuthShell } from "@/features/auth/components/auth-shell";
 
-const inputClass =
-  "mt-2 min-h-11 w-full rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-[#083f88] focus:ring-2 focus:ring-blue-100";
+const inputClass = "field";
 
 export default function LoginPage() {
   return (
@@ -14,11 +13,11 @@ export default function LoginPage() {
       subtitle="Entra con tu correo para administrar tu gimnasio."
     >
       <AuthForm action={loginAction} buttonLabel="Entrar al panel">
-        <label className="block text-sm font-semibold text-slate-800">
+        <label className="field-label">
           Correo
           <input className={inputClass} autoComplete="email" name="email" required type="email" />
         </label>
-        <label className="block text-sm font-semibold text-slate-800">
+        <label className="field-label">
           Contrasena
           <input
             className={inputClass}
@@ -30,7 +29,7 @@ export default function LoginPage() {
         </label>
       </AuthForm>
       <Link
-        className="mt-4 inline-block text-sm font-semibold text-[#083f88] hover:text-[#ff7a1a]"
+        className="mt-4 inline-block text-sm font-semibold text-accent hover:underline"
         href="/forgot-password"
       >
         Olvide mi contrasena

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-const controlClass = "mt-1 min-h-11 rounded-md border border-gray bg-paper px-3 text-ink outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-sand";
+const controlClass = "field";
 
 type PersistedDateRangeFormProps = {
   from?: string;
@@ -58,8 +58,8 @@ function PersistedDateRangeFields({
   }
 
   return (
-    <form className="grid gap-3 border-b border-gray p-4 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end" onSubmit={submit}>
-      <label className="grid text-sm font-bold text-ink">
+    <form className="grid grid-cols-2 gap-3 border-b border-line p-4 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end" onSubmit={submit}>
+      <label className="field-label">
         Desde
         <input
           className={controlClass}
@@ -70,7 +70,7 @@ function PersistedDateRangeFields({
           value={values.from}
         />
       </label>
-      <label className="grid text-sm font-bold text-ink">
+      <label className="field-label">
         Hasta
         <input
           className={controlClass}
@@ -81,10 +81,10 @@ function PersistedDateRangeFields({
           value={values.to}
         />
       </label>
-      <button className="min-h-11 rounded-md bg-ink px-5 py-3 text-sm font-black text-paper hover:bg-charcoal" type="submit">
+      <button className="btn btn-secondary" type="submit">
         Filtrar
       </button>
-      <button className="min-h-11 rounded-md border border-gray px-5 py-3 text-sm font-black text-ink hover:bg-gray/20" onClick={clear} type="button">
+      <button className="btn btn-quiet" onClick={clear} type="button">
         Limpiar
       </button>
     </form>

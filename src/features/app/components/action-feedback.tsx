@@ -17,7 +17,7 @@ export function ActionFeedback({ state, className = "" }: { state: ActionResult;
   if (!state.message || state.ok) return null;
 
   return (
-    <p aria-live="polite" className={`text-sm font-bold text-amber-900 ${className}`} role="alert">
+    <p aria-live="polite" className={`rounded-xl bg-stop-tint px-4 py-3 text-sm font-semibold text-stop ${className}`} role="alert">
       {state.message}
     </p>
   );

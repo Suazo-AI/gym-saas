@@ -13,6 +13,27 @@ type MemberDetailViewProps = {
   cancelMembershipAction?: (formData: FormData) => Promise<void>;
 };
 
+const statusLabels: Record<string, string> = {
+  active: "Activo",
+  trialing: "Prueba",
+  past_due: "Moroso",
+  expired: "Vencido",
+  canceled: "Cancelado",
+  paused: "Pausado",
+  inactive: "Inactivo",
+  prospect: "Prospecto",
+  blocked: "Bloqueado",
+  retired: "Retirado",
+  pending: "Pendiente",
+  overdue: "Vencido",
+};
+
+const contactLabels: Record<string, string> = {
+  phone: "Teléfono",
+  email: "Correo",
+  whatsapp: "WhatsApp",
+};
+
 export function MemberDetailView({
   member,
   gymId = member.gymId,
@@ -31,37 +52,40 @@ export function MemberDetailView({
     ["canceled", "expired"].includes(member.currentSubscription.status);
 
   return (
-    <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-      <div className="grid gap-6">
-        <section className="rounded-lg border border-charcoal bg-paper p-5 shadow-sm">
+    <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.65fr)]">
+      <div className="grid min-w-0 gap-6">
+        <section className="panel min-w-0 p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-red">
+            <div className="min-w-0">
+              <p className="type-eyebrow tabular">
                 {member.memberCode}
               </p>
-              <h2 className="mt-2 text-2xl font-black text-ink">{member.fullName}</h2>
-              <p className="mt-1 text-sm font-semibold text-gray">
+              <h2 className="type-heading mt-2 break-words text-2xl">{member.fullName}</h2>
+              <p className="mt-1 text-sm text-muted">
                 {member.branchName ?? "Sin sucursal asignada"}
               </p>
             </div>
             <div
-              className={`max-w-sm rounded-md border px-4 py-3 ${toneClasses(operationalState.tone)}`}
+              className="max-w-sm sm:max-w-64"
             >
-              <strong className="block text-sm font-black">{operationalState.label}</strong>
-              <p className="mt-1 text-sm font-semibold">{operationalState.description}</p>
+              <strong className={`chip ${member.hasOverdueCharges || member.membershipStatus === "past_due" ? "chip-stop" : toneClasses(operationalState.tone)}`}>{operationalState.label}</strong>
+              <p className="mt-2 text-sm text-muted">{operationalState.description}</p>
             </div>
           </div>
         </section>
 
-        <section className="rounded-lg border border-charcoal bg-paper p-5 shadow-sm">
-          <h2 className="text-xl font-black text-ink">
+        <section className="panel min-w-0 p-5">
+          <h2 className="type-heading">
             {canAssignMembership ? "Asignar membresía" : "Membresía actual"}
           </h2>
           {!canAssignMembership && member.currentSubscription ? (
             <div>
               <dl className="mt-4 grid gap-4 sm:grid-cols-2">
                 <Detail label="Plan" value={member.currentSubscription.planName} />
-                <Detail label="Estado" value={member.currentSubscription.status} />
+                <div>
+                  <dt className="type-eyebrow">Estado</dt>
+                  <dd className="mt-1"><span className={`chip ${statusChip(member.currentSubscription.status)}`}>{statusLabels[member.currentSubscription.status] ?? member.currentSubscription.status}</span></dd>
+                </div>
                 <Detail
                   label="Monto recurrente"
                   value={`${member.currentSubscription.currency} ${member.currentSubscription.recurringAmount}`}
@@ -82,20 +106,20 @@ export function MemberDetailView({
                 />
               </dl>
               {cancelMembershipAction ? (
-                <details className="mt-5 rounded-md border border-red-200 bg-red-50 p-4">
-                  <summary className="cursor-pointer text-sm font-black text-red-800">Cancelar membresía</summary>
+                <details className="mt-5 rounded-xl border border-line bg-fill p-4">
+                  <summary className="cursor-pointer text-sm font-semibold text-stop">Cancelar membresía</summary>
                   <form action={cancelMembershipAction} className="mt-4 grid gap-3">
                     <input name="gymMemberId" type="hidden" value={member.gymMemberId} />
                     <input name="subscriptionId" type="hidden" value={member.currentSubscription.id} />
-                    <label className="text-sm font-bold text-ink">
+                    <label className="field-label">
                       Motivo de cancelación
-                      <input className="mt-2 min-h-11 w-full rounded-md border border-red-200 bg-paper px-3" name="reason" required />
+                      <input className="field" name="reason" required />
                     </label>
-                    <label className="flex min-h-11 items-center gap-3 text-sm font-bold text-ink">
-                      <input className="size-5 accent-brand-red" name="cancelAtPeriodEnd" type="checkbox" />
+                    <label className="flex min-h-11 items-center gap-3 text-sm font-semibold text-ink-2">
+                      <input className="size-5 shrink-0" name="cancelAtPeriodEnd" type="checkbox" />
                       Cancelar al terminar el período actual
                     </label>
-                    <button className="min-h-11 rounded-md bg-red-700 px-4 py-2 text-sm font-black text-white" type="submit">
+                    <button className="btn btn-secondary justify-self-start text-stop" type="submit">
                       Confirmar cancelación
                     </button>
                   </form>
@@ -107,7 +131,7 @@ export function MemberDetailView({
               No pudimos cargar los planes. Intenta nuevamente.
             </LoadError>
           ) : membershipPlans.length === 0 ? (
-            <p className="mt-4 rounded-md bg-gray-light p-4 text-sm font-semibold text-charcoal">
+            <p className="mt-4 rounded-xl bg-fill p-4 text-sm text-muted">
               No hay planes activos disponibles para asignar.
             </p>
           ) : assignMembershipAction ? (
@@ -116,11 +140,11 @@ export function MemberDetailView({
               <input name="gymMemberId" type="hidden" value={member.gymMemberId} />
 
               <div className="grid gap-2">
-                <label className="text-sm font-black text-ink" htmlFor="membership-plan">
+                <label className="field-label" htmlFor="membership-plan">
                   Plan
                 </label>
                 <select
-                  className="min-h-11 rounded-md border border-gray bg-paper px-3 text-sm font-semibold text-ink outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-sand"
+                  className="field tabular mt-0 min-w-0"
                   id="membership-plan"
                   name="membershipPlanId"
                   required
@@ -135,11 +159,11 @@ export function MemberDetailView({
               </div>
 
               <div className="grid gap-2">
-                <label className="text-sm font-black text-ink" htmlFor="membership-start-date">
+                <label className="field-label" htmlFor="membership-start-date">
                   Fecha de inicio
                 </label>
                 <input
-                  className="min-h-11 rounded-md border border-gray bg-paper px-3 text-sm font-semibold text-ink outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-sand"
+                  className="field tabular mt-0 min-w-0"
                   defaultValue={todayUtc()}
                   id="membership-start-date"
                   name="startDate"
@@ -148,9 +172,9 @@ export function MemberDetailView({
                 />
               </div>
 
-              <label className="flex min-h-11 items-center gap-3 rounded-md border border-gray px-3 py-2 text-sm font-bold text-ink">
+              <label className="flex min-h-11 items-center gap-3 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-ink-2">
                 <input
-                  className="size-5 accent-brand-orange"
+                  className="size-5 shrink-0"
                   defaultChecked
                   name="generateFirstCharge"
                   type="checkbox"
@@ -159,64 +183,64 @@ export function MemberDetailView({
               </label>
 
               <button
-                className="min-h-11 rounded-md bg-brand-orange px-5 py-3 text-sm font-black text-ink hover:bg-brand-red hover:text-paper"
+                className="btn btn-secondary"
                 type="submit"
               >
                 Asignar membresía
               </button>
             </form>
           ) : (
-            <p className="mt-4 rounded-md bg-gray-light p-4 text-sm font-semibold text-charcoal">
+            <p className="mt-4 rounded-xl bg-fill p-4 text-sm text-muted">
               No pudimos mostrar el formulario para asignar la membresía.
             </p>
           )}
         </section>
 
-        <section className="rounded-lg border border-charcoal bg-paper p-5 shadow-sm">
-          <div className="flex flex-wrap items-end justify-between gap-2">
+        <section className="panel min-w-0 overflow-hidden">
+          <div className="panel-head">
             <div>
-              <h2 className="text-xl font-black text-ink">Cargos pendientes</h2>
-              <p className="mt-1 text-sm font-semibold text-gray">
+              <h2 className="type-heading">Cargos pendientes</h2>
+              <p className="mt-1 text-sm text-muted">
                 Cada monto conserva su moneda original.
               </p>
             </div>
-            <span className="text-sm font-black text-ink">
+            <span className="tabular text-sm font-semibold text-muted">
               {member.pendingCharges.length} registrados
             </span>
           </div>
 
           {member.pendingCharges.length === 0 ? (
-            <p className="mt-4 rounded-md bg-gray-light p-4 text-sm font-semibold text-charcoal">
+            <p className="p-5 text-sm text-muted">
               No hay cargos pendientes visibles.
             </p>
           ) : (
-            <div className="mt-4 grid gap-3">
+            <ul className="divide-y divide-line">
               {member.pendingCharges.map((charge) => (
-                <article
-                  className="grid gap-2 rounded-md border border-gray p-4 sm:grid-cols-[1fr_auto] sm:items-center"
+                <li
+                  className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                   key={charge.id}
                 >
                   <div>
-                    <strong className="block text-ink">
+                    <strong className="tabular block font-semibold text-ink">
                       Vence {formatDate(charge.dueDate)}
                     </strong>
-                    <span className="text-sm font-semibold text-gray">
-                      Estado: {charge.status}
+                    <span className={`chip mt-2 ${statusChip(charge.status)}`}>
+                      Estado: {statusLabels[charge.status] ?? charge.status}
                     </span>
                   </div>
-                  <strong className="text-lg font-black text-ink">
+                  <strong className="tabular text-lg font-semibold text-ink">
                     {charge.currency} {charge.amountDue}
                   </strong>
-                </article>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </section>
       </div>
 
-      <aside className="grid content-start gap-6">
-        <section className="rounded-lg border border-charcoal bg-paper p-5 shadow-sm">
-          <h2 className="text-xl font-black text-ink">Pagos</h2>
+      <aside className="grid min-w-0 content-start gap-6">
+        <section className="panel min-w-0 p-5">
+          <h2 className="type-heading">Pagos</h2>
           {member.paymentSummary ? (
             <dl className="mt-4 grid gap-4">
               <Detail label="Total pagado registrado" value={member.paymentSummary.settledTotal} />
@@ -226,36 +250,36 @@ export function MemberDetailView({
                   ? formatDate(member.paymentSummary.lastPaymentAt)
                   : "Sin fecha registrada"}
               />
-              <p className="text-xs font-semibold text-gray">
+              <p className="text-xs text-muted">
                 Este resumen no incluye moneda; no se combinan ni convierten montos aquí.
               </p>
             </dl>
           ) : (
-            <p className="mt-3 text-sm font-semibold text-gray">
+            <p className="mt-3 text-sm text-muted">
               No hay resumen de pagos disponible.
             </p>
           )}
         </section>
 
-        <section className="rounded-lg border border-charcoal bg-paper p-5 shadow-sm">
-          <h2 className="text-xl font-black text-ink">Contacto</h2>
+        <section className="panel min-w-0 p-5">
+          <h2 className="type-heading">Contacto</h2>
           {member.contacts.length === 0 ? (
-            <p className="mt-3 text-sm font-semibold text-gray">Sin contactos registrados.</p>
+            <p className="mt-3 text-sm text-muted">Sin contactos registrados.</p>
           ) : (
             <dl className="mt-4 grid gap-3">
               {member.contacts.map((contact) => (
                 <Detail
                   key={contact.id}
-                  label={`${contact.type}${contact.isPrimary ? " · principal" : ""}`}
+                  label={`${contactLabels[contact.type] ?? contact.type}${contact.isPrimary ? " · principal" : ""}`}
                   value={contact.value}
                 />
               ))}
             </dl>
           )}
           {member.notes ? (
-            <div className="mt-5 border-t border-gray pt-4">
-              <h3 className="text-sm font-black text-ink">Notas</h3>
-              <p className="mt-2 whitespace-pre-wrap text-sm font-semibold text-gray">
+            <div className="mt-5 border-t border-line pt-4">
+              <h3 className="field-label">Notas</h3>
+              <p className="mt-2 whitespace-pre-wrap break-words text-sm text-muted">
                 {member.notes}
               </p>
             </div>
@@ -268,18 +292,25 @@ export function MemberDetailView({
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <dt className="text-xs font-black uppercase tracking-[0.12em] text-gray">{label}</dt>
-      <dd className="mt-1 break-words text-sm font-black text-ink">{value}</dd>
+    <div className="min-w-0">
+      <dt className="type-eyebrow">{label}</dt>
+      <dd className="tabular mt-1 break-words text-sm font-semibold text-ink">{value}</dd>
     </div>
   );
 }
 
 function toneClasses(tone: "success" | "warning" | "danger" | "neutral") {
-  if (tone === "success") return "border-emerald-300 bg-emerald-50 text-emerald-900";
-  if (tone === "warning") return "border-brand-orange bg-brand-sand/30 text-ink";
-  if (tone === "danger") return "border-brand-red bg-red-50 text-brand-red";
-  return "border-gray bg-gray-light text-ink";
+  if (tone === "success") return "chip-ok";
+  if (tone === "warning") return "chip-wait";
+  if (tone === "danger") return "chip-stop";
+  return "chip-neutral";
+}
+
+function statusChip(status: string) {
+  if (status === "active") return "chip-ok";
+  if (["overdue", "past_due"].includes(status)) return "chip-stop";
+  if (["expiring", "grace", "pending"].includes(status)) return "chip-wait";
+  return "chip-neutral";
 }
 
 function formatDate(value: string) {

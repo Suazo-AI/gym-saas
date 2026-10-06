@@ -7,11 +7,12 @@ import { LoadError } from "@/features/app/components/load-error";
 import { PersistedSearchForm } from "@/features/app/components/persisted-search-form";
 import { getEntryDecisionState } from "@/features/entries/entry-decision-state";
 import { FaceAccessModal } from "@/features/entries/components/face-access-modal";
-import { EntryAccessNotice } from "@/features/entries/components/entry-access-notice";
+import { getAccessPrecheck, precheckChip } from "@/features/entries/components/entry-access-notice";
 import { ManualEntryForm } from "@/features/entries/components/manual-entry-form";
 import { searchEntryMembers } from "@/features/entries/services/entry-member-search.repository";
 import { listGymEntries } from "@/features/entries/services/entry.repository";
 import { getActiveGym } from "@/features/gyms/services/get-active-gym";
+import { hasGymPermission } from "@/features/gyms/services/require-gym-permission";
 import { getMember } from "@/features/members/services/member.repository";
 
 type EntriesPageProps = {
@@ -23,12 +24,14 @@ const dateFormatter = new Intl.DateTimeFormat("es-NI", {
   timeStyle: "short",
 });
 
+const toneChip = { success: "chip chip-ok", warning: "chip chip-wait", danger: "chip chip-stop" } as const;
+
 export default async function EntriesPage({ searchParams }: EntriesPageProps) {
   const activeGym = await getActiveGym();
   if (!activeGym) redirect("/login");
 
   const params = await searchParams;
-  const [entriesResult, membersResult, selectedMemberResult, selectedAccessResult] = await Promise.all([
+  const [entriesResult, membersResult, selectedMemberResult, selectedAccessResult, canCharge] = await Promise.all([
     listGymEntries({
       gymId: activeGym.gymId,
       from: params.from,
@@ -52,6 +55,10 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
           search: params.gymMemberId,
         }).catch((error: unknown) => ({ error }))
       : Promise.resolve(null),
+    // Solo decide si se muestra el atajo a cobrar; la RPC de pagos vuelve a validar.
+    params.gymMemberId
+      ? hasGymPermission(activeGym.gymId, "payments.manage").catch(() => false)
+      : Promise.resolve(false),
   ]);
 
   const selectedMemberBase = selectedMemberResult
@@ -81,139 +88,146 @@ export default async function EntriesPage({ searchParams }: EntriesPageProps) {
     <>
       <ModuleHeader
         action={<FaceAccessModal />}
-        eyebrow="Entradas"
-        title="Recepción rápida"
-        description="Busca a un miembro, confirma su estado y registra cada intento de entrada."
+        eyebrow="Mostrador"
+        title="Recepción"
+        description="Busca al miembro, mira si puede entrar y registra su entrada."
       />
 
-      <section className="mt-6 rounded-lg border border-gray-300 bg-paper shadow-sm">
-        <div className="border-b border-gray p-5">
-          <h2 className="text-xl font-black text-ink">Registrar entrada manual</h2>
-          <p className="mt-1 text-sm text-gray-300">
-            Busca por nombre, teléfono o código y selecciona al miembro correcto.
-          </p>
-        </div>
-
-        <PersistedSearchForm placeholder="Buscar por nombre, teléfono o código" storageKey="fitmanager.entries.search" />
-        {/* Legacy form markup is replaced by the client search above. */}
-        <form className="hidden">
-          <label className="sr-only" htmlFor="entry-member-search">
-            Buscar miembro
-          </label>
-          <input
-            className="min-h-11 flex-1 rounded-md border border-gray px-3 text-ink outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-sand"
-            defaultValue={params.search ?? ""}
-            id="entry-member-search"
-            name="search"
-            placeholder="Buscar por nombre, teléfono o código"
-          />
-          <button
-            className="min-h-11 rounded-md bg-ink px-5 py-3 text-sm font-black text-paper hover:bg-charcoal"
-            type="submit"
-          >
-            Buscar
-          </button>
-        </form>
-
-        {membersResult && "error" in membersResult ? (
-          <p className="p-5 text-sm font-semibold text-brand-red" role="alert">
-            No pudimos buscar miembros. Intenta nuevamente.
-          </p>
-        ) : membersResult && membersResult.length === 0 ? (
-          <p className="p-5 text-sm text-gray-300">
-            No encontramos miembros con esa búsqueda.
-          </p>
-        ) : membersResult ? (
-          <div className="divide-y divide-gray">
-            {membersResult.map((member) => (
-              <Link
-                className="flex min-h-11 items-center justify-between gap-4 px-5 py-3 hover:bg-gray-light"
-                href={{
-                  pathname: "/entries",
-                  query: {
-                    search: params.search ?? "",
-                    gymMemberId: member.gymMemberId,
-                    ...(params.from ? { from: params.from } : {}),
-                    ...(params.to ? { to: params.to } : {}),
-                  },
-                }}
-                key={member.gymMemberId}
-              >
-                <span>
-                  <strong className="block text-sm text-ink">{member.fullName}</strong>
-                  <span className="text-sm text-gray-300">{member.memberCode}</span>
-                </span>
-                <span className="text-sm font-black text-ink">Seleccionar</span>
-              </Link>
-            ))}
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <section aria-labelledby="entry-search-title" className="panel overflow-hidden">
+          <div className="px-5 pt-4">
+            <h2 className="type-heading" id="entry-search-title">Buscar miembro</h2>
           </div>
-        ) : (
-          <p className="p-5 text-sm text-gray-300">
-            Escribe un nombre, teléfono o código para comenzar.
-          </p>
-        )}
-      </section>
+          <PersistedSearchForm placeholder="Buscar por nombre, teléfono o código" storageKey="fitmanager.entries.search" />
 
-      {(selectedMemberResult && "error" in selectedMemberResult) || selectedAccessFailed ? (
-        <LoadError className="mt-6">
-          No pudimos cargar el miembro seleccionado.
-        </LoadError>
-      ) : selectedMember ? (
-        <div className="mt-6 grid gap-4">
-          <EntryAccessNotice member={selectedMember} />
-          <ManualEntryForm
-            branchId={selectedMember.branchId}
-            gymId={activeGym.gymId}
-            gymMemberId={selectedMember.gymMemberId}
-            memberCode={selectedMember.memberCode}
-            memberFullName={selectedMember.fullName}
-          />
+          {membersResult && "error" in membersResult ? (
+            <p className="p-5 text-sm font-semibold text-stop" role="alert">
+              No pudimos buscar miembros. Intenta nuevamente.
+            </p>
+          ) : membersResult && membersResult.length === 0 ? (
+            <div className="p-5 text-sm text-muted">
+              <p>No encontramos miembros con esa búsqueda.</p>
+              <Link className="btn btn-secondary mt-3" href="/members/new">Registrar miembro nuevo</Link>
+            </div>
+          ) : membersResult ? (
+            <ul className="divide-y divide-line">
+              {membersResult.map((member) => {
+                const chip = precheckChip[getAccessPrecheck(member)];
+                const selected = member.gymMemberId === params.gymMemberId;
+                return (
+                  <li key={member.gymMemberId}>
+                    <Link
+                      aria-current={selected ? "true" : undefined}
+                      className={`row-link flex min-h-14 items-center gap-3 px-5 py-3 ${selected ? "bg-accent-tint hover:bg-accent-tint" : ""}`}
+                      href={{
+                        pathname: "/entries",
+                        query: {
+                          search: params.search ?? "",
+                          gymMemberId: member.gymMemberId,
+                          ...(params.from ? { from: params.from } : {}),
+                          ...(params.to ? { to: params.to } : {}),
+                        },
+                      }}
+                    >
+                      <Initials name={member.fullName} />
+                      <span className="min-w-0 flex-1">
+                        <strong className="block truncate text-[0.9375rem] font-semibold text-ink">{member.fullName}</strong>
+                        <span className="tabular text-sm text-muted">{member.memberCode}</span>
+                      </span>
+                      <span className={chip.className}>{chip.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="p-5 text-sm text-muted">
+              Escribe un nombre, teléfono o código para comenzar.
+            </p>
+          )}
+        </section>
+
+        <div className="lg:sticky lg:top-24">
+          {(selectedMemberResult && "error" in selectedMemberResult) || selectedAccessFailed ? (
+            <LoadError>
+              No pudimos cargar el miembro seleccionado.
+            </LoadError>
+          ) : selectedMember ? (
+            <ManualEntryForm
+              access={selectedMember}
+              branchId={selectedMember.branchId}
+              canCharge={canCharge}
+              gymId={activeGym.gymId}
+              gymMemberId={selectedMember.gymMemberId}
+              key={selectedMember.gymMemberId}
+              memberCode={selectedMember.memberCode}
+              memberFullName={selectedMember.fullName}
+            />
+          ) : (
+            <div className="grid min-h-64 place-items-center rounded-[20px] border border-dashed border-line-strong p-8 text-center">
+              <div>
+                <p className="type-heading text-ink">Nadie seleccionado</p>
+                <p className="mt-1 text-sm text-muted">Elige un miembro de la lista para ver si puede entrar.</p>
+              </div>
+            </div>
+          )}
         </div>
-      ) : null}
+      </div>
 
-      <section className="mt-6 rounded-lg border border-gray-300 bg-paper shadow-sm">
-        <div className="border-b border-gray p-5">
-          <h2 className="text-xl font-black text-ink">Entradas por periodo</h2>
-          <p className="mt-1 text-sm text-gray-300">
-            Historial manual y facial visible para tu gimnasio.
-          </p>
+      <section aria-labelledby="entry-history-title" className="panel mt-8 overflow-hidden">
+        <div className="panel-head">
+          <div>
+            <h2 className="type-heading" id="entry-history-title">Entradas por periodo</h2>
+            <p className="mt-0.5 text-sm text-muted">Historial manual y facial de tu gimnasio.</p>
+          </div>
         </div>
 
         <PersistedDateRangeForm from={params.from} storageKey="fitmanager:entries-date-range" to={params.to} />
 
         {"error" in entriesResult ? (
-          <LoadError>
+          <LoadError className="m-4">
             No pudimos cargar las entradas. Intenta nuevamente.
           </LoadError>
         ) : entriesResult.length === 0 ? (
-          <p className="p-5 text-sm text-gray-300">Todavía no hay entradas registradas.</p>
+          <p className="p-5 text-sm text-muted">Todavía no hay entradas registradas.</p>
         ) : (
-          <div className="divide-y divide-gray">
+          <ul className="divide-y divide-line">
             {entriesResult.map((entry) => {
               const state = getEntryDecisionState(entry);
               return (
-                <div
-                  className="grid gap-3 p-4 md:grid-cols-[0.8fr_1fr_1.5fr] md:items-center"
+                <li
+                  className="grid gap-x-4 gap-y-1 px-5 py-3 sm:grid-cols-[11rem_5rem_minmax(0,1fr)] sm:items-center"
                   key={`${entry.source}-${entry.entryId}`}
                 >
-                  <span className="text-sm font-black text-ink">
-                    {entry.source === "manual" ? "Manual" : "Facial"}
-                  </span>
-                  <span className="text-sm font-black text-ink">
-                    <span aria-hidden="true">{state.icon}</span> {state.label}
-                  </span>
-                  <time className="text-sm text-gray-300" dateTime={entry.occurredAt}>
+                  <time className="tabular text-sm text-ink-2" dateTime={entry.occurredAt}>
                     {dateFormatter.format(new Date(entry.occurredAt))}
                   </time>
-                  {entry.decisionReason ? (
-                    <p className="text-sm text-gray-300 md:col-span-3">{entry.decisionReason}</p>
-                  ) : null}
-                </div>
+                  <span className="text-sm text-muted">
+                    {entry.source === "manual" ? "Manual" : "Facial"}
+                  </span>
+                  <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className={toneChip[state.tone]}>
+                      <span aria-hidden="true">{state.icon}</span> {state.label}
+                    </span>
+                    {entry.decisionReason ? (
+                      <span className="min-w-0 truncate text-sm text-muted">{entry.decisionReason}</span>
+                    ) : null}
+                  </span>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </section>
     </>
+  );
+}
+
+function Initials({ name }: { name: string }) {
+  const letters = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
+  return (
+    <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-full bg-fill-strong text-xs font-bold text-ink-2">
+      {letters || "?"}
+    </span>
   );
 }

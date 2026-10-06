@@ -5,17 +5,17 @@ type ModuleHeaderProps = {
   action?: React.ReactNode;
 };
 
+// Encabezado sobre el lienzo, sin caja: el titulo dice donde estas y la accion
+// principal queda a la derecha, alineada con la ultima linea de texto.
 export function ModuleHeader({ eyebrow, title, description, action }: ModuleHeaderProps) {
   return (
-    <header className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-green">{eyebrow}</p>
-      <div className="mt-4 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-        <div>
-          <h1 className="text-3xl font-black leading-tight text-ink sm:text-4xl">{title}</h1>
-          <p className="mt-3 max-w-2xl text-gray">{description}</p>
-        </div>
-        {action}
+    <header className="flex flex-col justify-between gap-4 pb-2 sm:flex-row sm:items-end">
+      <div className="min-w-0">
+        <p className="type-eyebrow">{eyebrow}</p>
+        <h1 className="type-title mt-1.5 text-ink">{title}</h1>
+        <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">{description}</p>
       </div>
+      {action ? <div className="flex shrink-0 flex-wrap gap-2">{action}</div> : null}
     </header>
   );
 }
